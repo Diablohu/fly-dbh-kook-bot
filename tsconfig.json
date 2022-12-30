@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "lib": ["esnext"],
+        "allowJs": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "module": "esnext",
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "noEmit": true,
+        "jsx": "preserve",
+        "baseUrl": ".",
+        "paths": {}
+    },
+    "include": ["src", "types/**/*.ts"]
+}

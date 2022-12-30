@@ -1,0 +1,6 @@
+{
+    "extends": ["koot"],
+    "rules": {
+        "no-console": 0
+    }
+}
