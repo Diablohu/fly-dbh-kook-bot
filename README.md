@@ -7,9 +7,10 @@
 
 **使用的环境变量**
 
-| 变量名     | 值             |
-| ---------- | -------------- |
-| KOOK_TOKEN | Kook bot token |
+| 变量名          | 值                                  |
+| --------------- | ----------------------------------- |
+| KOOK_TOKEN      | Kook bot token                      |
+| KOOK_TOKEN_FILE | Kook bot token (Docker secret file) |
 
 ## 当前能力
 

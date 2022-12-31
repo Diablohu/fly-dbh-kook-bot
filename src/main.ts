@@ -10,6 +10,13 @@ import startKoaServer from './start/koa-server';
 // ============================================================================
 
 dotenv.config();
+if (!process.env.KOOK_TOKEN) {
+    process.env.KOOK_TOKEN =
+        !!process.env.KOOK_TOKEN_FILE &&
+        fs.existsSync(process.env.KOOK_TOKEN_FILE)
+            ? fs.readFileSync(process.env.KOOK_TOKEN_FILE, 'utf-8')
+            : '';
+}
 
 // ============================================================================
 

@@ -11,6 +11,10 @@ import { port, newsChannelID } from '../../app.config';
 
 async function startKoaServer(): Promise<Koa> {
     const app: Koa = new Koa();
+    const headers = {
+        Authorization: `Bot ${process.env.KOOK_TOKEN as string}`,
+        'Content-type': 'application/json',
+    };
 
     // app.use(async (ctx) => {
     //     ctx.body = 'Hello World';
@@ -67,9 +71,7 @@ async function startKoaServer(): Promise<Koa> {
                     form,
                     {
                         headers: {
-                            Authorization: `Bot ${
-                                process.env.KOOK_TOKEN as string
-                            }`,
+                            ...headers,
                             'Content-type': 'form-data',
                         },
                     }
@@ -87,7 +89,7 @@ async function startKoaServer(): Promise<Koa> {
                 index++;
             }
         }
-        console.log(medias);
+        // console.log(medias);
 
         const content = [
             {
@@ -169,8 +171,7 @@ async function startKoaServer(): Promise<Koa> {
             },
             {
                 headers: {
-                    Authorization: `Bot ${process.env.KOOK_TOKEN as string}`,
-                    'Content-type': 'application/json',
+                    ...headers,
                 },
             }
         );
