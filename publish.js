@@ -41,12 +41,16 @@ const {
     dist: 'dist',
 
     /** 流程结束后执行 */
-    // after() {
-    //     // eslint-disable-next-line no-console
-    //     console.log(
-    //         '可能需要刷新 CDN 才正式可用'
-    //     );
-    // },
+    after() {
+        // eslint-disable-next-line no-console
+        console.log(
+            `\n发布完成 ${new Intl.DateTimeFormat('zh-CN', {
+                dateStyle: 'long',
+                timeStyle: 'short',
+                timeZone: 'Asia/Shanghai',
+            }).format(Date.now())}\n\n`
+        );
+    },
 };
 
 async function publish() {
