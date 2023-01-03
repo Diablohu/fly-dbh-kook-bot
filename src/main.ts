@@ -21,10 +21,13 @@ if (!process.env.KOOK_TOKEN) {
 // ============================================================================
 
 export let app: Koa;
+export const messageMap = new Map();
 
 // ============================================================================
 
+let launched = false;
 (async function () {
+    if (launched) return;
     /** 当前是否是开发环境 */
     const isEnvDevelopment = process.env.WEBPACK_BUILD_ENV === 'dev';
 
@@ -54,4 +57,6 @@ export let app: Koa;
             console.log('\n');
             console.error(err);
         });
+
+    launched = true;
 })();

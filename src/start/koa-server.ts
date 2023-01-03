@@ -3,18 +3,19 @@ import koaRouter from 'koa-router';
 // import { koaBody } from 'koa-body';
 import bodyParser from 'koa-bodyparser';
 import axios from 'axios';
-import FormData from 'form-data';
 
+import type { MessageSource } from '../../types';
+
+import getDefaultHeaders from '../headers';
+import upload from '../upload';
+import { messageMap } from '../main';
+import { getSourceLogo } from '../source-logos';
 import { port, newsChannelID } from '../../app.config';
 
 // ============================================================================
 
 async function startKoaServer(): Promise<Koa> {
     const app: Koa = new Koa();
-    const headers = {
-        Authorization: `Bot ${process.env.KOOK_TOKEN as string}`,
-        'Content-type': 'application/json',
-    };
 
     // app.use(async (ctx) => {
     //     ctx.body = 'Hello World';
@@ -37,59 +38,37 @@ async function startKoaServer(): Promise<Koa> {
     router.post('/sync-discord-bot', async (ctx) => {
         ctx.set('Access-Control-Allow-Origin', '*');
 
-        const { userid, username, useravatar, createAt, body, attachments } =
-            ctx.request.body as {
-                userid: string;
-                username: string;
-                useravatar: string;
-                createAt: number;
-                body: string;
-                attachments: string;
-            };
-
-        const medias = {
-            avatar: `https://cdn.discordapp.com/avatars/${userid}/${useravatar}.webp`,
-            attachments: (
-                JSON.parse(attachments) as {
-                    url: string;
-                    type: string;
-                }[]
-            ).filter(({ type }) => /^image\//.test(type)),
+        const {
+            msgId,
+            channelId,
+            // userid,
+            userName,
+            userAvatar,
+            // userAvatarId,
+            createAt,
+            body,
+            attachments,
+            embeds,
+            source,
+        } = ctx.request.body as {
+            msgId: string;
+            channelId: string;
+            userid: string;
+            userName: string;
+            userAvatar: string;
+            createAt: number;
+            body: string;
+            attachments: {
+                url: string;
+                type: string;
+            }[];
+            embeds: {
+                type: 'rich' | 'video';
+            }[];
+            source?: MessageSource;
         };
 
-        // 上传附件
-        {
-            async function upload(url: string): Promise<string> {
-                const stream = await axios.get(url, {
-                    responseType: 'stream',
-                });
-                const form = new FormData();
-                // Pass image stream from response directly to form
-                form.append('file', stream.data, 'avatar.webp');
-                const res = await axios.post(
-                    'https://www.kookapp.cn/api/v/asset/create',
-                    form,
-                    {
-                        headers: {
-                            ...headers,
-                            'Content-type': 'form-data',
-                        },
-                    }
-                );
-                return res.data.data.url;
-            }
-
-            medias.avatar = await upload(medias.avatar);
-
-            let index = 0;
-            for (const { url } of medias.attachments) {
-                // if (/^image\//.test(type)) {
-                medias.attachments[index].url = await upload(url);
-                // }
-                index++;
-            }
-        }
-        // console.log(medias);
+        const avatar = !userAvatar ? undefined : await upload(userAvatar);
 
         const content = [
             {
@@ -100,16 +79,18 @@ async function startKoaServer(): Promise<Koa> {
                     {
                         type: 'context',
                         elements: [
-                            {
-                                type: 'image',
-                                src: medias.avatar,
-                            },
-                            { type: 'plain-text', content: username },
-                            {
-                                type: 'plain-text',
-                                content: ` ${createAt}`,
-                            },
-                        ],
+                            !!avatar
+                                ? {
+                                      type: 'image',
+                                      src: avatar,
+                                  }
+                                : undefined,
+                            { type: 'plain-text', content: userName },
+                            // {
+                            //     type: 'plain-text',
+                            //     content: ` ${createAt}`,
+                            // },
+                        ].filter((v) => !!v),
                     },
                     {
                         type: 'section',
@@ -122,21 +103,32 @@ async function startKoaServer(): Promise<Koa> {
             },
         ];
 
-        if (Array.isArray(medias.attachments)) {
-            if (medias.attachments.length === 1) {
+        if (Array.isArray(attachments)) {
+            const filtered = attachments.filter(({ type }) =>
+                /^image\//.test(type)
+            );
+            let index = 0;
+            for (const { url } of filtered) {
+                // if (/^image\//.test(type)) {
+                filtered[index].url = await upload(url);
+                // }
+                index++;
+            }
+
+            if (filtered.length === 1) {
                 content[0].modules.push({
                     type: 'container',
                     elements: [
                         {
                             type: 'image',
-                            src: medias.attachments[0].url,
+                            src: filtered[0].url,
                         },
                     ],
                 });
-            } else if (medias.attachments.length > 1) {
+            } else if (filtered.length > 1) {
                 content[0].modules.push({
                     type: 'image-group',
-                    elements: medias.attachments.map(({ type, url }) => ({
+                    elements: filtered.map(({ type, url }) => ({
                         type: 'image',
                         src: url,
                     })),
@@ -144,39 +136,77 @@ async function startKoaServer(): Promise<Koa> {
             }
         }
 
-        content[0].modules.push({
-            type: 'context',
-            elements: [
-                {
-                    type: 'plain-text',
-                    content: '来自【DBH 机器人】的自动消息',
-                },
-            ],
+        // 处理 source
+        {
+            let sourceLogo, sourceTitle;
+            switch (source) {
+                case 'discord': {
+                    sourceLogo = await getSourceLogo(source);
+                    sourceTitle = 'Discrod';
+                    break;
+                }
+                default: {
+                }
+            }
+            content[0].modules.push({
+                type: 'context',
+                elements: [
+                    !sourceLogo
+                        ? undefined
+                        : {
+                              type: 'image',
+                              src: sourceLogo,
+                          },
+                    {
+                        type: 'plain-text',
+                        content: [
+                            sourceTitle,
+                            new Intl.DateTimeFormat('zh-CN', {
+                                dateStyle: 'long',
+                                timeStyle: 'short',
+                            }).format(new Date(createAt)),
+                        ]
+                            .filter((v) => !!v)
+                            .join(' · '),
+                    },
+                ].filter((v) => !!v),
+            });
+        }
+
+        // TODO: 处理 embed
+        if (Array.isArray(embeds) && embeds.length > 0) {
+            console.log(embeds);
+        }
+        // console.log({ userid, userName, userAvatar }, content);
+
+        const url =
+            'https://www.kookapp.cn/api/v/message/' +
+            (messageMap.has(msgId) ? 'update' : 'create');
+        const postData: Record<string, unknown> = {
+            type: 10,
+            target_id: channelId || newsChannelID,
+            // content: (
+            //     ctx.request.body as {
+            //         content?: string;
+            //     }
+            // )?.content,
+            content: JSON.stringify(content),
+            nonce: `FLY-DBH-KOOK-BOT @ ${Date.now()}`,
+        };
+
+        if (messageMap.has(msgId)) {
+            postData.msg_id = messageMap.get(msgId);
+        }
+
+        const res = await axios.post(url, postData, {
+            headers: {
+                ...getDefaultHeaders(),
+            },
         });
 
-        // console.log({ userid, username, useravatar }, content);
+        console.log(res.data, res.data.data.msg_id);
 
-        const res = await axios.post(
-            'https://www.kookapp.cn/api/v/message/create',
-            {
-                type: 10,
-                target_id: newsChannelID,
-                // content: (
-                //     ctx.request.body as {
-                //         content?: string;
-                //     }
-                // )?.content,
-                content: JSON.stringify(content),
-                nonce: `FLY-DBH-KOOK-BOT @ ${Date.now()}`,
-            },
-            {
-                headers: {
-                    ...headers,
-                },
-            }
-        );
-
-        console.log(res.data);
+        messageMap.set(msgId, res.data.data.msg_id);
 
         ctx.body = res.data;
     });
