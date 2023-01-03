@@ -3,6 +3,7 @@ const { spawn } = require('child_process');
 // const debug = require('debug')('webpack');
 
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = () => {
     /** 当前是否是开发环境 */
@@ -11,7 +12,7 @@ module.exports = () => {
     const dist = path.resolve(__dirname, 'dist');
 
     const config = {
-        mode: 'development',
+        mode: isEnvDevelopment ? 'development' : 'production',
         devtool: isEnvDevelopment ? 'cheap-module-source-map' : 'source-map',
         target: 'async-node',
         watch: isEnvDevelopment ? true : false,
@@ -67,6 +68,11 @@ module.exports = () => {
 
     if (!isEnvDevelopment) {
         config.plugins.push(new CleanWebpackPlugin());
+        config.plugins.push(
+            new CopyPlugin({
+                patterns: [path.resolve(__dirname, './build-copy')],
+            })
+        );
     } else {
         let child;
         // let launched = false;
