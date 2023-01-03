@@ -164,6 +164,7 @@ async function startKoaServer(): Promise<Koa> {
                             new Intl.DateTimeFormat('zh-CN', {
                                 dateStyle: 'long',
                                 timeStyle: 'short',
+                                timeZone: 'Asia/Shanghai',
                             }).format(new Date(createAt)),
                         ]
                             .filter((v) => !!v)
