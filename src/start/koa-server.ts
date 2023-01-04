@@ -96,7 +96,11 @@ async function startKoaServer(): Promise<Koa> {
                         type: 'section',
                         text: {
                             type: 'kmarkdown',
-                            content: body,
+                            content: body.replace(
+                                /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/g,
+                                `[$1]($1)`
+                            ),
+                            //
                         },
                     },
                 ],
@@ -210,6 +214,10 @@ async function startKoaServer(): Promise<Koa> {
         messageMap.set(msgId, res.data.data.msg_id);
 
         ctx.body = res.data;
+    });
+
+    router.post('/sync-message', async (ctx) => {
+        //
     });
 
     app.use(router.routes());
