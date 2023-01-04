@@ -105,7 +105,10 @@ module.exports = () => {
 
                         child = spawn(
                             'node',
-                            [path.resolve(dist, 'main.cjs')],
+                            [
+                                '--inspect=127.0.0.1:9230',
+                                path.resolve(dist, 'main.cjs'),
+                            ],
                             {
                                 stdio: 'inherit',
                             }
