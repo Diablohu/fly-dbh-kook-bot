@@ -291,7 +291,7 @@ export async function syncMessage({
             title,
             description,
             image,
-            video,
+            // video,
             thumbnail,
             url,
             footer,
