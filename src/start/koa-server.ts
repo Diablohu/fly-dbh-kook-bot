@@ -1,3 +1,5 @@
+import type { Message } from 'discord.js';
+
 import Koa from 'koa';
 import koaRouter from 'koa-router';
 // import { koaBody } from 'koa-body';
@@ -7,6 +9,7 @@ import type { MessageSource } from '../../types';
 
 import { port } from '../../app.config';
 import { syncMessage } from '../api/sync-message';
+import { syncMessage as syncDiscordMessage } from '../api/sync-discord';
 
 // ============================================================================
 
@@ -57,9 +60,14 @@ async function startKoaServer(): Promise<Koa> {
         ).data;
     });
 
-    router.post('/sync-message', async (ctx) => {
-        //
+    router.post('/sync-discord-message', async (ctx) => {
+        ctx.set('Access-Control-Allow-Origin', '*');
+        ctx.body = (await syncDiscordMessage(ctx.request.body as Message)).data;
     });
+    // router.delete('/sync-discord', async (ctx) => {
+    //     ctx.set('Access-Control-Allow-Origin', '*');
+    //     ctx.body = (await syncDiscordMessage(ctx.request.body)).data;
+    // });
 
     app.use(router.routes());
 
