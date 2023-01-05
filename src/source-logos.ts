@@ -12,6 +12,7 @@ const logos = {
     discord:
         'https://cdn.iconscout.com/icon/free/png-256/discord-3691244-3073764.png',
     twitter: 'https://abs.twimg.com/icons/apple-touch-icon-192x192.png',
+    youtube: 'https://cdn-icons-png.flaticon.com/512/1384/1384060.png',
 };
 
 let cache: Record<string, string>;

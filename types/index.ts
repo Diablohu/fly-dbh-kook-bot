@@ -1,1 +1,1 @@
-export type MessageSource = 'discord';
+export type MessageSource = 'discord' | 'twitter' | 'youtube';

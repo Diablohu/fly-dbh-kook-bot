@@ -27,7 +27,8 @@ import { newsChannelID } from '../../app.config';
 //     if (queue.length > 0) await queueRun();
 // }
 
-type Module =
+type SizeType = 'xs' | 'sm' | 'md' | 'lg';
+type ModuleType =
     | {
           type:
               | 'section'
@@ -36,20 +37,24 @@ type Module =
               | 'plain-text'
               | 'image'
               | 'image-group'
-              | 'container';
+              | 'container'
+              | 'video';
           src?: string;
           content?: string;
-          elements?: Module[];
-          text?: Module;
-          size?: 'sm' | 'md' | 'lg';
+          elements?: ModuleType[];
+          title?: string;
+          text?: ModuleType;
+          size?: SizeType;
+          mode?: 'left' | 'right';
+          accessory?: ModuleType;
       }
     | undefined;
-type Message = {
+type MessageType = {
     type: 'card';
     theme?: 'primary' | 'warning' | 'danger' | 'info' | 'none' | 'secondary';
     color?: string;
-    size?: 'sm' | 'md' | 'lg';
-    modules: Module[];
+    size?: SizeType;
+    modules: ModuleType[];
 };
 
 // ============================================================================
@@ -90,9 +95,10 @@ export async function syncMessage({
         type: string;
     }[];
     embeds: {
-        type: 'rich' | 'video';
+        type: 'rich' | 'video' | 'link';
         url?: string;
         timestamp?: string;
+        title?: string;
         description?: string;
         color?: number;
         author?: {
@@ -101,7 +107,22 @@ export async function syncMessage({
             url?: string;
             proxy_icon_url?: string;
         };
+        provider?: {
+            name?: string;
+            url?: string;
+        };
         image?: {
+            width?: number;
+            height?: number;
+            url?: string;
+            proxy_url?: string;
+        };
+        video?: {
+            width?: number;
+            height?: number;
+            url?: string;
+        };
+        thumbnail?: {
             width?: number;
             height?: number;
             url?: string;
@@ -122,27 +143,28 @@ export async function syncMessage({
 }) {
     const avatar = !userAvatar ? undefined : await upload(userAvatar);
 
-    const content: Message[] = [
+    const content: MessageType[] = [
         {
             type: 'card',
-            theme: 'secondary',
+            theme:
+                process.env.WEBPACK_BUILD_ENV === 'dev' ? 'none' : 'secondary',
             size: 'lg',
             modules: [
                 {
                     type: 'context',
                     elements: [
                         !!avatar
-                            ? ({
+                            ? {
                                   type: 'image',
                                   src: avatar,
-                              } as Module)
+                              }
                             : undefined,
-                        { type: 'plain-text', content: userName } as Module,
+                        { type: 'plain-text', content: userName },
                         // {
                         //     type: 'plain-text',
                         //     content: ` ${createAt}`,
                         // },
-                    ].filter((v) => !!v),
+                    ].filter((v) => !!v) as ModuleType[],
                 },
                 {
                     type: 'section',
@@ -206,10 +228,10 @@ export async function syncMessage({
             elements: [
                 !sourceLogo
                     ? undefined
-                    : ({
+                    : {
                           type: 'image',
                           src: sourceLogo,
-                      } as Module),
+                      },
                 {
                     type: 'plain-text',
                     content: [
@@ -222,21 +244,20 @@ export async function syncMessage({
                     ]
                         .filter((v) => !!v)
                         .join(' · '),
-                } as Module,
-            ].filter((v) => !!v),
+                },
+            ].filter((v) => !!v) as ModuleType[],
         });
     }
 
     if (Array.isArray(embeds) && embeds.length > 0) {
-        // console.log(embeds);
-        const thisContent: Message = {
+        const thisContent: MessageType = {
             type: 'card',
             theme: 'secondary',
             size: 'lg',
             modules: [],
         };
         let index = 0;
-        let imageModule: Module;
+        let imageModule: ModuleType;
         async function addImage(image: {
             width?: number;
             height?: number;
@@ -266,16 +287,73 @@ export async function syncMessage({
             type,
             color,
             author,
+            provider,
+            title,
             description,
             image,
+            video,
+            thumbnail,
+            url,
             footer,
             timestamp,
         } of embeds) {
+            console.log(embeds[index]);
+
             if (typeof color === 'number') {
                 delete thisContent['theme'];
                 thisContent.color =
                     '#' + (color + Math.pow(16, 6)).toString(16).substr(-6);
             }
+
+            async function addAuthor() {
+                if (!author) return;
+                thisContent.modules.push({
+                    type: 'context',
+                    elements: [
+                        !!author.icon_url
+                            ? {
+                                  type: 'image',
+                                  //   size: 'sm',
+                                  src: await upload(author.icon_url),
+                              }
+                            : undefined,
+                        !!author.url
+                            ? {
+                                  type: 'kmarkdown',
+                                  content: `[${(author.name as string).replace(
+                                      /\[(.+?)\]/g,
+                                      '\\[$1\\]'
+                                  )}](${author.url}}](${author.url})`,
+                              }
+                            : {
+                                  type: 'plain-text',
+                                  content: author.name,
+                              },
+                    ].filter((v) => !!v) as ModuleType[],
+                });
+            }
+            async function addProvider() {
+                if (!provider) return;
+                thisContent.modules.push({
+                    type: 'context',
+                    elements: [
+                        !!provider.url
+                            ? {
+                                  type: 'kmarkdown',
+                                  content: `[${(
+                                      provider.name as string
+                                  ).replace(/\[(.+?)\]/g, '\\[$1\\]')}](${
+                                      provider.url
+                                  })`,
+                              }
+                            : {
+                                  type: 'plain-text',
+                                  content: provider.name,
+                              },
+                    ],
+                });
+            }
+
             switch (type) {
                 case 'rich': {
                     if (
@@ -286,31 +364,7 @@ export async function syncMessage({
                     ) {
                         await addImage(image);
                     } else {
-                        if (!!author) {
-                            thisContent.modules.push({
-                                type: 'context',
-                                elements: [
-                                    !!author.icon_url
-                                        ? {
-                                              type: 'image',
-                                              //   size: 'sm',
-                                              src: await upload(
-                                                  author.icon_url
-                                              ),
-                                          }
-                                        : undefined,
-                                    !!author.url
-                                        ? {
-                                              type: 'kmarkdown',
-                                              content: `[${author.name}](${author.url})`,
-                                          }
-                                        : {
-                                              type: 'plain-text',
-                                              content: author.name,
-                                          },
-                                ].filter((v) => !!v) as Module[],
-                            });
-                        }
+                        await addAuthor();
                         if (!!description)
                             thisContent.modules.push({
                                 type: 'section',
@@ -321,45 +375,146 @@ export async function syncMessage({
                                 },
                             });
                         if (!!image) await addImage(image);
-                        if (!!footer) {
-                            thisContent.modules.push({
-                                type: 'context',
-                                elements: [
-                                    {
-                                        type: 'image',
-                                        src: await getSourceLogo(
-                                            footer.text as MessageSource,
-                                            footer.icon_url
-                                        ),
-                                    },
-                                    !!timestamp
-                                        ? {
-                                              type: 'plain-text',
-                                              content: [
-                                                  footer.text,
-                                                  new Intl.DateTimeFormat(
-                                                      'zh-CN',
-                                                      {
-                                                          dateStyle: 'long',
-                                                          timeStyle: 'short',
-                                                          timeZone:
-                                                              'Asia/Shanghai',
-                                                      }
-                                                  ).format(new Date(timestamp)),
-                                              ]
-                                                  .filter((v) => !!v)
-                                                  .join(' · '),
-                                          }
-                                        : undefined,
-                                ].filter((v) => !!v) as Module[],
-                            });
-                        }
                     }
                     break;
                 }
+                case 'link': {
+                    // console.log(embeds[index]);
+                    await addProvider();
+                    thisContent.modules.push({
+                        type: 'section',
+                        text: !!url
+                            ? {
+                                  type: 'kmarkdown',
+                                  content: [
+                                      !!url
+                                          ? `**[${(title as string).replace(
+                                                /\[(.+?)\]/g,
+                                                '\\[$1\\]'
+                                            )}](${url})**`
+                                          : `**${title}**`,
+                                      !!description
+                                          ? transformMarkdown(description)
+                                          : undefined,
+                                  ]
+                                      .filter((v) => !!v)
+                                      .join('\n'),
+                              }
+                            : {
+                                  type: 'plain-text',
+                                  content: title,
+                              },
+                        mode: 'right',
+                        accessory: !!thumbnail
+                            ? {
+                                  type: 'image',
+                                  src: await upload(thumbnail?.url as string),
+                                  size: 'sm',
+                              }
+                            : undefined,
+                    });
+                    // if (!!description)
+                    //     thisContent.modules.push({
+                    //         type: 'section',
+                    //         text: {
+                    //             type: 'kmarkdown',
+                    //             content: transformMarkdown(description),
+                    //             //
+                    //         },
+                    //     });
+                    break;
+                }
+                case 'video': {
+                    // await addProvider();
+                    await addAuthor();
+                    thisContent.modules.push({
+                        type: 'section',
+                        text: !!url
+                            ? {
+                                  type: 'kmarkdown',
+                                  content: [
+                                      !!url
+                                          ? `**[${(title as string).replace(
+                                                /\[(.+?)\]/g,
+                                                '\\[$1\\]'
+                                            )}](${url})**`
+                                          : `**${title}**`,
+                                  ]
+                                      .filter((v) => !!v)
+                                      .join('\n'),
+                              }
+                            : {
+                                  type: 'plain-text',
+                                  content: title,
+                              },
+                    });
+                    // thisContent.modules.push({
+                    //     type: 'video',
+                    //     title: title,
+                    //     src: url,
+                    // });
+                    if (!!thumbnail) await addImage(thumbnail);
+                    thisContent.modules.push({
+                        type: 'context',
+                        elements: [
+                            {
+                                type: 'image',
+                                src: await getSourceLogo('youtube'),
+                            },
+                            {
+                                type: 'plain-text',
+                                content: [
+                                    'YouTube',
+                                    !!timestamp
+                                        ? new Intl.DateTimeFormat('zh-CN', {
+                                              dateStyle: 'long',
+                                              timeStyle: 'short',
+                                              timeZone: 'Asia/Shanghai',
+                                          }).format(new Date(timestamp))
+                                        : undefined,
+                                ]
+                                    .filter((v) => !!v)
+                                    .join(' · '),
+                            },
+                        ].filter((v) => !!v) as ModuleType[],
+                    });
+                    break;
+                }
                 default: {
+                    console.log(embeds[index]);
                 }
             }
+
+            if (!!footer) {
+                thisContent.modules.push({
+                    type: 'context',
+                    elements: [
+                        {
+                            type: 'image',
+                            src: await getSourceLogo(
+                                footer.text as MessageSource,
+                                footer.icon_url
+                            ),
+                        },
+                        !!timestamp
+                            ? {
+                                  type: 'plain-text',
+                                  content: [
+                                      footer.text,
+                                      new Intl.DateTimeFormat('zh-CN', {
+                                          dateStyle: 'long',
+                                          timeStyle: 'short',
+                                          timeZone: 'Asia/Shanghai',
+                                      }).format(new Date(timestamp)),
+                                  ]
+                                      .filter((v) => !!v)
+                                      .join(' · '),
+                              }
+                            : undefined,
+                    ].filter((v) => !!v) as ModuleType[],
+                });
+            }
+
             index++;
         }
 
