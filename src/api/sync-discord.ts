@@ -7,6 +7,7 @@ import type { MessageSource, ModuleType, MessageType } from '../../types';
 import getDefaultHeaders from '../headers';
 import upload from '../upload';
 import { getSourceLogo } from '../source-logos';
+import logger from '../logger';
 
 // ============================================================================
 
@@ -35,6 +36,10 @@ function transformMarkdown(input: string): string {
     );
 }
 
+type ExtendedMessageType = MessageType & {
+    __type?: 'embed';
+};
+
 // ============================================================================
 
 export async function syncMessage(message: Message) {
@@ -56,7 +61,7 @@ export async function syncMessage(message: Message) {
             : undefined;
 
     /** 用以提交的 Kook 结构的消息内容 */
-    const postContent: MessageType[] = [
+    const postContent: ExtendedMessageType[] = [
         {
             type: 'card',
             theme:
@@ -143,11 +148,12 @@ export async function syncMessage(message: Message) {
 
     // 处理嵌入内容 embeds
     if (Array.isArray(embeds) && embeds.length > 0) {
-        const thisContent: MessageType = {
+        const thisContent: ExtendedMessageType = {
             type: 'card',
             theme: 'secondary',
             size: 'lg',
             modules: [],
+            __type: 'embed',
         };
         let index = 0;
         let imageModule: ModuleType;
@@ -191,7 +197,7 @@ export async function syncMessage(message: Message) {
             timestamp,
         } of embeds as Array<
             Embed & {
-                type: 'rich' | 'video' | 'link';
+                type: 'rich' | 'video' | 'link' | 'article';
                 author?: {
                     name?: string;
                     icon_url?: string;
@@ -385,8 +391,41 @@ export async function syncMessage(message: Message) {
                     });
                     break;
                 }
+                case 'article': {
+                    await addProvider();
+                    thisContent.modules.push({
+                        type: 'section',
+                        text: !!url
+                            ? {
+                                  type: 'kmarkdown',
+                                  content: [
+                                      !!url
+                                          ? `**[${(title as string).replace(
+                                                /\[(.+?)\]/g,
+                                                '\\[$1\\]'
+                                            )}](${url})**`
+                                          : `**${title}**`,
+                                      !!description
+                                          ? transformMarkdown(description)
+                                          : undefined,
+                                  ]
+                                      .filter((v) => !!v)
+                                      .join('\n'),
+                              }
+                            : {
+                                  type: 'plain-text',
+                                  content: title as string,
+                              },
+                    });
+                    if (!!thumbnail) await addImage(thumbnail);
+                    break;
+                }
                 default: {
                     console.log(embeds[index]);
+                    logger.warn({
+                        type: 'UNRECOGNIZED_EMBED_TYPE',
+                        embed: embeds[index],
+                    });
                 }
             }
             if (!!footer) {
@@ -424,6 +463,21 @@ export async function syncMessage(message: Message) {
             postContent.push(thisContent);
         }
     }
+
+    // 检查所有消息模块，如果第一个模块内容仅为 URL 且后续存在 embed，移除第一个模块
+    if (
+        /^(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})$/.test(
+            content
+        ) &&
+        postContent.some(({ __type }) => __type === 'embed')
+    ) {
+        postContent.shift();
+    }
+
+    // 移除所有临时字段
+    postContent.forEach((message) => {
+        delete message['__type'];
+    });
 
     const url =
         'https://www.kookapp.cn/api/v/message/' +
