@@ -85,6 +85,8 @@ let launched = false;
                 loggerData.config = err.config;
                 console.log(err.config);
             }
+
+            logger.error(loggerData);
         });
 
     launched = true;
