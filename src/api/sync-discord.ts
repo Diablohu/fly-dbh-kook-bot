@@ -7,7 +7,7 @@ import type { MessageSource, ModuleType, MessageType } from '../../types';
 import getDefaultHeaders from '../headers';
 import upload from '../upload';
 import { getSourceLogo } from '../source-logos';
-import logger from '../logger';
+import logger, { logError } from '../logger';
 
 // ============================================================================
 
@@ -19,7 +19,7 @@ const messageMap = new Map();
 /**
  * Discord 频道 ID -> Kook 频道 ID
  */
-const channelMap = {
+const channelMap: Record<string, string> = {
     '1057919252922892298': '6086801551312186', // bot channel
 
     '983629937451892766': '6218098845719397', // fs news channel 1
@@ -30,6 +30,9 @@ const channelMap = {
 
     '1059769292717039626': '5037270702167031', // imas news channel
 };
+if (process.env.WEBPACK_BUILD_ENV === 'dev') {
+    channelMap['1061924579100078090'] = '6086801551312186';
+}
 
 function transformMarkdown(input: string): string {
     return input.replace(
@@ -41,6 +44,51 @@ function transformMarkdown(input: string): string {
 type ExtendedMessageType = MessageType & {
     __type?: 'embed';
 };
+
+// ============================================================================
+
+const syncQueue: (() => Promise<unknown>)[] = [];
+function queueRequest(func?: () => Promise<unknown>): void {
+    if (typeof func === 'function') syncQueue.push(func);
+    queueRun();
+}
+let queueRunning = false;
+let queueRetryCount = 0;
+async function queueRun() {
+    if (queueRunning) return;
+    if (syncQueue.length < 1) return;
+
+    queueRunning = true;
+    console.log(syncQueue);
+    const next = syncQueue.shift();
+
+    async function runNext() {
+        if (typeof next !== 'function') {
+            queueRunning = false;
+            return;
+        }
+
+        try {
+            await next();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (e: any) {
+            logError(e);
+            // 报错后等待3秒再重试
+            if (queueRetryCount < 3) {
+                await new Promise((resolve) => setTimeout(resolve, 3000));
+                await runNext();
+                queueRetryCount++;
+            }
+        }
+    }
+
+    await runNext();
+
+    queueRunning = false;
+    queueRetryCount = 0;
+
+    queueRun();
+}
 
 // ============================================================================
 
@@ -466,8 +514,15 @@ export async function syncMessage(message: Message) {
         }
     }
 
-    // 检查所有消息模块，如果第一个模块内容仅为 URL 且后续存在 embed，移除第一个模块
+    console.log(postContent);
+    logger.info(postContent);
+
+    // 检查所有消息模块，如果第一个模块满足以下条件，移除第一个模块
+    // 没有附件
+    // 内容仅为 URL
+    // 后续存在 embed
     if (
+        imageAttachments.length < 1 &&
         /^(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})$/.test(
             content
         ) &&
@@ -498,16 +553,20 @@ export async function syncMessage(message: Message) {
         postData.msg_id = messageMap.get(id);
     }
 
-    const res = await axios.post(url, postData, {
-        headers: {
-            ...getDefaultHeaders(),
-        },
+    queueRequest(async () => {
+        const res = await axios.post(url, postData, {
+            headers: {
+                ...getDefaultHeaders(),
+            },
+        });
+
+        console.log(res.data, res.data.data.msg_id);
+        messageMap.set(id, res.data.data.msg_id);
+
+        return res;
     });
 
-    console.log(res.data, res.data.data.msg_id);
-    messageMap.set(id, res.data.data.msg_id);
-
-    return res;
+    return { data: 'sync-discord request queued.' };
 }
 export async function deleteMessage() {
     //
