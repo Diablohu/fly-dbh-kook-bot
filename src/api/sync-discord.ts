@@ -45,49 +45,69 @@ type ExtendedMessageType = MessageType & {
     __type?: 'embed';
 };
 
+type PostDataType = {
+    type: 10;
+    target_id: string;
+    content: string;
+    nonce: string;
+    msg_id?: string;
+    discord_msg_id: string;
+};
+
 // ============================================================================
 
-const syncQueue: (() => Promise<unknown>)[] = [];
-function queueRequest(func?: () => Promise<unknown>): void {
-    if (typeof func === 'function') syncQueue.push(func);
-    queueRun();
+const msgQueue: PostDataType[] = [];
+function queueMsg(postData?: PostDataType): void {
+    if (typeof postData === 'object') msgQueue.push(postData);
+    msgQueueRun();
 }
-let queueRunning = false;
-let queueRetryCount = 0;
-async function queueRun() {
-    if (queueRunning) return;
-    if (syncQueue.length < 1) return;
+let msgQueueRunning = false;
+let msgQueueRetryCount = 0;
+async function msgQueueRun() {
+    if (msgQueueRunning) return;
+    if (msgQueue.length < 1) return;
 
-    queueRunning = true;
-    console.log(syncQueue);
-    const next = syncQueue.shift();
+    msgQueueRunning = true;
+    console.log(msgQueue);
+    const nextData = msgQueue.shift();
 
     async function runNext() {
-        if (typeof next !== 'function') {
-            queueRunning = false;
+        if (typeof nextData !== 'object') {
+            msgQueueRunning = false;
             return;
         }
 
         try {
-            await next();
+            const url =
+                'https://www.kookapp.cn/api/v/message/' +
+                (!!nextData.msg_id ? 'update' : 'create');
+            const res = await axios.post(url, nextData, {
+                headers: {
+                    ...getDefaultHeaders(),
+                },
+            });
+
+            console.log(res.data, res.data.data.msg_id);
+            messageMap.set(nextData.discord_msg_id, res.data.data.msg_id);
+
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
             logError(e);
             // 报错后等待3秒再重试
-            if (queueRetryCount < 3) {
+            if (msgQueueRetryCount < 3) {
                 await new Promise((resolve) => setTimeout(resolve, 3000));
                 await runNext();
-                queueRetryCount++;
+                msgQueueRetryCount++;
             }
         }
     }
 
     await runNext();
 
-    queueRunning = false;
-    queueRetryCount = 0;
+    msgQueueRunning = false;
+    msgQueueRetryCount = 0;
 
-    queueRun();
+    msgQueueRun();
 }
 
 // ============================================================================
@@ -536,10 +556,7 @@ export async function syncMessage(message: Message) {
         delete message['__type'];
     });
 
-    const url =
-        'https://www.kookapp.cn/api/v/message/' +
-        (messageMap.has(id) ? 'update' : 'create');
-    const postData: Record<string, unknown> = {
+    const postData: PostDataType = {
         type: 10,
         target_id:
             channelId in channelMap
@@ -547,24 +564,14 @@ export async function syncMessage(message: Message) {
                 : '6086801551312186',
         content: JSON.stringify(postContent),
         nonce: `FLY-DBH-KOOK-BOT @ ${Date.now()}`,
+        discord_msg_id: id,
     };
 
     if (messageMap.has(id)) {
         postData.msg_id = messageMap.get(id);
     }
 
-    queueRequest(async () => {
-        const res = await axios.post(url, postData, {
-            headers: {
-                ...getDefaultHeaders(),
-            },
-        });
-
-        console.log(res.data, res.data.data.msg_id);
-        messageMap.set(id, res.data.data.msg_id);
-
-        return res;
-    });
+    queueMsg(postData);
 
     return { data: 'sync-discord request queued.' };
 }
