@@ -22,13 +22,15 @@ const messageMap = new Map();
 const channelMap: Record<string, string> = {
     '1057919252922892298': '6086801551312186', // bot channel
 
+    // MSFS
     '983629937451892766': '6218098845719397', // fs news channel 1
     '1058110232972247103': '6218098845719397', // fs news channel 2
     '1060032674988826664': '6218098845719397', // fs news manual sync
-
     '1061038884143763538': '9294847620576543', // fs group
 
+    // Other Games
     '1059769292717039626': '5037270702167031', // imas news channel
+    '1069820588538986536': '4872647462994083', // kancolle news channel
 };
 if (process.env.WEBPACK_BUILD_ENV === 'dev') {
     channelMap['1061924579100078090'] = '6086801551312186';
@@ -95,19 +97,23 @@ async function msgQueueRun() {
             logError(e);
             // 报错后等待3秒再重试
             if (msgQueueRetryCount < 3) {
-                await new Promise((resolve) => setTimeout(resolve, 3000));
+                await sleep(3000);
                 await runNext();
                 msgQueueRetryCount++;
             }
         }
     }
 
+    await sleep(3000);
     await runNext();
 
     msgQueueRunning = false;
     msgQueueRetryCount = 0;
 
     msgQueueRun();
+}
+async function sleep(time: number): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, time));
 }
 
 // ============================================================================
