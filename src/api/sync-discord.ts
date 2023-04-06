@@ -79,6 +79,10 @@ async function msgQueueRun() {
             return;
         }
 
+        if (messageMap.has(nextData.discord_msg_id)) {
+            nextData.msg_id = messageMap.get(nextData.discord_msg_id);
+        }
+
         try {
             const url =
                 'https://www.kookapp.cn/api/v/message/' +
@@ -89,8 +93,13 @@ async function msgQueueRun() {
                 },
             });
 
-            console.log(res.data, res.data.data.msg_id);
             messageMap.set(nextData.discord_msg_id, res.data.data.msg_id);
+            console.log(
+                'Message Sent',
+                res.data,
+                res.data.data.msg_id,
+                messageMap
+            );
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
@@ -572,10 +581,6 @@ export async function syncMessage(message: Message) {
         nonce: `FLY-DBH-KOOK-BOT @ ${Date.now()}`,
         discord_msg_id: id,
     };
-
-    if (messageMap.has(id)) {
-        postData.msg_id = messageMap.get(id);
-    }
 
     queueMsg(postData);
 
