@@ -21,8 +21,16 @@ const logger = winston.createLogger({
             level: 'warn',
         }),
         new winston.transports.File({
+            filename: path.resolve(logDir, 'notice.log'),
+            level: 'notice',
+        }),
+        new winston.transports.File({
             filename: path.resolve(logDir, 'info.log'),
             level: 'info',
+        }),
+        new winston.transports.File({
+            filename: path.resolve(logDir, 'http.log'),
+            level: 'http',
         }),
         new winston.transports.File({
             filename: path.resolve(logDir, 'combined.log'),

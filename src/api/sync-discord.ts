@@ -8,6 +8,7 @@ import getDefaultHeaders from '../headers';
 import upload from '../upload';
 import { getSourceLogo } from '../source-logos';
 import logger, { logError } from '../logger';
+import sleep from '../sleep';
 
 // ============================================================================
 
@@ -36,9 +37,17 @@ if (process.env.WEBPACK_BUILD_ENV === 'dev') {
     channelMap['1061924579100078090'] = '6086801551312186';
 }
 
+const regexUrl =
+    /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/;
+function isUrlOnly(str: string): boolean {
+    return new RegExp(
+        `^${regexUrl.toString().replace(/^\/(.+)\/$/, '$1')}$`
+    ).test(str);
+}
+
 function transformMarkdown(input: string): string {
     return input.replace(
-        /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/g,
+        /[^(](https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/g,
         `[$1]($1)`
     );
 }
@@ -93,13 +102,14 @@ async function msgQueueRun() {
                 },
             });
 
-            messageMap.set(nextData.discord_msg_id, res.data.data.msg_id);
-            console.log(
-                'Message Sent',
-                res.data,
-                res.data.data.msg_id,
-                messageMap
-            );
+            if (res.data.data.msg_id)
+                messageMap.set(nextData.discord_msg_id, res.data.data.msg_id);
+            logger.http({
+                type: 'MSG_SENT',
+                response: res.data,
+                message_id: res.data.data.msg_id,
+                message_map: messageMap,
+            });
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
@@ -121,9 +131,6 @@ async function msgQueueRun() {
 
     msgQueueRun();
 }
-async function sleep(time: number): Promise<void> {
-    await new Promise((resolve) => setTimeout(resolve, time));
-}
 
 // ============================================================================
 
@@ -133,10 +140,19 @@ export async function syncMessage(message: Message) {
         channelId,
         createdTimestamp,
         author,
-        content,
+        // content,
         attachments,
         embeds,
     } = message;
+
+    // 转换 TweetShift 的神奇格式 `LINK [](ANOTHER_LINK)`
+    const content = new RegExp(
+        `^${regexUrl.toString().replace(/^\/(.+)\/$/, '$1')} \\[\\]\\(${regexUrl
+            .toString()
+            .replace(/^\/(.+)\/$/, '$1')}\\)$`
+    ).test(message.content)
+        ? message.content.split(` []`)[0]
+        : message.content;
 
     const avatar =
         !!author?.id && !!author?.avatar
@@ -267,6 +283,12 @@ export async function syncMessage(message: Message) {
                 });
             }
         }
+        async function addDivider() {
+            if (index === 0) return;
+            thisContent.modules.push({
+                type: 'divider',
+            });
+        }
         for (const {
             type,
             color,
@@ -304,6 +326,7 @@ export async function syncMessage(message: Message) {
             }
             async function addAuthor() {
                 if (!author) return;
+                await addDivider();
                 thisContent.modules.push({
                     type: 'context',
                     elements: [
@@ -320,7 +343,7 @@ export async function syncMessage(message: Message) {
                                   content: `[${(author.name as string).replace(
                                       /\[(.+?)\]/g,
                                       '\\[$1\\]'
-                                  )}](${author.url}}](${author.url})`,
+                                  )}](${author.url})`,
                               }
                             : {
                                   type: 'plain-text',
@@ -549,8 +572,11 @@ export async function syncMessage(message: Message) {
         }
     }
 
-    console.log(postContent);
-    logger.info(postContent);
+    // console.log(postContent);
+    logger.info({
+        request: message,
+        transformed: postContent,
+    });
 
     // 检查所有消息模块，如果第一个模块满足以下条件，移除第一个模块
     // 没有附件
@@ -558,9 +584,7 @@ export async function syncMessage(message: Message) {
     // 后续存在 embed
     if (
         imageAttachments.length < 1 &&
-        /^(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})$/.test(
-            content
-        ) &&
+        isUrlOnly(content) &&
         postContent.some(({ __type }) => __type === 'embed')
     ) {
         postContent.shift();

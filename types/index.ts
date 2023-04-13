@@ -11,7 +11,8 @@ export type ModuleType =
               | 'image'
               | 'image-group'
               | 'container'
-              | 'video';
+              | 'video'
+              | 'divider';
           src?: string;
           content?: string;
           elements?: ModuleType[];
