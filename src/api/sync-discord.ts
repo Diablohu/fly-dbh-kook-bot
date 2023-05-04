@@ -259,46 +259,10 @@ export async function syncMessage(message: Message) {
 
     // 处理嵌入内容 embeds
     if (Array.isArray(embeds) && embeds.length > 0) {
-        const thisContent: ExtendedMessageType = {
-            type: 'card',
-            theme: 'secondary',
-            size: 'lg',
-            modules: [],
-            __type: 'embed',
-        };
         let index = 0;
-        let imageModule: ModuleType;
-        async function addImage(image: {
-            width?: number;
-            height?: number;
-            url?: string;
-            proxy_url?: string;
-        }) {
-            if (!imageModule) {
-                imageModule = {
-                    type: 'container',
-                    elements: [
-                        {
-                            type: 'image',
-                            src: await upload(image.url as string),
-                        },
-                    ],
-                };
-                thisContent.modules.push(imageModule);
-            } else {
-                imageModule.type = 'image-group';
-                imageModule.elements?.push({
-                    type: 'image',
-                    src: await upload(image.url as string),
-                });
-            }
-        }
-        async function addDivider() {
-            if (index === 0) return;
-            thisContent.modules.push({
-                type: 'divider',
-            });
-        }
+        let lastImageModule: ModuleType;
+        const cards: ExtendedMessageType[] = [];
+
         for (const {
             type,
             color,
@@ -328,16 +292,33 @@ export async function syncMessage(message: Message) {
                 };
             }
         >) {
+            /**
+             * 是否使用上一个卡片
+             * - 没有标题时，认为仅为媒体，将媒体放入上一个卡片中
+             */
+            const useLastCard = !title && cards.length > 0;
+            const thisCard: ExtendedMessageType = useLastCard
+                ? cards[cards.length - 1]
+                : {
+                      type: 'card',
+                      theme: 'secondary',
+                      size: 'lg',
+                      modules: [],
+                      __type: 'embed',
+                  };
+            let thisIimageModule: ModuleType = useLastCard
+                ? lastImageModule
+                : undefined;
+
             // console.log(embeds[index]);
             if (typeof color === 'number') {
-                delete thisContent['theme'];
-                thisContent.color =
+                delete thisCard['theme'];
+                thisCard.color =
                     '#' + (color + Math.pow(16, 6)).toString(16).substr(-6);
             }
             async function addAuthor() {
                 if (!author) return;
-                await addDivider();
-                thisContent.modules.push({
+                thisCard.modules.push({
                     type: 'context',
                     elements: [
                         !!author.icon_url
@@ -364,7 +345,7 @@ export async function syncMessage(message: Message) {
             }
             async function addProvider() {
                 if (!provider) return;
-                thisContent.modules.push({
+                thisCard.modules.push({
                     type: 'context',
                     elements: [
                         !!provider.url
@@ -383,10 +364,35 @@ export async function syncMessage(message: Message) {
                     ],
                 });
             }
+            async function addImage(image: {
+                width?: number;
+                height?: number;
+                url?: string;
+                proxy_url?: string;
+            }) {
+                if (!thisIimageModule) {
+                    thisIimageModule = {
+                        type: 'container',
+                        elements: [
+                            {
+                                type: 'image',
+                                src: await upload(image.url as string),
+                            },
+                        ],
+                    };
+                    thisCard.modules.push(thisIimageModule);
+                } else {
+                    thisIimageModule.type = 'image-group';
+                    thisIimageModule.elements?.push({
+                        type: 'image',
+                        src: await upload(image.url as string),
+                    });
+                }
+            }
             switch (type) {
                 case 'rich': {
                     if (
-                        thisContent.modules.length > 1 &&
+                        thisCard.modules.length > 1 &&
                         index > 0 &&
                         !!image &&
                         !description
@@ -395,7 +401,7 @@ export async function syncMessage(message: Message) {
                     } else {
                         await addAuthor();
                         if (!!description)
-                            thisContent.modules.push({
+                            thisCard.modules.push({
                                 type: 'section',
                                 text: {
                                     type: 'kmarkdown',
@@ -410,7 +416,7 @@ export async function syncMessage(message: Message) {
                 case 'link': {
                     // console.log(embeds[index]);
                     await addProvider();
-                    thisContent.modules.push({
+                    thisCard.modules.push({
                         type: 'section',
                         text: !!url
                             ? {
@@ -456,7 +462,7 @@ export async function syncMessage(message: Message) {
                 case 'video': {
                     // await addProvider();
                     await addAuthor();
-                    thisContent.modules.push({
+                    thisCard.modules.push({
                         type: 'section',
                         text: !!url
                             ? {
@@ -483,7 +489,7 @@ export async function syncMessage(message: Message) {
                     //     src: url,
                     // });
                     if (!!thumbnail) await addImage(thumbnail);
-                    thisContent.modules.push({
+                    thisCard.modules.push({
                         type: 'context',
                         elements: [
                             {
@@ -511,7 +517,7 @@ export async function syncMessage(message: Message) {
                 }
                 case 'article': {
                     await addProvider();
-                    thisContent.modules.push({
+                    thisCard.modules.push({
                         type: 'section',
                         text: !!url
                             ? {
@@ -547,7 +553,7 @@ export async function syncMessage(message: Message) {
                 }
             }
             if (!!footer) {
-                thisContent.modules.push({
+                thisCard.modules.push({
                     type: 'context',
                     elements: [
                         {
@@ -575,11 +581,21 @@ export async function syncMessage(message: Message) {
                     ].filter((v) => !!v) as ModuleType[],
                 });
             }
+
+            if (thisIimageModule) lastImageModule = thisIimageModule;
+            if (!useLastCard && thisCard.modules.length > 0) {
+                cards.push(thisCard);
+            }
+
             index++;
         }
-        if (thisContent.modules.length > 0) {
-            postContent.push(thisContent);
-        }
+
+        cards.forEach((card) => {
+            postContent.push(card);
+        });
+        // if (thisContent.modules.length > 0) {
+        //     postContent.push(thisContent);
+        // }
     }
 
     // console.log(postContent);
