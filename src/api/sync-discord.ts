@@ -20,23 +20,26 @@ const messageMap = new Map();
 /**
  * Discord 频道 ID -> Kook 频道 ID
  */
-const channelMap: Record<string, string> = {
-    '1057919252922892298': '6086801551312186', // bot channel
+const channelMap: Record<string, string> =
+    process.env.WEBPACK_BUILD_ENV === 'dev'
+        ? {
+              '1057919252922892298': '6086801551312186', // playground channel -> playground channel
+              '1061924579100078090': '6086801551312186', // local dev channel -> playground channel
+          }
+        : {
+              '1057919252922892298': '6086801551312186', // playground channel -> playground channel
 
-    // MSFS
-    '983629937451892766': '6218098845719397', // fs news channel 1
-    '1058110232972247103': '6218098845719397', // fs news channel 2
-    '1097849730731626578': '6218098845719397', // fs news channel 3
-    '1060032674988826664': '6218098845719397', // fs news manual sync
-    '1061038884143763538': '9294847620576543', // fs group
+              // MSFS
+              '983629937451892766': '6218098845719397', // fs news channel 1
+              '1058110232972247103': '6218098845719397', // fs news channel 2
+              '1097849730731626578': '6218098845719397', // fs news channel 3
+              '1060032674988826664': '6218098845719397', // fs news manual sync
+              '1061038884143763538': '9294847620576543', // fs group
 
-    // Other Games
-    '1059769292717039626': '5037270702167031', // imas news channel
-    '1069820588538986536': '4872647462994083', // kancolle news channel
-};
-if (process.env.WEBPACK_BUILD_ENV === 'dev') {
-    channelMap['1061924579100078090'] = '6086801551312186';
-}
+              // Other Games
+              '1059769292717039626': '5037270702167031', // imas news channel
+              '1069820588538986536': '4872647462994083', // kancolle news channel
+          };
 
 const regexUrl =
     /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/;
@@ -146,14 +149,20 @@ export async function syncMessage(message: Message) {
         embeds,
     } = message;
 
-    // 转换 TweetShift 的神奇格式 `LINK [](ANOTHER_LINK)`
-    const content = new RegExp(
-        `^${regexUrl.toString().replace(/^\/(.+)\/$/, '$1')} \\[\\]\\(${regexUrl
-            .toString()
-            .replace(/^\/(.+)\/$/, '$1')}\\)$`
-    ).test(message.content)
-        ? message.content.split(` []`)[0]
-        : message.content;
+    /**
+     * 转换 TweetShift 的神奇格式
+     * LINK [](ANOTHER_LINK) [](ANOTHER_LINK)
+     * LINK [↧](ANOTHER_LINK) [↧](ANOTHER_LINK)
+     */
+    const content = message.content.replaceAll(
+        new RegExp(
+            ` \\[(↧| )\\]\\(${regexUrl
+                .toString()
+                .replace(/^\/(.+)\/$/, '$1')}\\)[$]*`,
+            'g'
+        ),
+        ''
+    );
 
     const avatar =
         !!author?.id && !!author?.avatar
