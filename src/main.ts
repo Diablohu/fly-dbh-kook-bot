@@ -6,7 +6,9 @@ import * as dotenv from 'dotenv';
 import Listr from 'listr';
 
 import startKoaServer from './start/koa-server';
+import createKookClient from './start/create-kook-client';
 import logger from './logger';
+import { attachInterceptors as attachAxiosInterceptors } from './axios-interceptors';
 
 // ============================================================================
 
@@ -46,11 +48,17 @@ let launched = false;
         // Koa.
     });
 
+    attachAxiosInterceptors();
+
     // 开始流程
     new Listr([
         {
             title: 'Starting Koa server',
             task: startKoaServer,
+        },
+        {
+            title: 'Connecting Kook & creating client',
+            task: createKookClient,
         },
     ])
         .run()

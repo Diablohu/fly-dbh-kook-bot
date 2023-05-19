@@ -28,7 +28,7 @@ async function upload(url: string): Promise<string> {
 
     const doUpload = async (): Promise<AxiosResponse<UploadResponse>> => {
         try {
-            return await await axios.post(
+            return await axios.post(
                 'https://www.kookapp.cn/api/v/asset/create',
                 form,
                 {
