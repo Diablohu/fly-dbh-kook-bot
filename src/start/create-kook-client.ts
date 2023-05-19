@@ -59,6 +59,8 @@ async function connectKoot() {
     // TODO: 严格按照文档流程实现心跳
     // TODO: 严格按照文档流程实现重连
     // TODO: 尝试监控一类消息
+    // TODO: /help
+    // TODO: /metar ICAO (eg. /metar ZBAA)
 
     // const socket = io(wssUrl.href, {
     //     transports: ['websocket'],
