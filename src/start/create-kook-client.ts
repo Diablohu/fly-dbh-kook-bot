@@ -125,7 +125,8 @@ async function createClient(): Promise<void> {
     client.on('message', async (buffer: Buffer) => {
         const msg = (await unzip(buffer)).toString();
         let type: WSSignalTypes | undefined = undefined,
-            body: string | { [key: string]: string } | WSMessageType = {},
+            body: string | { [key: string]: string | number } | WSMessageType =
+                {},
             sn: number | undefined = undefined;
         try {
             const o = JSON.parse(msg);
@@ -142,6 +143,11 @@ async function createClient(): Promise<void> {
 
             switch (type) {
                 case WSSignalTypes.HandShake: {
+                    if ((body as { [key: string]: number })?.code === 40103) {
+                        console.log('Handshake Fail');
+                        await reconnect('Handshake Fail');
+                        return;
+                    }
                     logInfo(body as { [key: string]: string });
                     if (
                         typeof body === 'object' &&
