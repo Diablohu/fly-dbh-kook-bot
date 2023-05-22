@@ -2,7 +2,6 @@ import axios from 'axios';
 
 import type { MessageType } from '../../types';
 
-import getDefaultHeaders from '../headers';
 import logger, { logError } from '../logger';
 import sleep from '../sleep';
 
@@ -35,7 +34,7 @@ async function msgQueueRun() {
     if (msgQueue.length < 1) return;
 
     msgQueueRunning = true;
-    console.log(msgQueue);
+    // console.log(msgQueue);
     const nextData = msgQueue.shift();
 
     async function runNext() {
@@ -49,20 +48,14 @@ async function msgQueueRun() {
         }
 
         try {
-            const url =
-                'https://www.kookapp.cn/api/v/message/' +
-                (!!nextData.msg_id ? 'update' : 'create');
-            const res = await axios.post(url, nextData, {
-                headers: {
-                    ...getDefaultHeaders(),
-                },
-            });
+            const { discord_msg_id, ...msg } = nextData;
+            const url = '/message/' + (!!msg.msg_id ? 'update' : 'create');
+            const res = await axios.post(url, msg);
 
-            if (nextData.discord_msg_id && res.data.data.msg_id)
-                discordMessageMap.set(
-                    nextData.discord_msg_id,
-                    res.data.data.msg_id
-                );
+            // console.log('___', url, msg, res);
+            if (discord_msg_id && res.data.data.msg_id)
+                discordMessageMap.set(discord_msg_id, res.data.data.msg_id);
+
             logger.http({
                 type: 'MSG_SENT',
                 response: res.data,

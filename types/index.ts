@@ -45,6 +45,7 @@ export interface WSMessageKMarkdownType {
 }
 export enum WSMessageTypes {
     Markdown = 9,
+    Card = 10,
     System = 255,
 }
 export interface WSMessageType {

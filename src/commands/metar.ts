@@ -6,7 +6,7 @@ async function commandMetar(icao: string): Promise<string> {
         // throw new Error('Wrong ICAO');
     }
 
-    console.log({ icao });
+    // console.log({ icao });
     const result =
         // await axios.get(
         //     `https://metar.vatsim.net/metar.php?id=${icao.toLowerCase()}`

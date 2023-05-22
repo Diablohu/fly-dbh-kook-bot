@@ -215,7 +215,8 @@ async function createClient(): Promise<void> {
 
     async function parseMsg(body: WSMessageType, sn: number) {
         if (
-            body.extra.type === WSMessageTypes.Markdown &&
+            (body.extra.type === WSMessageTypes.Markdown ||
+                body.extra.type === WSMessageTypes.Card) &&
             (body.extra?.author?.bot === true ||
                 body.extra?.author?.is_sys === true)
         )

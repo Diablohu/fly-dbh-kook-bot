@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-globals */
-import type { AxiosHeaders } from 'axios';
+// import type { AxiosHeaders } from 'axios';
 import axios from 'axios';
 
 import getDefaultHeaders from './headers';
@@ -8,20 +8,9 @@ import getDefaultHeaders from './headers';
 //     export interface AxiosRequestConfig {
 //     }
 // }
-interface CommonHeaderProperties extends AxiosHeaders {
-    Authorization: string;
-}
-
-// ============================================================================
-
-const ensureBaseHeaders = (
-    headers: AxiosHeaders
-): Partial<CommonHeaderProperties> => {
-    return {
-        ...getDefaultHeaders(),
-        ...headers,
-    };
-};
+// interface CommonHeaderProperties extends AxiosHeaders {
+//     Authorization: string;
+// }
 
 /** 拦截器是否已添加 */
 let interceptorsAttached = false;
@@ -35,7 +24,9 @@ export function attachInterceptors(): void {
 
         const thisUrl = new URL(url || '', 'https://www.kookapp.cn/');
         if (thisUrl.hostname === 'www.kookapp.cn') {
-            Object.assign(headers, ensureBaseHeaders(headers));
+            for (const [key, value] of Object.entries(getDefaultHeaders())) {
+                if (typeof headers[key] === 'undefined') headers[key] = value;
+            }
             if (!/^\/api\/v/.test(thisUrl.pathname))
                 thisUrl.pathname = '/api/v' + thisUrl.pathname;
         } else if (thisUrl.hostname === 'avwx.rest') {
@@ -44,6 +35,7 @@ export function attachInterceptors(): void {
             }`;
         }
 
+        // console.log(thisUrl.href, headers);
         const axiosSettings = {
             ...config,
             url: thisUrl.href,

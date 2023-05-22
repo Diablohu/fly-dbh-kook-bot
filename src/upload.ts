@@ -18,23 +18,18 @@ async function upload(url: string): Promise<string> {
 
     const form = new FormData();
     // Pass image stream from response directly to form
-    form.append('file', stream.data, 'avatar.webp');
-    const headers = {
-        ...getDefaultHeaders(),
-        'Content-type': 'form-data',
-    };
+    form.append('file', stream.data /*, 'avatar.webp'*/);
 
     let retryCount = 0;
 
     const doUpload = async (): Promise<AxiosResponse<UploadResponse>> => {
         try {
-            return await axios.post(
-                'https://www.kookapp.cn/api/v/asset/create',
-                form,
-                {
-                    headers,
-                }
-            );
+            return await axios.post('/asset/create', form, {
+                headers: {
+                    'Content-Type': 'form-data',
+                    'Content-type': 'form-data',
+                },
+            });
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
             logError(e);
@@ -58,7 +53,9 @@ async function upload(url: string): Promise<string> {
         }
     };
 
-    return (await doUpload())?.data?.data?.url;
+    const res = await doUpload();
+    // console.log('___', res);
+    return res?.data?.data?.url;
 }
 
 export default upload;
