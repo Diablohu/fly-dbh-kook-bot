@@ -34,7 +34,10 @@ export function attachInterceptors(): void {
         const { url, headers } = config;
 
         const thisUrl = new URL(url || '', 'https://www.kookapp.cn/');
-        if (!/^\/api\/v/.test(thisUrl.pathname)) {
+        if (
+            thisUrl.hostname === 'www.kookapp.cn' &&
+            !/^\/api\/v/.test(thisUrl.pathname)
+        ) {
             thisUrl.pathname = '/api/v' + thisUrl.pathname;
         }
 

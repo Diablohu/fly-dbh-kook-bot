@@ -1,10 +1,46 @@
 import axios from 'axios';
-import { io } from 'socket.io-client';
 import ws from 'ws';
+import fs from 'fs-extra';
+import zlib from 'node:zlib';
+import { promisify } from 'node:util';
+import path from 'node:path';
 
-import logger, { logError } from '../logger';
+import {
+    WSSignalTypes,
+    WSMessageTypes,
+    WSMessageType,
+    MessageType,
+} from '../../types';
+import logger, { logError as _logError } from '../logger';
+import { cacheDir } from '../../app.config';
+import sendMessage from '../api/send-message';
 
-let client;
+import commands from '../commands/index';
+
+const unzip = promisify(zlib.unzip);
+
+// ============================================================================
+
+export let client: ws;
+export const clientCacheFile = path.resolve(cacheDir, 'client.json');
+
+function logInfo(msg: unknown) {
+    const body: Record<string, unknown> = {
+        connectionType: 'websocket-message',
+    };
+    if (typeof msg === 'string') body.message = msg;
+    else body.message = msg;
+    // console.log(body);
+    logger.info(body);
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function logError(err: any) {
+    return _logError(err);
+}
+
+// let msgQueue = [];
+
+// ============================================================================
 
 /**                                                _________________
  *       获取gateWay     连接ws          收到hello |    心跳超时    |
@@ -17,70 +53,218 @@ let client;
  *       |________|_________________|__________________________|____|
  *
  **/
-async function connectKoot() {
-    /** 常驻 session */
-    const sessionId = '';
-    /** 序列码 */
-    const sn = 0;
+async function createClient(): Promise<void> {
+    const cache: {
+        /** 常驻 session */
+        sessionId: string;
+        /** 序列码 */
+        sn: number;
+    } = fs.existsSync(clientCacheFile)
+        ? await fs.readJson(clientCacheFile)
+        : {};
+    const { sessionId = '', sn = 0 } = cache;
 
     // 请求 Gateway 获取 WebSocket 连接地址
     const gateway = (
-        await axios.get<{
-            data: { url: string };
-        }>('/gateway/index')
+        await axios
+            .get<{
+                data: { url: string };
+            }>('/gateway/index')
+            .catch((err) => {
+                logError(err);
+            })
     )?.data.data.url;
-    const params: Record<string, string | number> = {
-        resume: 1,
-        compress: 0,
+    if (typeof gateway !== 'string') {
+        return await createClient();
+    }
+
+    const wsParams: Record<string, string | number> = {
+        compress: 1,
         sn,
     };
     if (!!sessionId) {
-        params.sessionId = sessionId;
+        wsParams.sessionId = sessionId;
+        wsParams.resume = 1;
     }
     const wssUrl = new URL(gateway);
-    for (const [key, value] of Object.entries(params)) {
+    for (const [key, value] of Object.entries(wsParams)) {
         wssUrl.searchParams.set(key, `${value}`);
     }
 
-    const socket = new ws(wssUrl.href);
+    // ========================================================================
+    let pingTimeout: NodeJS.Timeout;
+    let pingRetry = 0;
 
-    socket.on('open', async (...args) => {
-        console.log('WSS Open', ...args);
+    async function reconnect(reason: string): Promise<void> {
+        // console.log('Reconnecting... ' + reason);
+        logInfo('Reconnecting... ' + reason);
+
+        client.terminate();
+
+        clearTimeout(pingTimeout);
+        pingRetry = 0;
+
+        cache.sessionId = '';
+        cache.sn = 0;
+
+        // msgQueue = [];
+
+        await createClient();
+    }
+
+    client = new ws(wssUrl.href);
+
+    client.on('open', () => {
+        sendPing();
     });
-    socket.on('message', async (buffer: Buffer) => {
-        console.log('WSS on Message', buffer.toString());
+    client.on('error', (...args) => {
+        console.log('ERROR', ...args);
+        logError(...args);
+    });
+    client.on('message', async (buffer: Buffer) => {
+        const msg = (await unzip(buffer)).toString();
+        let type: WSSignalTypes | undefined = undefined,
+            body: string | { [key: string]: string } | WSMessageType = {},
+            sn: number | undefined = undefined;
+        try {
+            const o = JSON.parse(msg);
+            type = o.s;
+            body = o.d;
+            sn = o.sn;
+            // console.log('WSS on Message (Object)', o);
+        } catch (e) {
+            body = msg;
+            // console.log('WSS on Message', msg);
+        }
+        if (typeof type !== 'undefined') {
+            if (typeof sn === 'number') cache.sn = sn;
+
+            switch (type) {
+                case WSSignalTypes.HandShake: {
+                    logInfo(body as { [key: string]: string });
+                    if (
+                        typeof body === 'object' &&
+                        !!(body as { [key: string]: string })?.sessionId
+                    )
+                        cache.sessionId = (body as { [key: string]: string })
+                            ?.sessionId as string;
+                    break;
+                }
+                case WSSignalTypes.RsumeAck: {
+                    logInfo(body as { [key: string]: string });
+                    if (
+                        typeof body === 'object' &&
+                        !!(body as { [key: string]: string }).sessionId
+                    )
+                        cache.sessionId = (body as { [key: string]: string })
+                            .sessionId as string;
+                    break;
+                }
+                case WSSignalTypes.Pong: {
+                    // console.log('PONG!', msg);
+                    clearTimeout(pingTimeout);
+                    pingRetry = 0;
+                    sendPing();
+                    break;
+                }
+                // 需要重连
+                case WSSignalTypes.Reconnect: {
+                    await reconnect('Signal Reconnect');
+                    break;
+                }
+                default: {
+                    await parseMsg(body as WSMessageType, sn as number);
+                }
+            }
+        }
+
+        await fs.writeJson(clientCacheFile, cache);
     });
 
-    // https://developer.kookapp.cn/doc/websocket
-    // TODO: 严格按照文档流程实现首次连接 s===1 即为 'HELLO'
-    // TODO: 存储 sessionId 到本地文件
-    // TODO: 还原 sessionId 并实现重连
-    // TODO: 区分 s 值
-    // TODO: 严格按照文档流程实现心跳
-    // TODO: 严格按照文档流程实现重连
-    // TODO: 尝试监控一类消息
-    // TODO: /help
-    // TODO: /metar ICAO (eg. /metar ZBAA)
+    function sendPing(time = 30 * 1000): NodeJS.Timeout {
+        if (client.readyState !== ws.OPEN) {
+            pingTimeout = setTimeout(sendPing, 100);
+            return pingTimeout;
+        }
 
-    // const socket = io(wssUrl.href, {
-    //     transports: ['websocket'],
-    //     query: {},
-    // });
-    // socket.on('connect_error', (error) => {
-    //     console.error(error);
-    // });
-    // socket.on('error', (...args) => {
-    //     console.log(...args);
-    // });
-    // socket.on('connect', () => {
-    //     console.log(123);
-    //     console.log('\n\n\n\n\n\n');
-    //     logger.info('WSS Connected! ' + socket.id);
-    // });
+        pingTimeout = setTimeout(async () => {
+            const ping = {
+                s: WSSignalTypes.Ping,
+                sn: cache.sn,
+            };
+            // console.log('PING!', ping);
+            client.send(Buffer.from(JSON.stringify(ping)));
+            if (pingRetry > 2) {
+                await reconnect('Ping Failed after 2 retries');
+            } else {
+                pingRetry++;
+                pingTimeout = sendPing(6 * 1000);
+            }
+        }, time);
 
-    // socket.on('disconnect', () => {
-    //     console.log('WSS Disconected! ' + socket.id); // undefined
-    // });
+        return pingTimeout;
+    }
+
+    async function parseMsg(body: WSMessageType, sn: number) {
+        if (
+            body.extra.type === WSMessageTypes.Markdown &&
+            (body.extra?.author?.bot === true ||
+                body.extra?.author?.is_sys === true)
+        )
+            return;
+
+        if (
+            body.type === WSMessageTypes.Markdown &&
+            body.extra.type === WSMessageTypes.Markdown &&
+            /^\//.test(body.content)
+        ) {
+            const command = body.content.replace(/^\//, '');
+            const channelId = body.target_id;
+            const messageId = body.msg_id;
+
+            logInfo({
+                command,
+                body,
+                sn,
+            });
+
+            const response = await commands(command).catch(logError);
+            // console.log(response);
+            if (typeof response === 'string' && !!response) {
+                const msg: MessageType = {
+                    type: 9,
+                    target_id: channelId,
+                    quote: messageId,
+                    content: response,
+                };
+                // console.log(msg);
+                sendMessage(msg);
+            }
+
+            return;
+        }
+
+        switch (body.type) {
+            case WSMessageTypes.System: {
+                switch (body.extra.type) {
+                    case 'guild_member_offline':
+                    case 'guild_member_online':
+                    case 'updated_message': {
+                        break;
+                    }
+                    default: {
+                        console.log('[WebSocket] SYSTEM MESSAGE', body);
+                        logInfo({ body, sn });
+                    }
+                }
+                break;
+            }
+            default: {
+                console.log('[WebSocket] UNKNOWN MESSAGE', body);
+                logInfo({ body, sn });
+            }
+        }
+    }
 }
 
-export default connectKoot;
+export default createClient;

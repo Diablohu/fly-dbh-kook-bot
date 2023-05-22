@@ -1,22 +1,20 @@
 import type { Message, Embed } from 'discord.js';
 
-import axios from 'axios';
+import type {
+    MessageSource,
+    ModuleType,
+    CardMessageType,
+    MessageType,
+} from '../../types';
 
-import type { MessageSource, ModuleType, MessageType } from '../../types';
-
-import getDefaultHeaders from '../headers';
 import upload from '../upload';
 import { getSourceLogo } from '../source-logos';
-import logger, { logError } from '../logger';
-import sleep from '../sleep';
+import logger from '../logger';
+
+import sendMessage from './send-message';
 
 // ============================================================================
 
-/**
- * Discord 消息 ID -> Kook 消息 ID
- * - 用以标记该条 Discord 消息是否已在 Kook 发送过，如果是，`syncMessage` 则为编辑操作
- */
-const messageMap = new Map();
 /**
  * Discord 频道 ID -> Kook 频道 ID
  */
@@ -56,85 +54,9 @@ function transformMarkdown(input: string): string {
     );
 }
 
-type ExtendedMessageType = MessageType & {
+type ExtendedCardMessageType = CardMessageType & {
     __type?: 'embed';
 };
-
-type PostDataType = {
-    type: 10;
-    target_id: string;
-    content: string;
-    nonce: string;
-    msg_id?: string;
-    discord_msg_id: string;
-};
-
-// ============================================================================
-
-const msgQueue: PostDataType[] = [];
-function queueMsg(postData?: PostDataType): void {
-    if (typeof postData === 'object') msgQueue.push(postData);
-    msgQueueRun();
-}
-let msgQueueRunning = false;
-let msgQueueRetryCount = 0;
-async function msgQueueRun() {
-    if (msgQueueRunning) return;
-    if (msgQueue.length < 1) return;
-
-    msgQueueRunning = true;
-    console.log(msgQueue);
-    const nextData = msgQueue.shift();
-
-    async function runNext() {
-        if (typeof nextData !== 'object') {
-            msgQueueRunning = false;
-            return;
-        }
-
-        if (messageMap.has(nextData.discord_msg_id)) {
-            nextData.msg_id = messageMap.get(nextData.discord_msg_id);
-        }
-
-        try {
-            const url =
-                'https://www.kookapp.cn/api/v/message/' +
-                (!!nextData.msg_id ? 'update' : 'create');
-            const res = await axios.post(url, nextData, {
-                headers: {
-                    ...getDefaultHeaders(),
-                },
-            });
-
-            if (res.data.data.msg_id)
-                messageMap.set(nextData.discord_msg_id, res.data.data.msg_id);
-            logger.http({
-                type: 'MSG_SENT',
-                response: res.data,
-                message_id: res.data.data.msg_id,
-                message_map: messageMap,
-            });
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (e: any) {
-            logError(e);
-            // 报错后等待3秒再重试
-            if (msgQueueRetryCount < 3) {
-                await sleep(3000);
-                await runNext();
-                msgQueueRetryCount++;
-            }
-        }
-    }
-
-    await sleep(3000);
-    await runNext();
-
-    msgQueueRunning = false;
-    msgQueueRetryCount = 0;
-
-    msgQueueRun();
-}
 
 // ============================================================================
 
@@ -172,7 +94,7 @@ export async function syncMessage(message: Message) {
             : undefined;
 
     /** 用以提交的 Kook 结构的消息内容 */
-    const postContent: ExtendedMessageType[] = [
+    const postContent: ExtendedCardMessageType[] = [
         {
             type: 'card',
             theme:
@@ -261,7 +183,7 @@ export async function syncMessage(message: Message) {
     if (Array.isArray(embeds) && embeds.length > 0) {
         let index = 0;
         let lastImageModule: ModuleType;
-        const cards: ExtendedMessageType[] = [];
+        const cards: ExtendedCardMessageType[] = [];
 
         for (const {
             type,
@@ -297,7 +219,7 @@ export async function syncMessage(message: Message) {
              * - 没有标题时，认为仅为媒体，将媒体放入上一个卡片中
              */
             const useLastCard = !title && cards.length > 0;
-            const thisCard: ExtendedMessageType = useLastCard
+            const thisCard: ExtendedCardMessageType = useLastCard
                 ? cards[cards.length - 1]
                 : {
                       type: 'card',
@@ -621,18 +543,17 @@ export async function syncMessage(message: Message) {
         delete message['__type'];
     });
 
-    const postData: PostDataType = {
+    const postData: MessageType = {
         type: 10,
         target_id:
             channelId in channelMap
                 ? channelMap[channelId as keyof typeof channelMap]
                 : '6086801551312186',
         content: JSON.stringify(postContent),
-        nonce: `FLY-DBH-KOOK-BOT @ ${Date.now()}`,
         discord_msg_id: id,
     };
 
-    queueMsg(postData);
+    sendMessage(postData);
 
     return { data: 'sync-discord request queued.' };
 }

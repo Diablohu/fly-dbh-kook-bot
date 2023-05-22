@@ -10,7 +10,7 @@ const logger = winston.createLogger({
         winston.format.timestamp(),
         winston.format.prettyPrint()
     ),
-    defaultMeta: { service: 'fly-dbh-discord-bot' },
+    defaultMeta: { service: 'fly-dbh-kook-bot' },
     transports: [
         new winston.transports.File({
             filename: path.resolve(logDir, 'error.log'),
