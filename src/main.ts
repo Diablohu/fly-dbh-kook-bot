@@ -13,13 +13,17 @@ import { attachInterceptors as attachAxiosInterceptors } from './axios-intercept
 // ============================================================================
 
 dotenv.config();
-if (!process.env.KOOK_TOKEN) {
-    process.env.KOOK_TOKEN =
-        !!process.env.KOOK_TOKEN_FILE &&
-        fs.existsSync(process.env.KOOK_TOKEN_FILE)
-            ? fs.readFileSync(process.env.KOOK_TOKEN_FILE, 'utf-8')
-            : '';
+function prepareEnvKey(key: string): void {
+    if (!process.env[`${key}`]) {
+        process.env[`${key}`] =
+            !!process.env[`${key}_FILE`] &&
+            fs.existsSync(process.env[`${key}_FILE`] || '')
+                ? fs.readFileSync(process.env[`${key}_FILE`] || '', 'utf-8')
+                : '';
+    }
 }
+prepareEnvKey('KOOK_TOKEN');
+prepareEnvKey('AVWX_TOKEN');
 
 // ============================================================================
 

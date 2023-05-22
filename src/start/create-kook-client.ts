@@ -109,6 +109,7 @@ async function createClient(): Promise<void> {
 
         // msgQueue = [];
 
+        await fs.writeJson(clientCacheFile, cache);
         await createClient();
     }
 
@@ -169,6 +170,7 @@ async function createClient(): Promise<void> {
                 }
                 // 需要重连
                 case WSSignalTypes.Reconnect: {
+                    console.log('Signal Reconnect');
                     await reconnect('Signal Reconnect');
                     break;
                 }
@@ -218,6 +220,12 @@ async function createClient(): Promise<void> {
             body.extra.type === WSMessageTypes.Markdown &&
             /^\//.test(body.content)
         ) {
+            if (
+                process.env.WEBPACK_BUILD_ENV === 'dev' &&
+                body.target_id !== '6086801551312186'
+            )
+                return;
+
             const command = body.content.replace(/^\//, '');
             const channelId = body.target_id;
             const messageId = body.msg_id;

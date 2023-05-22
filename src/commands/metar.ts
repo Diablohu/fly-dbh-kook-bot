@@ -6,13 +6,16 @@ async function commandMetar(icao: string): Promise<string> {
         // throw new Error('Wrong ICAO');
     }
 
-    // console.log({ icao });
+    console.log({ icao });
     const result =
+        // await axios.get(
+        //     `https://metar.vatsim.net/metar.php?id=${icao.toLowerCase()}`
+        // )
         (
             await axios.get(
-                `https://metar.vatsim.net/metar.php?id=${icao.toLowerCase()}`
+                `https://avwx.rest/api/metar/${icao.toUpperCase()}?options=&airport=true&reporting=true&format=json&remove=&filter=sanitized&onfail=cache`
             )
-        ).data || '';
+        ).data.sanitized || '';
 
     if (result === '') {
         return `查询 ${icao.toUpperCase()} 气象报文失败: 机场未找到`;

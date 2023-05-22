@@ -34,17 +34,20 @@ export function attachInterceptors(): void {
         const { url, headers } = config;
 
         const thisUrl = new URL(url || '', 'https://www.kookapp.cn/');
-        if (
-            thisUrl.hostname === 'www.kookapp.cn' &&
-            !/^\/api\/v/.test(thisUrl.pathname)
-        ) {
-            thisUrl.pathname = '/api/v' + thisUrl.pathname;
+        if (thisUrl.hostname === 'www.kookapp.cn') {
+            Object.assign(headers, ensureBaseHeaders(headers));
+            if (!/^\/api\/v/.test(thisUrl.pathname))
+                thisUrl.pathname = '/api/v' + thisUrl.pathname;
+        } else if (thisUrl.hostname === 'avwx.rest') {
+            headers.Authorization = `BEARER ${
+                process.env.AVWX_TOKEN as string
+            }`;
         }
 
         const axiosSettings = {
             ...config,
             url: thisUrl.href,
-            headers: ensureBaseHeaders(headers) as CommonHeaderProperties,
+            headers,
         };
         return Promise.resolve(axiosSettings);
     });
