@@ -1,6 +1,6 @@
 {
     "name": "fly-dbh-kook-bot",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "description": "Kook bot for fly-dbh.com",
     "main": "./dist/main.cjs",
     "type": "module",
@@ -63,7 +63,7 @@
         "copy-webpack-plugin": "^11.0.0",
         "cross-env": "^7.0.3",
         "discord.js": "^14.11.0",
-        "eslint": "^8.40.0",
+        "eslint": "^8.41.0",
         "eslint-config-koot": "^4.0.0",
         "husky": "^8.0.3",
         "jest": "^29.5.0",
@@ -72,7 +72,7 @@
         "prettier": "^2.8.8",
         "prettier-eslint": "^15.0.1",
         "react": "^18.2.0",
-        "thread-loader": "^4.0.1",
+        "thread-loader": "^4.0.2",
         "webpack": "^5.83.1",
         "webpack-cli": "^5.1.1"
     },
