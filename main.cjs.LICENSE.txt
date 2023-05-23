@@ -5,6 +5,13 @@ object-assign
 */
 
 /*!
+ * FileStreamRotator
+ * Copyright(c) 2012-2017 Holiday Extras.
+ * Copyright(c) 2017 Roger C.
+ * MIT Licensed
+ */
+
+/*!
  * accepts
  * Copyright(c) 2014 Jonathan Ong
  * Copyright(c) 2015 Douglas Christopher Wilson
@@ -224,3 +231,7 @@ PERFORMANCE OF THIS SOFTWARE.
 ***************************************************************************** */
 
 /*! safe-buffer. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
+
+//! moment.js
+
+//! moment.js locale configuration
