@@ -268,15 +268,15 @@ async function createClient(): Promise<void> {
                         break;
                     }
                     default: {
-                        console.log('[WebSocket] SYSTEM MESSAGE', body);
-                        logInfo({ body, sn });
+                        // console.log('[WebSocket] SYSTEM MESSAGE', body);
+                        // logInfo({ body, sn });
                     }
                 }
                 break;
             }
             default: {
-                console.log('[WebSocket] UNKNOWN MESSAGE', body);
-                logInfo({ body, sn });
+                // console.log('[WebSocket] UNKNOWN MESSAGE', body);
+                // logInfo({ body, sn });
             }
         }
     }

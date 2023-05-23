@@ -1,4 +1,4 @@
-import metar from './metar';
+import metar, { helpMessage as metarMessage } from './metar';
 
 async function commands(command: string): Promise<string> {
     command = command.replace(/^\//, '');
@@ -6,7 +6,7 @@ async function commands(command: string): Promise<string> {
 
     switch (type) {
         case 'help': {
-            return `\`/metar [ICAO] 查询机场气象报文，例 /metar ZBAA\``;
+            return [metarMessage].map((msg) => `\`${msg}\``).join(`\n`);
         }
         case 'metar': {
             return await metar(args[0]);
