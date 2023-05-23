@@ -1,7 +1,24 @@
-import path from 'path';
 import winston from 'winston';
+import 'winston-daily-rotate-file';
 
 import { logDir } from '../app.config';
+
+// transport.on('rotate', function (oldFilename, newFilename) {
+//     do something fun
+// });
+
+const transports = ['error', 'warn', 'notice', 'info', 'http', undefined].map(
+    (level) =>
+        new winston.transports.DailyRotateFile({
+            level,
+            filename: `${level || 'combined'}.%DATE%.log`,
+            dirname: logDir,
+            datePattern: 'YYYY-MM-DD',
+            zippedArchive: true,
+            maxFiles: '14d',
+            utc: true,
+        })
+);
 
 const logger = winston.createLogger({
     level: 'info',
@@ -11,34 +28,12 @@ const logger = winston.createLogger({
         winston.format.prettyPrint()
     ),
     defaultMeta: { service: 'fly-dbh-kook-bot' },
-    transports: [
-        new winston.transports.File({
-            filename: path.resolve(logDir, 'error.log'),
-            level: 'error',
-        }),
-        new winston.transports.File({
-            filename: path.resolve(logDir, 'warn.log'),
-            level: 'warn',
-        }),
-        new winston.transports.File({
-            filename: path.resolve(logDir, 'notice.log'),
-            level: 'notice',
-        }),
-        new winston.transports.File({
-            filename: path.resolve(logDir, 'info.log'),
-            level: 'info',
-        }),
-        new winston.transports.File({
-            filename: path.resolve(logDir, 'http.log'),
-            level: 'http',
-        }),
-        new winston.transports.File({
-            filename: path.resolve(logDir, 'combined.log'),
-        }),
-    ],
+    transports,
 });
 
 export default logger;
+
+// ============================================================================
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function logError(err: Record<string, any>) {

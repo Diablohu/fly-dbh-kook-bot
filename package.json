@@ -46,6 +46,7 @@
         "listr": "^0.14.3",
         "md5": "^2.3.0",
         "winston": "^3.8.2",
+        "winston-daily-rotate-file": "^4.7.1",
         "ws": "^8.13.0",
         "zen-observable": "^0.10.0"
     },
