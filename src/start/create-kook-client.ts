@@ -138,7 +138,10 @@ async function createClient(): Promise<void> {
             body = msg;
             // console.log('WSS on Message', msg);
         }
+
+        // 存在 type，表示正确的信息
         if (typeof type !== 'undefined') {
+            // 获取的信息中存在 sn，刷新 cache
             if (typeof sn === 'number') cache.sn = sn;
 
             switch (type) {
@@ -149,6 +152,7 @@ async function createClient(): Promise<void> {
                         return;
                     }
                     logInfo(body as { [key: string]: string });
+                    // 握手成功，获取到 sessionId，刷新 cache
                     if (
                         typeof body === 'object' &&
                         !!(body as { [key: string]: string })?.sessionId
@@ -159,6 +163,7 @@ async function createClient(): Promise<void> {
                 }
                 case WSSignalTypes.RsumeAck: {
                     logInfo(body as { [key: string]: string });
+                    // 重连成功，获取到 sessionId，刷新 cache
                     if (
                         typeof body === 'object' &&
                         !!(body as { [key: string]: string }).sessionId
@@ -168,6 +173,7 @@ async function createClient(): Promise<void> {
                     break;
                 }
                 case WSSignalTypes.Pong: {
+                    // 成功收到 PONG 回应，终止仍存在的 PING 重试尝试，开启新的 PING 倒计时
                     // console.log('PONG!', msg);
                     clearTimeout(pingTimeout);
                     pingRetry = 0;
@@ -176,6 +182,7 @@ async function createClient(): Promise<void> {
                 }
                 // 需要重连
                 case WSSignalTypes.Reconnect: {
+                    // 收到重连请求，进行重新连接
                     console.log('Signal Reconnect');
                     await reconnect('Signal Reconnect');
                     break;
@@ -189,7 +196,11 @@ async function createClient(): Promise<void> {
         await fs.writeJson(clientCacheFile, cache);
     });
 
-    function sendPing(time = 30 * 1000): NodeJS.Timeout {
+    /** 发送 PING */
+    function sendPing(
+        /** 延迟时间 */
+        time = 30 * 1000
+    ): NodeJS.Timeout {
         if (client.readyState !== ws.OPEN) {
             pingTimeout = setTimeout(sendPing, 100);
             return pingTimeout;
@@ -214,6 +225,7 @@ async function createClient(): Promise<void> {
     }
 
     async function parseMsg(body: WSMessageType, sn: number) {
+        // 如果是机器人或系统消息，直接忽略
         if (
             (body.extra.type === WSMessageTypes.Markdown ||
                 body.extra.type === WSMessageTypes.Card) &&
@@ -222,11 +234,13 @@ async function createClient(): Promise<void> {
         )
             return;
 
+        // 如果是以 `/` 开头的消息，判断为命令，进行分析
         if (
             body.type === WSMessageTypes.Markdown &&
             body.extra.type === WSMessageTypes.Markdown &&
             /^\//.test(body.content)
         ) {
+            // 开发环境仅监控一个频道
             if (
                 process.env.WEBPACK_BUILD_ENV === 'dev' &&
                 body.target_id !== '6086801551312186'
@@ -259,6 +273,7 @@ async function createClient(): Promise<void> {
             return;
         }
 
+        // 其他消息
         switch (body.type) {
             case WSMessageTypes.System: {
                 switch (body.extra.type) {
