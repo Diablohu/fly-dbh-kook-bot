@@ -4,7 +4,7 @@ async function commands(command: string): Promise<string> {
     command = command.replace(/^\//, '');
     const [type, ...args] = command.split(' ');
 
-    switch (type) {
+    switch (type.toLowerCase()) {
         case 'help': {
             return [metarMessage].map((msg) => `\`${msg}\``).join(`\n`);
         }
