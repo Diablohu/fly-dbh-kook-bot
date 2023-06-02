@@ -435,3 +435,4 @@ async function commandFunction(
 // ============================================================================
 
 registerCommand('simbrief', commandFunction, helpMessage);
+registerCommand('sb', commandFunction, helpMessage);
