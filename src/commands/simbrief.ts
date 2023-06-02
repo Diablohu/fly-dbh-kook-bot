@@ -241,7 +241,7 @@ async function commandFunction(
                     fields: [
                         {
                             type: 'kmarkdown',
-                            content: `**🛫 始发**\n　  ${res.origin.icao_code} / ${res.origin.iata_code}`,
+                            content: `**🛫 始发地**\n　  ${res.origin.icao_code} / ${res.origin.iata_code}`,
                         },
                         {
                             type: 'kmarkdown',
@@ -323,7 +323,7 @@ async function commandFunction(
                     fields: [
                         {
                             type: 'kmarkdown',
-                            content: `**预计空机重量 (ZFW)**\n> ${numeral(
+                            content: `**预计空油重量 (ZFW)**\n> ${numeral(
                                 res.weights.est_zfw
                             ).format('0,0')} ${W}`,
                         },
