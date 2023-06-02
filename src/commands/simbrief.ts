@@ -217,6 +217,7 @@ async function commandFunction(
 
     if (!res) return `> 😣 查询失败`;
 
+    const W = res.params.units === 'kgs' ? 'kg' : 'lbs';
     const postCard: CardMessageType = {
         type: 'card',
         theme: 'secondary',
@@ -324,13 +325,13 @@ async function commandFunction(
                             type: 'kmarkdown',
                             content: `**预计空机重量 (ZFW)**\n> ${numeral(
                                 res.weights.est_zfw
-                            ).format('0,0')} kg`,
+                            ).format('0,0')} ${W}`,
                         },
                         {
                             type: 'kmarkdown',
                             content: `**预计起飞重量 (TOW)**\n> ${numeral(
                                 res.weights.est_tow
-                            ).format('0,0')} kg`,
+                            ).format('0,0')} ${W}`,
                         },
                         {
                             type: 'kmarkdown',
@@ -338,37 +339,37 @@ async function commandFunction(
                                 res.weights.pax_count
                             } × ${numeral(res.weights.pax_weight).format(
                                 '0.000'
-                            )} kg`,
+                            )} ${W}`,
                         },
                         {
                             type: 'kmarkdown',
                             content: `**预计货重 (含所有行李)**\n> ${numeral(
                                 res.weights.cargo
-                            ).format('0,0')} kg`,
+                            ).format('0,0')} ${W}`,
                         },
                         {
                             type: 'kmarkdown',
                             content: `**预计总载荷**\n> ${numeral(
                                 res.weights.payload
-                            ).format('0,0')} kg`,
+                            ).format('0,0')} ${W}`,
                         },
                         {
                             type: 'kmarkdown',
                             content: `**初始燃油量**\n> ${numeral(
                                 res.fuel.plan_ramp
-                            ).format('0,0')} kg`,
+                            ).format('0,0')} ${W}`,
                         },
                         {
                             type: 'kmarkdown',
                             content: `**预计着陆剩余燃油量**\n> ${numeral(
                                 res.fuel.plan_landing
-                            ).format('0,0')} kg`,
+                            ).format('0,0')} ${W}`,
                         },
                         {
                             type: 'kmarkdown',
                             content: `**预计储备燃油量**\n> ${numeral(
                                 res.fuel.reserve
-                            ).format('0,0')} kg`,
+                            ).format('0,0')} ${W}`,
                         },
                     ],
                 },
