@@ -15,7 +15,7 @@ import logger, { logError as _logError } from '../logger';
 import { cacheDir } from '../../app.config';
 import sendMessage from '../api/send-message';
 
-import commands from '../commands/index';
+import getCommandResponse from '../commands/index';
 
 const unzip = promisify(zlib.unzip);
 
@@ -257,9 +257,18 @@ async function createClient(): Promise<void> {
                 sn,
             });
 
-            const response = await commands(command).catch(logError);
+            const response = await getCommandResponse(command).catch(logError);
             // console.log(response);
-            if (typeof response === 'string' && !!response) {
+            if (typeof response === 'object' && response.type === 'card') {
+                const msg: MessageType = {
+                    type: 10,
+                    target_id: channelId,
+                    quote: messageId,
+                    content: JSON.stringify([response]),
+                };
+                // console.log(msg);
+                sendMessage(msg);
+            } else if (typeof response === 'string' && !!response) {
                 const msg: MessageType = {
                     type: 9,
                     target_id: channelId,

@@ -111,6 +111,13 @@ export type MessageType = {
 
 // ============================================================================
 export type MessageSource = 'discord' | 'twitter' | 'youtube';
+export type MessageTheme =
+    | 'primary'
+    | 'warning'
+    | 'danger'
+    | 'info'
+    | 'none'
+    | 'secondary';
 
 export type SizeType = 'xs' | 'sm' | 'md' | 'lg';
 export type ModuleType =
@@ -124,7 +131,11 @@ export type ModuleType =
               | 'image-group'
               | 'container'
               | 'video'
-              | 'divider';
+              | 'divider'
+              | 'header'
+              | 'paragraph'
+              | 'action-group'
+              | 'button';
           src?: string;
           content?: string;
           elements?: ModuleType[];
@@ -133,11 +144,16 @@ export type ModuleType =
           size?: SizeType;
           mode?: 'left' | 'right';
           accessory?: ModuleType;
+          cols?: number;
+          fields?: ModuleType[];
+          theme?: MessageTheme;
+          click?: 'link' | 'return-val';
+          value?: string;
       }
     | undefined;
 export type CardMessageType = {
     type: 'card';
-    theme?: 'primary' | 'warning' | 'danger' | 'info' | 'none' | 'secondary';
+    theme?: MessageTheme;
     color?: string;
     size?: SizeType;
     modules: ModuleType[];

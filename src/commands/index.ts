@@ -1,20 +1,50 @@
-import metar, { helpMessage as metarMessage } from './metar';
+import type { CardMessageType } from '../../types';
 
-async function commands(command: string): Promise<string> {
+import './metar';
+import './simbrief';
+
+// ============================================================================
+
+export type commandFunction = (
+    args: string[]
+) => Promise<string | CardMessageType>;
+
+// ============================================================================
+
+const commands: Record<string, commandFunction> = {};
+const helpList: string[] = [];
+
+// ============================================================================
+
+async function getCommandResponse(
+    command: string
+): Promise<string | CardMessageType> {
     command = command.replace(/^\//, '');
     const [type, ...args] = command.split(' ');
 
     switch (type.toLowerCase()) {
         case 'help': {
-            return [metarMessage].map((msg) => `\`${msg}\``).join(`\n`);
-        }
-        case 'metar': {
-            return await metar(args[0]);
+            return helpList.map((msg) => `\`${msg}\``).join(`\n`);
         }
     }
 
-    // 未知命令
-    return '未知命令。输入 `/help` 可查看命令帮助。';
+    return (
+        (await commands[type.toLowerCase()]?.(args)) ||
+        '未知命令。输入 `/help` 可查看命令帮助。'
+    );
 }
 
-export default commands;
+export default getCommandResponse;
+
+// ============================================================================
+
+export function registerCommand(
+    commandStr: string,
+    func: commandFunction,
+    helpMessage?: string
+): void {
+    setTimeout(() => {
+        commands[commandStr.toLowerCase()] = func;
+        if (helpMessage) helpList.push(helpMessage);
+    });
+}

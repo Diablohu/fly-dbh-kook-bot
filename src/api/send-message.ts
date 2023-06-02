@@ -47,6 +47,7 @@ async function msgQueueRun() {
             nextData.msg_id = discordMessageMap.get(nextData.discord_msg_id);
         }
 
+        // console.log(nextData);
         try {
             const { discord_msg_id, ...msg } = nextData;
             const url = '/message/' + (!!msg.msg_id ? 'update' : 'create');
@@ -65,6 +66,7 @@ async function msgQueueRun() {
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
+            console.log(e);
             logError(e);
             // 报错后等待3秒再重试
             if (msgQueueRetryCount < 3) {
