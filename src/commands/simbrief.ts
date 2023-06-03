@@ -323,7 +323,7 @@ async function commandFunction(
                     fields: [
                         {
                             type: 'kmarkdown',
-                            content: `**预计空油重量 (ZFW)**\n> ${numeral(
+                            content: `**预计零油重量 (ZFW)**\n> ${numeral(
                                 res.weights.est_zfw
                             ).format('0,0')} ${W}`,
                         },
