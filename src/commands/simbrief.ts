@@ -1,7 +1,7 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import numeral from 'numeral';
 
-import type { CardMessageType } from '../../types';
+import type { CardMessageType, ModuleType } from '../../types';
 
 import log, { logError } from '../logger';
 import upload from '../upload';
@@ -139,6 +139,7 @@ interface OFP {
         cargo: string;
         est_zfw: string;
         est_tow: string;
+        est_ldw: string;
     };
     fms_downloads: {
         directory: string;
@@ -198,7 +199,7 @@ async function commandFunction(
     if (/^\d+$/.test(qStr)) params.userid = qStr;
     else params.username = qStr;
 
-    const res: OFP = await axios
+    const res = await axios
         .get<OFP>(
             `https://www.simbrief.com/api/xml.fetcher.php?${Object.entries(
                 params
@@ -208,16 +209,34 @@ async function commandFunction(
         )
         .then((res) => {
             log.http(res);
-            return res.data;
+            return res;
         })
         .catch((err) => {
             logError(err);
             return err;
         });
 
+    if (res instanceof AxiosError) {
+        return `> 😣 查询失败 \`${
+            res?.response?.data?.fetch?.status || res.message
+        }\``;
+    }
     if (!res) return `> 😣 查询失败`;
 
-    const W = res.params.units === 'kgs' ? 'kg' : 'lbs';
+    const ofp: OFP = res.data;
+
+    const W = ofp.params.units === 'kgs' ? 'kg' : 'lbs';
+    const initialClimbAlt = Number(ofp.general.initial_altitude);
+    const cruiseAlt =
+        typeof ofp.general.stepclimb_string === 'string' &&
+        !!ofp.general.stepclimb_string
+            ? ofp.general.stepclimb_string
+                  .split('/')
+                  .filter((str) => /^\d+$/.test(str))
+                  .map((str) => Number(str) * 100)
+                  .sort((a, b) => b - a)[0]
+            : initialClimbAlt;
+
     const postCard: CardMessageType = {
         type: 'card',
         theme: 'secondary',
@@ -227,7 +246,7 @@ async function commandFunction(
                 type: 'header',
                 text: {
                     type: 'plain-text',
-                    content: `${res.origin.name} ➡ ${res.destination.name}`,
+                    content: `${ofp.origin.name} ➡ ${ofp.destination.name}`,
                 },
             },
             {
@@ -241,15 +260,15 @@ async function commandFunction(
                     fields: [
                         {
                             type: 'kmarkdown',
-                            content: `**🛫 始发地**\n　  ${res.origin.icao_code} / ${res.origin.iata_code}`,
+                            content: `**🛫 始发地**\n　  ${ofp.origin.icao_code} / ${ofp.origin.iata_code}`,
                         },
                         {
                             type: 'kmarkdown',
-                            content: `**🛬 目的地**\n　  ${res.destination.icao_code} / ${res.destination.iata_code}`,
+                            content: `**🛬 目的地**\n　  ${ofp.destination.icao_code} / ${ofp.destination.iata_code}`,
                         },
                         {
                             type: 'kmarkdown',
-                            content: `**🪂 备降**\n　  ${res.alternate.icao_code} / ${res.alternate.iata_code}`,
+                            content: `**🪂 备降**\n　  ${ofp.alternate.icao_code} / ${ofp.alternate.iata_code}`,
                         },
                     ],
                 },
@@ -262,18 +281,18 @@ async function commandFunction(
                     fields: [
                         {
                             type: 'kmarkdown',
-                            content: `**✈ 机型** \`${res.aircraft.icao_code}\`\n　  ${res.aircraft.name}`,
+                            content: `**✈ 机型** \`${ofp.aircraft.icao_code}\`\n　  ${ofp.aircraft.name}`,
                         },
                         {
                             type: 'kmarkdown',
                             content: `**🗺 航线总长**\n　  ${numeral(
-                                res.general.route_distance
+                                ofp.general.route_distance
                             ).format('0,0')} nm`,
                         },
                         {
                             type: 'kmarkdown',
                             content: `**⌚ 预计飞行时间**\n　  ${numeral(
-                                res.times.est_time_enroute
+                                ofp.times.est_time_enroute
                             )
                                 .format('00:00:00')
                                 .split(':')
@@ -288,7 +307,111 @@ async function commandFunction(
                 type: 'section',
                 text: {
                     type: 'kmarkdown',
-                    content: `\`\`\`\n${res.origin.icao_code}/${res.origin.plan_rwy}\n${res.general.route}\n${res.destination.icao_code}/${res.destination.plan_rwy}\`\`\``,
+                    content: `\`\`\`\n${ofp.origin.icao_code}/${ofp.origin.plan_rwy}\n${ofp.general.route}\n${ofp.destination.icao_code}/${ofp.destination.plan_rwy}\`\`\``,
+                },
+            },
+            {
+                type: 'divider',
+            },
+            {
+                type: 'section',
+                text: {
+                    type: 'paragraph',
+                    cols: 2,
+                    fields: [
+                        {
+                            type: 'kmarkdown',
+                            content: `**初始爬升高度**\n> ${initialClimbAlt} ft`,
+                        },
+                        {
+                            type: 'kmarkdown',
+                            content: `**预计巡航高度**\n> ${cruiseAlt} ft`,
+                        },
+                    ],
+                },
+            },
+
+            cruiseAlt !== initialClimbAlt
+                ? {
+                      type: 'section',
+                      text: {
+                          type: 'paragraph',
+                          cols: 2,
+                          fields: [
+                              {
+                                  type: 'kmarkdown',
+                                  content: `**阶段式爬升**\n> \`${ofp.general.stepclimb_string}\``,
+                              },
+                          ],
+                      },
+                  }
+                : undefined,
+
+            {
+                type: 'section',
+                text: {
+                    type: 'paragraph',
+                    cols: 2,
+                    fields: [
+                        {
+                            type: 'kmarkdown',
+                            content: `**巡航速度**\n> ${ofp.general.cruise_tas} KTAS / M${ofp.general.cruise_mach}`,
+                        },
+                        {
+                            type: 'kmarkdown',
+                            content: `**成本指数 (若适用)**\n> ${ofp.general.costindex}`,
+                        },
+                    ],
+                },
+            },
+            {
+                type: 'divider',
+            },
+            {
+                type: 'section',
+                text: {
+                    type: 'paragraph',
+                    cols: 2,
+                    fields: [
+                        {
+                            type: 'kmarkdown',
+                            content: `**预计零油重量 (ZFW)**\n> ${numeral(
+                                ofp.weights.est_zfw
+                            ).format('0,0')} ${W}`,
+                        },
+                        {
+                            type: 'kmarkdown',
+                            content: `**预计起飞重量 (TOW)**\n> ${numeral(
+                                ofp.weights.est_tow
+                            ).format('0,0')} ${W}`,
+                        },
+                        {
+                            type: 'kmarkdown',
+                            content: `**预计乘客数 × 平均体重**\n> ${
+                                ofp.weights.pax_count
+                            } × ${numeral(ofp.weights.pax_weight).format(
+                                '0.000'
+                            )} ${W}`,
+                        },
+                        {
+                            type: 'kmarkdown',
+                            content: `**预计货重 (含所有行李)**\n> ${numeral(
+                                ofp.weights.cargo
+                            ).format('0,0')} ${W}`,
+                        },
+                        {
+                            type: 'kmarkdown',
+                            content: `**预计总载荷**\n> ${numeral(
+                                ofp.weights.payload
+                            ).format('0,0')} ${W}`,
+                        },
+                        {
+                            type: 'kmarkdown',
+                            content: `**预计着陆重量**\n> ${numeral(
+                                ofp.weights.est_ldw
+                            ).format('0,0')} ${W}`,
+                        },
+                    ],
                 },
             },
             {
@@ -302,73 +425,20 @@ async function commandFunction(
                     fields: [
                         {
                             type: 'kmarkdown',
-                            content: `**巡航高度**\n> ${res.general.initial_altitude} ft`,
-                        },
-                        {
-                            type: 'kmarkdown',
-                            content: `**巡航速度**\n> ${res.general.cruise_tas} KTAS\nM${res.general.cruise_mach}`,
-                        },
-                        {
-                            type: 'kmarkdown',
-                            content: `**经济指数 (若适用)**\n> ${res.general.costindex}`,
-                        },
-                    ],
-                },
-            },
-            {
-                type: 'section',
-                text: {
-                    type: 'paragraph',
-                    cols: 2,
-                    fields: [
-                        {
-                            type: 'kmarkdown',
-                            content: `**预计零油重量 (ZFW)**\n> ${numeral(
-                                res.weights.est_zfw
-                            ).format('0,0')} ${W}`,
-                        },
-                        {
-                            type: 'kmarkdown',
-                            content: `**预计起飞重量 (TOW)**\n> ${numeral(
-                                res.weights.est_tow
-                            ).format('0,0')} ${W}`,
-                        },
-                        {
-                            type: 'kmarkdown',
-                            content: `**预计乘客数 × 平均体重**\n> ${
-                                res.weights.pax_count
-                            } × ${numeral(res.weights.pax_weight).format(
-                                '0.000'
-                            )} ${W}`,
-                        },
-                        {
-                            type: 'kmarkdown',
-                            content: `**预计货重 (含所有行李)**\n> ${numeral(
-                                res.weights.cargo
-                            ).format('0,0')} ${W}`,
-                        },
-                        {
-                            type: 'kmarkdown',
-                            content: `**预计总载荷**\n> ${numeral(
-                                res.weights.payload
-                            ).format('0,0')} ${W}`,
-                        },
-                        {
-                            type: 'kmarkdown',
                             content: `**初始燃油量**\n> ${numeral(
-                                res.fuel.plan_ramp
+                                ofp.fuel.plan_ramp
                             ).format('0,0')} ${W}`,
                         },
                         {
                             type: 'kmarkdown',
                             content: `**预计着陆剩余燃油量**\n> ${numeral(
-                                res.fuel.plan_landing
+                                ofp.fuel.plan_landing
                             ).format('0,0')} ${W}`,
                         },
                         {
                             type: 'kmarkdown',
                             content: `**预计储备燃油量**\n> ${numeral(
-                                res.fuel.reserve
+                                ofp.fuel.reserve
                             ).format('0,0')} ${W}`,
                         },
                     ],
@@ -383,7 +453,7 @@ async function commandFunction(
                     {
                         type: 'image',
                         src: await upload(
-                            res.images.directory + res.images.map[0].link
+                            ofp.images.directory + ofp.images.map[0].link
                         ),
                     },
                 ],
@@ -396,8 +466,8 @@ async function commandFunction(
                         theme: 'primary',
                         click: 'link',
                         value:
-                            res.fms_downloads.directory +
-                            res.fms_downloads.mfs.link,
+                            ofp.fms_downloads.directory +
+                            ofp.fms_downloads.mfs.link,
                         text: {
                             type: 'plain-text',
                             content: '下载飞行计划文件',
@@ -407,7 +477,7 @@ async function commandFunction(
                         type: 'button',
                         theme: 'info',
                         click: 'link',
-                        value: res.prefile.vatsim.link,
+                        value: ofp.prefile.vatsim.link,
                         text: {
                             type: 'plain-text',
                             content: '提交飞行计划至 VATSIM',
@@ -427,7 +497,7 @@ async function commandFunction(
                     },
                 ],
             },
-        ],
+        ].filter((v) => !!v) as ModuleType[],
     };
 
     return postCard;

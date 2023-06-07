@@ -53,6 +53,10 @@ async function msgQueueRun() {
             const url = '/message/' + (!!msg.msg_id ? 'update' : 'create');
             const res = await axios.post(url, msg);
 
+            if (res.data.code !== 0) {
+                throw new Error(res.data);
+            }
+
             // console.log('___', url, msg, res);
             if (discord_msg_id && res.data.data.msg_id)
                 discordMessageMap.set(discord_msg_id, res.data.data.msg_id);
@@ -69,10 +73,11 @@ async function msgQueueRun() {
             console.log(e);
             logError(e);
             // 报错后等待3秒再重试
+            // console.log(123, msgQueueRetryCount);
             if (msgQueueRetryCount < 3) {
+                msgQueueRetryCount++;
                 await sleep(3000);
                 await runNext();
-                msgQueueRetryCount++;
             }
         }
     }

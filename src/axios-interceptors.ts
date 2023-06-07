@@ -19,6 +19,7 @@ let interceptorsAttached = false;
 
 export function attachInterceptors(): void {
     if (interceptorsAttached) return;
+
     axios.interceptors.request.use(async (config) => {
         const { url, headers } = config;
 
