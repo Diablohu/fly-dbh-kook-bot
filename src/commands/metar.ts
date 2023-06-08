@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { logError } from '../logger';
-import { registerCommand } from './';
+import { registerCommand, resultByCommandName } from './';
 
 // ============================================================================
 

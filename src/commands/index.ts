@@ -1,3 +1,4 @@
+import { Command } from 'commander';
 import type { CardMessageType } from '../../types';
 
 import './metar';
@@ -21,6 +22,8 @@ type CommandHelpType = {
 const commands: Record<string, commandFunction> = {};
 const helpList: CommandHelpType[] = [];
 let helpAllMsg: string;
+export const program = new Command().option('-p, --public', '公开回复信息');
+export const resultByCommandName: Map<string, string> = new Map();
 
 // ============================================================================
 
@@ -67,4 +70,8 @@ export function registerCommand(
         commands[commandStr.toLowerCase()] = func;
         if (helpMessage) helpList.push(helpMessage);
     });
+}
+
+export function setResult(comand: string, result: string): void {
+    resultByCommandName.set(comand, result);
 }
