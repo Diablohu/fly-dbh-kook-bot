@@ -4,8 +4,6 @@ import { registerCommand } from './';
 
 // ============================================================================
 
-const helpMessage = '/metar [ICAO/IATA] 查询机场气象报文，例 /metar ZBAA';
-
 async function commandFunction(query: string[]): Promise<string> {
     const qStr = query[0];
     if (typeof qStr !== 'string' || qStr.length < 3) {
@@ -40,4 +38,9 @@ async function commandFunction(query: string[]): Promise<string> {
 
 // ============================================================================
 
-registerCommand('metar', commandFunction, helpMessage);
+registerCommand('metar', commandFunction, {
+    command: 'metar',
+    description: '查询机场气象报文',
+    arguments: ['<ICAO机场代码>'],
+    examples: ['/metar ZBAA', '/metar JFK'],
+});

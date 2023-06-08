@@ -22,4 +22,5 @@
 -   ✅ 以 WebSocket 方式登录 Kook，并响应所有消息
 -   ✅ 响应命令
     -   `/help`
-    -   `/metar [ICAO]`
+    -   `/metar <icao/iata>`
+    -   `/simbrief [username/pilot_id]`

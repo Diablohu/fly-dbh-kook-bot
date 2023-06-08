@@ -167,9 +167,6 @@ interface OFP {
 
 // ============================================================================
 
-const helpMessage =
-    '/simbrief [用户名或用户ID] 查询该用户在 SimBrief 上已签派的最新飞行计划，例 /simbrief diablohu';
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function commandFunction(
     query: string[]
@@ -505,5 +502,10 @@ async function commandFunction(
 
 // ============================================================================
 
-registerCommand('simbrief', commandFunction, helpMessage);
-registerCommand('sb', commandFunction, helpMessage);
+registerCommand('simbrief', commandFunction, {
+    command: 'simbrief',
+    description: '查询目标用户在 SimBrief 最近签派的飞行计划',
+    arguments: ['<用户名或用户ID>'],
+    examples: ['/simbrief diablohu', '/simbrief 392663'],
+});
+registerCommand('sb', commandFunction);

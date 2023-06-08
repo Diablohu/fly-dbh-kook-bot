@@ -265,6 +265,7 @@ async function createClient(): Promise<void> {
                     target_id: channelId,
                     quote: messageId,
                     content: JSON.stringify([response]),
+                    // temp_target_id
                 };
                 // console.log(msg);
                 sendMessage(msg);

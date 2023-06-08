@@ -8,11 +8,18 @@ import './simbrief';
 export type commandFunction = (
     args: string[]
 ) => Promise<string | CardMessageType>;
+type CommandHelpType = {
+    command: string;
+    description: string;
+    examples: string[];
+    arguments?: string[];
+    options?: string;
+};
 
 // ============================================================================
 
 const commands: Record<string, commandFunction> = {};
-const helpList: string[] = [];
+const helpList: CommandHelpType[] = [];
 
 // ============================================================================
 
@@ -24,14 +31,23 @@ async function getCommandResponse(
 
     switch (type.toLowerCase()) {
         case 'help': {
-            return helpList.map((msg) => `\`${msg}\``).join(`\n`);
+            return `\`\`\`markdown\n${helpList
+                .map((help) => {
+                    return `${help.description}\n     /${help.command} ${
+                        Array.isArray(help.arguments)
+                            ? help.arguments.join(' ')
+                            : ''
+                    }\n  例 ${help.examples.join('\n     ')}`;
+                })
+                .join('\n\n')}\`\`\``;
+        }
+        default: {
+            return (
+                (await commands[type.toLowerCase()]?.(args)) ||
+                '未知命令。输入 `/help` 可查看命令帮助。'
+            );
         }
     }
-
-    return (
-        (await commands[type.toLowerCase()]?.(args)) ||
-        '未知命令。输入 `/help` 可查看命令帮助。'
-    );
 }
 
 export default getCommandResponse;
@@ -41,7 +57,7 @@ export default getCommandResponse;
 export function registerCommand(
     commandStr: string,
     func: commandFunction,
-    helpMessage?: string
+    helpMessage?: CommandHelpType
 ): void {
     setTimeout(() => {
         commands[commandStr.toLowerCase()] = func;
