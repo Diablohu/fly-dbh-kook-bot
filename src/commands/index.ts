@@ -20,6 +20,7 @@ type CommandHelpType = {
 
 const commands: Record<string, commandFunction> = {};
 const helpList: CommandHelpType[] = [];
+let helpAllMsg: string;
 
 // ============================================================================
 
@@ -31,15 +32,18 @@ async function getCommandResponse(
 
     switch (type.toLowerCase()) {
         case 'help': {
-            return `\`\`\`markdown\n${helpList
-                .map((help) => {
-                    return `${help.description}\n     /${help.command} ${
-                        Array.isArray(help.arguments)
-                            ? help.arguments.join(' ')
-                            : ''
-                    }\n  例 ${help.examples.join('\n     ')}`;
-                })
-                .join('\n\n')}\`\`\``;
+            if (!helpAllMsg) {
+                helpAllMsg = `\`\`\`markdown\n${helpList
+                    .map((help) => {
+                        return `${help.description}\n     /${help.command} ${
+                            Array.isArray(help.arguments)
+                                ? help.arguments.join(' ')
+                                : ''
+                        }\n  例 ${help.examples.join('\n     ')}`;
+                    })
+                    .join('\n\n')}\`\`\``;
+            }
+            return helpAllMsg;
         }
         default: {
             return (
