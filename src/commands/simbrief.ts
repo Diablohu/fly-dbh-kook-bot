@@ -334,14 +334,8 @@ async function commandAction(
                 ? {
                       type: 'section',
                       text: {
-                          type: 'paragraph',
-                          cols: 2,
-                          fields: [
-                              {
-                                  type: 'kmarkdown',
-                                  content: `**阶段式爬升**\n> \`${ofp.general.stepclimb_string}\``,
-                              },
-                          ],
+                          type: 'kmarkdown',
+                          content: `**阶段式爬升**\n> \`${ofp.general.stepclimb_string}\``,
                       },
                   }
                 : undefined,
