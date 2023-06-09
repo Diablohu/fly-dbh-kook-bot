@@ -135,12 +135,12 @@ export class Command {
         return this;
     }
 
-    argument(arg: string): Command {
+    argument(arg: string, desc?: string): Command {
         this._args.push(arg);
         return this;
     }
 
-    option(opt: string): Command {
+    option(opt: string, desc?: string): Command {
         const short: string[] = [];
         let full: string;
 

@@ -52,6 +52,7 @@ setTimeout(() => {
     new Command('metar')
         .description('查询机场气象报文')
         .argument('<ICAO/IATA机场代码>')
+        .option('-d, --detail', '获取报文详情')
         .example('/metar ZBAA')
         .example('/metar JFK')
         .action(commandAction);

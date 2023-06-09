@@ -74,6 +74,9 @@ interface OFP {
         iata_code: string;
         plan_rwy: string;
     };
+    navlog: {
+        fix: Array<{ altitude_feet: string }>;
+    };
     aircraft: {
         icaocode: string;
         iatacode: Record<string, unknown>;
@@ -114,7 +117,6 @@ interface OFP {
         etopsfuel_time: string;
         extrafuel_time: string;
     };
-
     fuel: {
         taxi: string;
         enroute_burn: string;
@@ -221,15 +223,18 @@ async function commandAction(
 
     const W = ofp.params.units === 'kgs' ? 'kg' : 'lbs';
     const initialClimbAlt = Number(ofp.general.initial_altitude);
-    const cruiseAlt =
-        typeof ofp.general.stepclimb_string === 'string' &&
-        !!ofp.general.stepclimb_string
-            ? ofp.general.stepclimb_string
-                  .split('/')
-                  .filter((str) => /^\d+$/.test(str))
-                  .map((str) => Number(str) * 100)
-                  .sort((a, b) => b - a)[0]
-            : initialClimbAlt;
+    // const cruiseAlt =
+    //     typeof ofp.general.stepclimb_string === 'string' &&
+    //     !!ofp.general.stepclimb_string
+    //         ? ofp.general.stepclimb_string
+    //               .split('/')
+    //               .filter((str) => /^\d+$/.test(str))
+    //               .map((str) => Number(str) * 100)
+    //               .sort((a, b) => b - a)[0]
+    //         : initialClimbAlt;
+    const cruiseAlt = ofp.navlog.fix.reduce((alt, { altitude_feet }) => {
+        return Math.max(alt, Number(altitude_feet));
+    }, initialClimbAlt);
 
     const postCard: CardMessageType = {
         type: 'card',
