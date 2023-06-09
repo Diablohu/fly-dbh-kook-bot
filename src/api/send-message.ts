@@ -54,7 +54,8 @@ async function msgQueueRun() {
             const res = await axios.post(url, msg);
 
             if (res.data.code !== 0) {
-                throw new Error(res.data);
+                // { code: 40000, message: '不支持该类型：header1', data: {}
+                throw res;
             }
 
             // console.log('___', url, msg, res);
@@ -72,9 +73,17 @@ async function msgQueueRun() {
         } catch (e: any) {
             console.log(e);
             logError(e);
+
+            // 如果报告 40000，说明格式有误，不进行重试
+            // TODO: 报告给我？
+            if (e?.data?.code === 40000) {
+                // console.log(222, 2);
+                return;
+            }
+
             // 报错后等待3秒再重试
             // console.log(123, msgQueueRetryCount);
-            if (msgQueueRetryCount < 3) {
+            if (msgQueueRetryCount < 2) {
                 msgQueueRetryCount++;
                 await sleep(3000);
                 await runNext();

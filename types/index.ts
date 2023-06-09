@@ -106,7 +106,18 @@ export type MessageType = {
     quote?: string;
     nonce?: string;
     msg_id?: string;
+    temp_target_id?: string;
+
+    /**
+     * Discord 同步消息的原始 ID
+     * - 仅供记录用，提交给 Kook 的数据中需要移除该字段
+     */
     discord_msg_id?: string;
+    /**
+     * 标记是否为临时消息
+     * - 仅供记录用，提交给 Kook 的数据中需要移除该字段
+     */
+    _is_temp?: boolean;
 };
 
 // ============================================================================

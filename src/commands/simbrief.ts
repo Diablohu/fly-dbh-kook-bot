@@ -5,7 +5,7 @@ import type { CardMessageType, ModuleType } from '../../types';
 
 import log, { logError } from '../logger';
 import upload from '../upload';
-import { registerCommand } from './';
+import { Command, CommandAction } from './';
 
 interface OFP {
     fetch: {
@@ -168,14 +168,11 @@ interface OFP {
 // ============================================================================
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function commandFunction(
-    query: string[]
-): Promise<string | CardMessageType> {
-    const qStr = query[0];
-    if (typeof qStr !== 'string' || qStr.length < 3) {
-        return `> 🤓 请输入正确的 SimBrief 用户名或用户ID`;
-        // throw new Error('Wrong ICAO');
-    }
+async function commandAction(
+    args: Parameters<CommandAction>[0],
+    options: Parameters<CommandAction>[1]
+): ReturnType<CommandAction> {
+    const user = args[0];
 
     // const res = await axios
     //     .get(
@@ -193,8 +190,8 @@ async function commandFunction(
     } = {
         json: 1,
     };
-    if (/^\d+$/.test(qStr)) params.userid = qStr;
-    else params.username = qStr;
+    if (/^\d+$/.test(user)) params.userid = user;
+    else params.username = user;
 
     const res = await axios
         .get<OFP>(
@@ -502,10 +499,23 @@ async function commandFunction(
 
 // ============================================================================
 
-registerCommand('simbrief', commandFunction, {
-    command: 'simbrief',
-    description: '查询目标用户在 SimBrief 最近签派的飞行计划',
-    arguments: ['<用户名或用户ID>'],
-    examples: ['/simbrief diablohu', '/simbrief 392663'],
+// registerCommand('simbrief', commandFunction, {
+//     command: 'simbrief',
+//     description: '查询目标用户在 SimBrief 最近签派的飞行计划',
+//     arguments: ['<用户名或用户ID>'],
+//     examples: ['/simbrief diablohu', '/simbrief 392663'],
+// });
+// registerCommand('sb', commandFunction);
+
+setTimeout(() => {
+    new Command('simbrief')
+        .description('查询目标用户在 SimBrief 最近签派的飞行计划')
+        .argument('<用户名或用户ID>')
+        .example('/simbrief diablohu')
+        .example('/simbrief 392663')
+        .action(commandAction);
 });
-registerCommand('sb', commandFunction);
+
+setTimeout(() => {
+    new Command('sb').help(false).action(commandAction);
+});

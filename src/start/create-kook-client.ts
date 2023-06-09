@@ -9,7 +9,7 @@ import {
     WSSignalTypes,
     WSMessageTypes,
     WSMessageType,
-    MessageType,
+    // MessageType,
 } from '../../types';
 import logger, { logError as _logError } from '../logger';
 import { cacheDir } from '../../app.config';
@@ -258,6 +258,32 @@ async function createClient(): Promise<void> {
             });
 
             const response = await getCommandResponse(command).catch(logError);
+            if (response) {
+                if (response._is_temp) {
+                    // TODO: TEMP
+                    // response.temp_target_id = body.author_id;
+                    delete response._is_temp;
+                    // console.log(
+                    //     await axios.post('/message/update', {
+                    //         msg_id: messageId,
+                    //         // content: body.content,
+                    //         content: '123',
+                    //         temp_target_id: body.author_id,
+                    //     })
+                    // );
+                }
+                // console.log(123, {
+                //     target_id: channelId,
+                //     quote: messageId,
+                //     ...response,
+                // });
+                sendMessage({
+                    target_id: channelId,
+                    quote: messageId,
+                    ...response,
+                });
+            }
+            /*
             // console.log(response);
             if (typeof response === 'object' && response.type === 'card') {
                 const msg: MessageType = {
@@ -279,6 +305,7 @@ async function createClient(): Promise<void> {
                 // console.log(msg);
                 sendMessage(msg);
             }
+            */
 
             return;
         }
