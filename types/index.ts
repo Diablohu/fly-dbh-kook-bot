@@ -99,8 +99,14 @@ export interface WSMessageType {
 
 // ============================================================================
 
+export enum MessageTypes {
+    Text = 1,
+    Picture = 2,
+    KMarkdown = 9,
+    Card = 10,
+}
 export type MessageType = {
-    type: 1 | 9 | 10;
+    type: MessageTypes;
     target_id: string;
     content: string;
     quote?: string;
