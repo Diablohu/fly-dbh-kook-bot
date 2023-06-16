@@ -96,6 +96,8 @@ async function createClient(): Promise<void> {
     let pingRetry = 0;
 
     async function reconnect(reason: string): Promise<void> {
+        console.log('Signal Reconnect');
+
         // console.log('Reconnecting... ' + reason);
         logInfo('Reconnecting... ' + reason);
 
@@ -183,7 +185,6 @@ async function createClient(): Promise<void> {
                 // 需要重连
                 case WSSignalTypes.Reconnect: {
                     // 收到重连请求，进行重新连接
-                    console.log('Signal Reconnect');
                     await reconnect('Signal Reconnect');
                     break;
                 }
@@ -227,29 +228,29 @@ async function createClient(): Promise<void> {
     async function parseMsg(body: WSMessageType, sn: number) {
         // 如果是机器人或系统消息，直接忽略
         if (
-            (body.extra.type === WSMessageTypes.Markdown ||
-                body.extra.type === WSMessageTypes.Card) &&
-            (body.extra?.author?.bot === true ||
-                body.extra?.author?.is_sys === true)
+            (body?.extra?.type === WSMessageTypes.Markdown ||
+                body?.extra?.type === WSMessageTypes.Card) &&
+            (body?.extra?.author?.bot === true ||
+                body?.extra?.author?.is_sys === true)
         )
             return;
 
         // 如果是以 `/` 开头的消息，判断为命令，进行分析
         if (
-            body.type === WSMessageTypes.Markdown &&
-            body.extra.type === WSMessageTypes.Markdown &&
-            /^\//.test(body.content)
+            body?.type === WSMessageTypes.Markdown &&
+            body?.extra?.type === WSMessageTypes.Markdown &&
+            /^\//.test(body?.content)
         ) {
             // 开发环境仅监控一个频道
             if (
                 process.env.WEBPACK_BUILD_ENV === 'dev' &&
-                body.target_id !== '6086801551312186'
+                body?.target_id !== '6086801551312186'
             )
                 return;
 
-            const command = body.content.replace(/^\//, '');
-            const channelId = body.target_id;
-            const messageId = body.msg_id;
+            const command = body?.content.replace(/^\//, '');
+            const channelId = body?.target_id;
+            const messageId = body?.msg_id;
 
             logInfo({
                 command,
@@ -311,9 +312,9 @@ async function createClient(): Promise<void> {
         }
 
         // 其他消息
-        switch (body.type) {
+        switch (body?.type) {
             case WSMessageTypes.System: {
-                switch (body.extra.type) {
+                switch (body?.extra?.type) {
                     case 'guild_member_offline':
                     case 'guild_member_online':
                     case 'updated_message': {
@@ -327,8 +328,8 @@ async function createClient(): Promise<void> {
                 break;
             }
             default: {
-                // console.log('[WebSocket] UNKNOWN MESSAGE', body);
-                // logInfo({ body, sn });
+                console.log('[WebSocket] UNKNOWN MESSAGE', body);
+                logInfo({ body, sn });
             }
         }
     }
