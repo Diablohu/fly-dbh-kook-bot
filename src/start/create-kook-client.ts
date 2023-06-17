@@ -23,6 +23,14 @@ const unzip = promisify(zlib.unzip);
 
 export let client: ws;
 export const clientCacheFile = path.resolve(cacheDir, 'client.json');
+let pingTimeout: NodeJS.Timeout;
+let pingRetry = 0;
+let cache: {
+    /** 常驻 session */
+    sessionId: string;
+    /** 序列码 */
+    sn: number;
+} = fs.existsSync(clientCacheFile) ? await fs.readJson(clientCacheFile) : {};
 
 function logInfo(msg: unknown) {
     const body: Record<string, unknown> = {
@@ -54,12 +62,7 @@ function logError(err: any) {
  *
  **/
 async function createClient(): Promise<void> {
-    const cache: {
-        /** 常驻 session */
-        sessionId: string;
-        /** 序列码 */
-        sn: number;
-    } = fs.existsSync(clientCacheFile)
+    cache = fs.existsSync(clientCacheFile)
         ? await fs.readJson(clientCacheFile)
         : {};
     const { sessionId = '', sn = 0 } = cache;
@@ -92,28 +95,6 @@ async function createClient(): Promise<void> {
     }
 
     // ========================================================================
-    let pingTimeout: NodeJS.Timeout;
-    let pingRetry = 0;
-
-    async function reconnect(reason: string): Promise<void> {
-        console.log('Signal Reconnect');
-
-        // console.log('Reconnecting... ' + reason);
-        logInfo('Reconnecting... ' + reason);
-
-        client.terminate();
-
-        clearTimeout(pingTimeout);
-        pingRetry = 0;
-
-        cache.sessionId = '';
-        cache.sn = 0;
-
-        // msgQueue = [];
-
-        await fs.writeJson(clientCacheFile, cache);
-        await createClient();
-    }
 
     client = new ws(wssUrl.href);
 
@@ -207,6 +188,7 @@ async function createClient(): Promise<void> {
             return pingTimeout;
         }
 
+        // console.log(123, time);
         pingTimeout = setTimeout(async () => {
             const ping = {
                 s: WSSignalTypes.Ping,
@@ -336,3 +318,25 @@ async function createClient(): Promise<void> {
 }
 
 export default createClient;
+
+// ============================================================================
+
+async function reconnect(reason: string): Promise<void> {
+    console.log('Signal Reconnect');
+
+    // console.log('Reconnecting... ' + reason);
+    logInfo('Reconnecting... ' + reason);
+
+    client.terminate();
+
+    clearTimeout(pingTimeout);
+    pingRetry = 0;
+
+    cache.sessionId = '';
+    cache.sn = 0;
+
+    // msgQueue = [];
+
+    await fs.writeJson(clientCacheFile, cache);
+    await createClient();
+}
