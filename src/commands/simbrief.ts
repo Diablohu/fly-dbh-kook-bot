@@ -154,7 +154,7 @@ interface OFP {
     };
     images: {
         directory: string;
-        map: { name: string; link: string }[];
+        map?: { name: string; link: string }[];
     };
     prefile: Record<
         string,
@@ -440,17 +440,19 @@ async function commandAction(
             {
                 type: 'divider',
             },
-            {
-                type: 'container',
-                elements: [
-                    {
-                        type: 'image',
-                        src: await upload(
-                            ofp.images.directory + ofp.images.map[0].link
-                        ),
-                    },
-                ],
-            },
+            Array.isArray(ofp.images.map)
+                ? {
+                      type: 'container',
+                      elements: [
+                          {
+                              type: 'image',
+                              src: await upload(
+                                  ofp.images.directory + ofp.images.map[0].link
+                              ),
+                          },
+                      ],
+                  }
+                : undefined,
             {
                 type: 'action-group',
                 elements: [
