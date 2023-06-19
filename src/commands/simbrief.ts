@@ -167,6 +167,10 @@ interface OFP {
     >;
 }
 
+const postCardDivider = {
+    type: 'divider',
+};
+
 // ============================================================================
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -241,6 +245,7 @@ async function commandAction(
         theme: 'secondary',
         size: 'lg',
         modules: [
+            // 起降机场
             {
                 type: 'header',
                 text: {
@@ -248,9 +253,10 @@ async function commandAction(
                     content: `${ofp.origin.name} ➡ ${ofp.destination.name}`,
                 },
             },
-            {
-                type: 'divider',
-            },
+
+            postCardDivider,
+
+            // 起、降、备降 ICAO
             {
                 type: 'section',
                 text: {
@@ -272,6 +278,8 @@ async function commandAction(
                     ],
                 },
             },
+
+            // 机型、Route总长、预计Airtime
             {
                 type: 'section',
                 text: {
@@ -302,6 +310,8 @@ async function commandAction(
                     ],
                 },
             },
+
+            // 全部航路
             {
                 type: 'section',
                 text: {
@@ -309,9 +319,10 @@ async function commandAction(
                     content: `\`\`\`\n${ofp.origin.icao_code}/${ofp.origin.plan_rwy}\n${ofp.general.route}\n${ofp.destination.icao_code}/${ofp.destination.plan_rwy}\`\`\``,
                 },
             },
-            {
-                type: 'divider',
-            },
+
+            postCardDivider,
+
+            // 初始高度、巡航高度
             {
                 type: 'section',
                 text: {
@@ -330,6 +341,7 @@ async function commandAction(
                 },
             },
 
+            // 阶段式爬升（如果有）
             cruiseAlt !== initialClimbAlt
                 ? {
                       type: 'section',
@@ -340,6 +352,7 @@ async function commandAction(
                   }
                 : undefined,
 
+            // 巡航速度、CI
             {
                 type: 'section',
                 text: {
@@ -357,9 +370,10 @@ async function commandAction(
                     ],
                 },
             },
-            {
-                type: 'divider',
-            },
+
+            postCardDivider,
+
+            // 重量、载荷
             {
                 type: 'section',
                 text: {
@@ -407,9 +421,10 @@ async function commandAction(
                     ],
                 },
             },
-            {
-                type: 'divider',
-            },
+
+            postCardDivider,
+
+            // 燃油详情
             {
                 type: 'section',
                 text: {
@@ -437,9 +452,10 @@ async function commandAction(
                     ],
                 },
             },
-            {
-                type: 'divider',
-            },
+
+            postCardDivider,
+
+            // 地图（如果有）
             Array.isArray(ofp.images.map)
                 ? {
                       type: 'container',
@@ -453,6 +469,8 @@ async function commandAction(
                       ],
                   }
                 : undefined,
+
+            // 操作
             {
                 type: 'action-group',
                 elements: [
@@ -480,15 +498,16 @@ async function commandAction(
                     },
                 ],
             },
-            {
-                type: 'divider',
-            },
+
+            postCardDivider,
+
+            // 其他信息
             {
                 type: 'context',
                 elements: [
                     {
                         type: 'plain-text',
-                        content: '该飞行计划由 SimBrief 生成',
+                        content: `该飞行计划由 SimBrief 生成 | AIRAC ${ofp.params.airac}`,
                     },
                 ],
             },
