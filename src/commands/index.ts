@@ -1,4 +1,3 @@
-// import { Command } from 'commander';
 import type { CardMessageType, MessageType } from '../../types';
 
 import './emotes';
