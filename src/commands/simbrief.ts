@@ -363,11 +363,19 @@ async function commandAction(
                             type: 'kmarkdown',
                             content: `**巡航速度**\n> ${ofp.general.cruise_tas} KTAS / M${ofp.general.cruise_mach}`,
                         },
-                        {
-                            type: 'kmarkdown',
-                            content: `**成本指数 (若适用)**\n> ${ofp.general.costindex}`,
-                        },
-                    ],
+                        // "cruise_profile": "CI 160",
+                        /^CI (\d+)$/.test(ofp.general.cruise_profile)
+                            ? {
+                                  type: 'kmarkdown',
+                                  content: `**成本指数 (CI)**\n> ${ofp.general.costindex}`,
+                              }
+                            : !!ofp.general.climb_profile
+                            ? {
+                                  type: 'kmarkdown',
+                                  content: `**爬升性能**\n> ${ofp.general.climb_profile}`,
+                              }
+                            : undefined,
+                    ].filter((v) => !!v),
                 },
             },
 
