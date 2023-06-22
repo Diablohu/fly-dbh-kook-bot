@@ -12,9 +12,15 @@ interface UploadResponse {
 }
 
 async function upload(url: string): Promise<string> {
-    const stream = await axios.get(url, {
-        responseType: 'stream',
-    });
+    const stream = await axios
+        .get(url, {
+            responseType: 'stream',
+        })
+        .catch((e) => {
+            // console.log(e);
+            logError(e);
+            throw e;
+        });
 
     const form = new FormData();
     // Pass image stream from response directly to form
@@ -24,12 +30,17 @@ async function upload(url: string): Promise<string> {
 
     const doUpload = async (): Promise<AxiosResponse<UploadResponse>> => {
         try {
-            return await axios.post('/asset/create', form, {
-                headers: {
-                    'Content-Type': 'form-data',
-                    'Content-type': 'form-data',
-                },
-            });
+            return await axios
+                .post('/asset/create', form, {
+                    headers: {
+                        'Content-Type': 'form-data',
+                        'Content-type': 'form-data',
+                    },
+                })
+                .then((res) => {
+                    console.log(res);
+                    return res;
+                });
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
             logError(e);

@@ -240,6 +240,12 @@ async function commandAction(
         return Math.max(alt, Number(altitude_feet));
     }, initialClimbAlt);
 
+    const ofpRouteMap = await upload(
+        ofp.images.directory + ofp.images.map?.[0].link
+    ).catch((e) => {
+        // console.log(e);
+    });
+
     const postCard: CardMessageType = {
         type: 'card',
         theme: 'secondary',
@@ -464,15 +470,13 @@ async function commandAction(
             postCardDivider,
 
             // 地图（如果有）
-            Array.isArray(ofp.images.map)
+            !!ofpRouteMap
                 ? {
                       type: 'container',
                       elements: [
                           {
                               type: 'image',
-                              src: await upload(
-                                  ofp.images.directory + ofp.images.map[0].link
-                              ),
+                              src: ofpRouteMap,
                           },
                       ],
                   }
