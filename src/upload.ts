@@ -30,17 +30,12 @@ async function upload(url: string): Promise<string> {
 
     const doUpload = async (): Promise<AxiosResponse<UploadResponse>> => {
         try {
-            return await axios
-                .post('/asset/create', form, {
-                    headers: {
-                        'Content-Type': 'form-data',
-                        'Content-type': 'form-data',
-                    },
-                })
-                .then((res) => {
-                    console.log(res);
-                    return res;
-                });
+            return await axios.post('/asset/create', form, {
+                headers: {
+                    'Content-Type': 'form-data',
+                    'Content-type': 'form-data',
+                },
+            });
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
             logError(e);
