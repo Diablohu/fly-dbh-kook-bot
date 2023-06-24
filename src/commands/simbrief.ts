@@ -75,7 +75,7 @@ interface OFP {
         plan_rwy: string;
     };
     navlog: {
-        fix: Array<{ altitude_feet: string }>;
+        fix?: Array<{ altitude_feet: string }>;
     };
     aircraft: {
         icaocode: string;
@@ -227,6 +227,7 @@ async function commandAction(
 
     const W = ofp.params.units === 'kgs' ? 'kg' : 'lbs';
     const initialClimbAlt = Number(ofp.general.initial_altitude);
+
     // const cruiseAlt =
     //     typeof ofp.general.stepclimb_string === 'string' &&
     //     !!ofp.general.stepclimb_string
@@ -236,9 +237,10 @@ async function commandAction(
     //               .map((str) => Number(str) * 100)
     //               .sort((a, b) => b - a)[0]
     //         : initialClimbAlt;
-    const cruiseAlt = ofp.navlog.fix.reduce((alt, { altitude_feet }) => {
-        return Math.max(alt, Number(altitude_feet));
-    }, initialClimbAlt);
+    const cruiseAlt =
+        ofp.navlog.fix?.reduce((alt, { altitude_feet }) => {
+            return Math.max(alt, Number(altitude_feet));
+        }, initialClimbAlt) || initialClimbAlt;
 
     const ofpRouteMap = await upload(
         ofp.images.directory + ofp.images.map?.[0].link
@@ -486,18 +488,20 @@ async function commandAction(
             {
                 type: 'action-group',
                 elements: [
-                    {
-                        type: 'button',
-                        theme: 'primary',
-                        click: 'link',
-                        value:
-                            ofp.fms_downloads.directory +
-                            ofp.fms_downloads.mfs.link,
-                        text: {
-                            type: 'plain-text',
-                            content: '下载飞行计划文件',
-                        },
-                    },
+                    ofp.fms_downloads.mfs
+                        ? {
+                              type: 'button',
+                              theme: 'primary',
+                              click: 'link',
+                              value:
+                                  ofp.fms_downloads.directory +
+                                  ofp.fms_downloads.mfs.link,
+                              text: {
+                                  type: 'plain-text',
+                                  content: '下载飞行计划文件',
+                              },
+                          }
+                        : undefined,
                     {
                         type: 'button',
                         theme: 'info',
@@ -508,7 +512,7 @@ async function commandAction(
                             content: '提交飞行计划至 VATSIM',
                         },
                     },
-                ],
+                ].filter((v) => !!v),
             },
 
             postCardDivider,
