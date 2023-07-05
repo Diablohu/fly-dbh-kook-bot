@@ -311,7 +311,7 @@ async function createClient(): Promise<void> {
             }
             default: {
                 console.log('[WebSocket] UNKNOWN MESSAGE', body);
-                logInfo({ body, sn });
+                // logInfo({ body, sn });
             }
         }
     }
