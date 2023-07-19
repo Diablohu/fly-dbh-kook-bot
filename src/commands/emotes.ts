@@ -8,12 +8,12 @@ import upload from '../upload';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function commandAction(
     args: Parameters<CommandAction>[0],
-    options: Parameters<CommandAction>[1]
+    options: Parameters<CommandAction>[1],
 ): ReturnType<CommandAction> {
     return {
         type: MessageTypes.Picture,
         content: await upload(
-            'https://img.kookapp.cn/assets/2023-06/Y8QssmHGKC08d051.gif'
+            'https://img.kookapp.cn/assets/2023-06/Y8QssmHGKC08d051.gif',
         ),
     };
 }
@@ -29,5 +29,8 @@ async function commandAction(
 // registerCommand('sb', commandFunction);
 
 setTimeout(() => {
-    new Command('jorgnod').help(false).action(commandAction);
+    new Command('jorgnod')
+        .help(false)
+        .action(commandAction)
+        .setAlwaysPublic(true);
 });

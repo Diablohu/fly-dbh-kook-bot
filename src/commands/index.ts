@@ -8,7 +8,7 @@ import './simbrief';
 
 export type CommandAction = (
     args: string[],
-    options: Record<string, string | boolean>
+    options: Record<string, string | boolean>,
 ) => Promise<string | CardMessageType | Omit<MessageType, 'target_id'>>;
 
 // ============================================================================
@@ -19,7 +19,7 @@ let helpAllMsg: string;
 // ============================================================================
 
 async function getCommandResponse(
-    command: string
+    command: string,
 ): Promise<Omit<MessageType, 'target_id'>> {
     command = command.replace(/^\//, '');
     const [type, ...args] = command.split(' ');
@@ -75,6 +75,9 @@ export class Command {
     private _actFunction!: CommandAction;
     private _helpMessage!: string | false;
 
+    /** 是否永远为“公开”回应 */
+    alwaysPublic = false;
+
     async parse(cmd: string): Promise<Omit<MessageType, 'target_id'>> {
         const parts = cmd.split(' ').map((s) => s.trim());
         if (parts[0] === this._cmd) parts.shift();
@@ -103,7 +106,7 @@ export class Command {
 
         const result = await this._actFunction(args, {});
         // const isTemp = options.public ? false : true;
-        const isTemp = false;
+        const isTemp = this.alwaysPublic || false;
 
         if (typeof result === 'string') {
             return {
@@ -122,6 +125,7 @@ export class Command {
         }
 
         result._is_temp = isTemp;
+        // result.alwaysPublic = this.alwaysPublic
         return result;
     }
 
@@ -178,5 +182,10 @@ export class Command {
                 this._cmd
             } ${this._args.join(' ')}\n  例 ${this._examples.join('\n     ')}`;
         return this._helpMessage;
+    }
+
+    setAlwaysPublic(value: boolean) {
+        this.alwaysPublic = value;
+        return this;
     }
 }

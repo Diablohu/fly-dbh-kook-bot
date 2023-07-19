@@ -23,6 +23,14 @@ const unzip = promisify(zlib.unzip);
 
 export let client: ws;
 export const clientCacheFile = path.resolve(cacheDir, 'client.json');
+/**
+ * 公开回应的频道ID
+ * - 在其他频道回应时，会以隐藏方式进行回应，并删除问话
+ */
+const publicResponseChannelIDs = [
+    `6061361713354559`,
+    `6086801551312186`, // Playground Channel
+];
 let pingTimeout: NodeJS.Timeout;
 let pingRetry = 0;
 let cache: {
@@ -181,7 +189,7 @@ async function createClient(): Promise<void> {
     /** 发送 PING */
     function sendPing(
         /** 延迟时间 */
-        time = 30 * 1000
+        time = 30 * 1000,
     ): NodeJS.Timeout {
         if (client.readyState !== ws.OPEN) {
             pingTimeout = setTimeout(sendPing, 100);
@@ -242,19 +250,15 @@ async function createClient(): Promise<void> {
 
             const response = await getCommandResponse(command).catch(logError);
             if (response) {
+                const isPublic =
+                    publicResponseChannelIDs.includes(channelId) ||
+                    response._is_temp !== true;
                 if (response._is_temp) {
                     // TODO: TEMP
                     // response.temp_target_id = body.author_id;
                     delete response._is_temp;
-                    // console.log(
-                    //     await axios.post('/message/update', {
-                    //         msg_id: messageId,
-                    //         // content: body.content,
-                    //         content: '123',
-                    //         temp_target_id: body.author_id,
-                    //     })
-                    // );
                 }
+                // console.log(response);
                 // console.log(123, {
                 //     target_id: channelId,
                 //     quote: messageId,
@@ -262,9 +266,26 @@ async function createClient(): Promise<void> {
                 // });
                 sendMessage({
                     target_id: channelId,
-                    quote: messageId,
+                    quote: isPublic ? messageId : undefined,
+                    temp_target_id: isPublic ? undefined : body.author_id,
                     ...response,
                 });
+                if (isPublic) {
+                } else {
+                    // console.log(
+                    //     await axios.post('/message/update', {
+                    //         msg_id: messageId,
+                    //         // content: body.content,
+                    //         content: '123',
+                    //         temp_target_id: body.author_id,
+                    //     }),
+                    // );
+                    console.log(
+                        await axios.post('/message/delete', {
+                            msg_id: messageId,
+                        }),
+                    );
+                }
             }
             /*
             // console.log(response);
