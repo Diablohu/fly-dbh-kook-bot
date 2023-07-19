@@ -254,8 +254,6 @@ async function createClient(): Promise<void> {
                     publicResponseChannelIDs.includes(channelId) ||
                     response._is_temp !== true;
                 if (response._is_temp) {
-                    // TODO: TEMP
-                    // response.temp_target_id = body.author_id;
                     delete response._is_temp;
                 }
                 // console.log(response);
