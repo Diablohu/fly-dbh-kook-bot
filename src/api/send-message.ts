@@ -15,15 +15,21 @@ const discordMessageMap = new Map();
 
 // ============================================================================
 
-const msgQueue: MessageType[] = [];
+const msgQueue: {
+    message: MessageType;
+    after?: () => unknown;
+}[] = [];
 let msgQueueRunning = false;
 let msgQueueRetryCount = 0;
 
-function queueMsg(postData?: MessageType): void {
+function queueMsg(postData?: MessageType, after?: () => unknown): void {
     if (typeof postData === 'object') {
         if (!postData.nonce)
             postData.nonce = `FLY-DBH-KOOK-BOT @ ${Date.now()}`;
-        msgQueue.push(postData);
+        msgQueue.push({
+            message: postData,
+            after,
+        });
     }
     msgQueueRun();
 }
@@ -35,21 +41,23 @@ async function msgQueueRun() {
 
     msgQueueRunning = true;
     // console.log(msgQueue);
-    const nextData = msgQueue.shift();
+    const next = msgQueue.shift();
 
     async function runNext() {
-        if (typeof nextData !== 'object') {
+        if (typeof next !== 'object' || typeof next.message !== 'object') {
             msgQueueRunning = false;
             return;
         }
 
-        if (discordMessageMap.has(nextData.discord_msg_id)) {
-            nextData.msg_id = discordMessageMap.get(nextData.discord_msg_id);
+        if (discordMessageMap.has(next.message.discord_msg_id)) {
+            next.message.msg_id = discordMessageMap.get(
+                next.message.discord_msg_id,
+            );
         }
 
-        // console.log(nextData);
+        // console.log(next.message);
         try {
-            const { discord_msg_id, ...msg } = nextData;
+            const { discord_msg_id, ...msg } = next.message;
             const url = '/message/' + (!!msg.msg_id ? 'update' : 'create');
             const res = await axios.post(url, msg);
 
@@ -68,6 +76,8 @@ async function msgQueueRun() {
                 message_id: res.data.data.msg_id,
                 message_map: discordMessageMap,
             });
+
+            if (typeof next.after === 'function') await next.after();
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {

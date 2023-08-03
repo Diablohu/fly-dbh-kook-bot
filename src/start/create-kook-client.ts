@@ -249,13 +249,17 @@ async function createClient(): Promise<void> {
             });
 
             const response = await getCommandResponse(command).catch(logError);
+
+            const isPublic =
+                publicResponseChannelIDs.includes(channelId) &&
+                response?._is_temp !== true;
+            delete response?._is_temp;
+            if (!isPublic)
+                await axios.post('/message/delete', {
+                    msg_id: messageId,
+                });
+
             if (response) {
-                const isPublic =
-                    publicResponseChannelIDs.includes(channelId) ||
-                    response._is_temp !== true;
-                if (response._is_temp) {
-                    delete response._is_temp;
-                }
                 // console.log(response);
                 // console.log(123, {
                 //     target_id: channelId,
@@ -268,22 +272,14 @@ async function createClient(): Promise<void> {
                     temp_target_id: isPublic ? undefined : body.author_id,
                     ...response,
                 });
-                if (isPublic) {
-                } else {
-                    // console.log(
-                    //     await axios.post('/message/update', {
-                    //         msg_id: messageId,
-                    //         // content: body.content,
-                    //         content: '123',
-                    //         temp_target_id: body.author_id,
-                    //     }),
-                    // );
-                    console.log(
-                        await axios.post('/message/delete', {
-                            msg_id: messageId,
-                        }),
-                    );
-                }
+            } else {
+                sendMessage({
+                    target_id: channelId,
+                    quote: isPublic ? messageId : undefined,
+                    temp_target_id: isPublic ? undefined : body.author_id,
+                    type: 9,
+                    content: '😣 未知错误',
+                });
             }
             /*
             // console.log(response);
