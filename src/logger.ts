@@ -17,7 +17,7 @@ const transports = ['error', 'warn', 'notice', 'info', 'http', undefined].map(
             zippedArchive: true,
             maxFiles: '14d',
             utc: true,
-        })
+        }),
 );
 
 const logger = winston.createLogger({
@@ -25,7 +25,7 @@ const logger = winston.createLogger({
     format: winston.format.combine(
         // winston.format.label({ label: 'right meow!' }),
         winston.format.timestamp(),
-        winston.format.prettyPrint()
+        winston.format.prettyPrint(),
     ),
     defaultMeta: { service: 'fly-dbh-kook-bot' },
     transports,
@@ -36,11 +36,12 @@ export default logger;
 // ============================================================================
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function logError(err: Record<string, any>) {
+export function logError(err: Record<string, any>, originalUrl?: string) {
     const loggerData: Record<string, unknown> = {
         type: 'ERROR',
         error: err,
         message: err.message,
+        originalUrl,
     };
 
     // console.log('\n');

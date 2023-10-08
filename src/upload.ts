@@ -18,7 +18,7 @@ async function upload(url: string): Promise<string> {
         })
         .catch((e) => {
             // console.log(e);
-            logError(e);
+            logError(e, url);
             throw e;
         });
 
