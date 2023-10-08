@@ -3,7 +3,7 @@ import FormData from 'form-data';
 import { logError } from './logger';
 import sleep from './sleep';
 
-import getDefaultHeaders from './headers';
+// import getDefaultHeaders from './headers';
 
 interface UploadResponse {
     data: {
@@ -53,7 +53,7 @@ async function upload(url: string): Promise<string> {
                                 url: '',
                             },
                         },
-                    } as AxiosResponse<UploadResponse>)
+                    } as AxiosResponse<UploadResponse>),
                 );
             }
         }
