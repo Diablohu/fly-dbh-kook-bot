@@ -66,7 +66,7 @@ export async function parseDiscordMessage() {
 function transformMarkdown(input: string): string {
     return input.replace(
         /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/g,
-        `[$1]($1)`
+        `[$1]($1)`,
     );
 }
 
@@ -180,7 +180,7 @@ export async function syncMessage({
 
     if (Array.isArray(attachments)) {
         const filtered = attachments.filter(({ type }) =>
-            /^image\//.test(type)
+            /^image\//.test(type),
         );
         let index = 0;
         for (const { url } of filtered) {
@@ -322,7 +322,7 @@ export async function syncMessage({
                                   type: 'kmarkdown',
                                   content: `[${(author.name as string).replace(
                                       /\[(.+?)\]/g,
-                                      '\\[$1\\]'
+                                      '\\[$1\\]',
                                   )}](${author.url}}](${author.url})`,
                               }
                             : {
@@ -390,7 +390,7 @@ export async function syncMessage({
                                       !!url
                                           ? `**[${(title as string).replace(
                                                 /\[(.+?)\]/g,
-                                                '\\[$1\\]'
+                                                '\\[$1\\]',
                                             )}](${url})**`
                                           : `**${title}**`,
                                       !!description
@@ -436,7 +436,7 @@ export async function syncMessage({
                                       !!url
                                           ? `**[${(title as string).replace(
                                                 /\[(.+?)\]/g,
-                                                '\\[$1\\]'
+                                                '\\[$1\\]',
                                             )}](${url})**`
                                           : `**${title}**`,
                                   ]
@@ -493,7 +493,7 @@ export async function syncMessage({
                             type: 'image',
                             src: await getSourceLogo(
                                 footer.text as MessageSource,
-                                footer.icon_url
+                                footer.icon_url,
                             ),
                         },
                         !!timestamp
@@ -525,9 +525,7 @@ export async function syncMessage({
     // console.log(content);
     // console.log({ userid, userName, userAvatar }, content);
 
-    const url =
-        'https://www.kookapp.cn/api/v/message/' +
-        (messageMap.has(msgId) ? 'update' : 'create');
+    const url = '/message/' + (messageMap.has(msgId) ? 'update' : 'create');
     const postData: Record<string, unknown> = {
         type: 10,
         target_id: channelId || newsChannelID,
