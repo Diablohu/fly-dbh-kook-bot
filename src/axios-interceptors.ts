@@ -36,6 +36,31 @@ export function attachInterceptors(): void {
             }`;
         }
 
+        // console.log(
+        //     123,
+        //     thisUrl.pathname,
+        //     /\/api\/v\/message\//.test(thisUrl.pathname),
+        // );
+        // 2023/10/20: 由于 Kook 限制海外 IP 无法发言，转发所有 `/message` 请求到腾讯云
+        if (/\/api\/v\/message\//.test(thisUrl.pathname)) {
+            const axiosSettings = {
+                ...config,
+                // url:
+                //     process.env.WEBPACK_BUILD_ENV === 'dev'
+                //         ? `http://localhost:9000/forward`
+                //         : `https://1321773305-lexjg3zrkj-gz.scf.tencentcs.com/forward`,
+                url: `https://1321773305-lexjg3zrkj-gz.scf.tencentcs.com/forward`,
+                method: 'post',
+                data: {
+                    headers: config.headers,
+                    url: thisUrl.href,
+                    ...config.data,
+                },
+            };
+            console.log(axiosSettings);
+            return Promise.resolve(axiosSettings);
+        }
+
         // console.log(thisUrl.href, headers);
         const axiosSettings = {
             ...config,
