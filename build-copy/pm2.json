@@ -4,6 +4,9 @@
             "name": "fly-dbh-kook-bot",
             "script": "main.cjs",
             "max_memory_restart": "150M",
+            "max_restarts": "50000",
+            "restart_delay": "1000",
+            "autorestart": true,
             "out_file": "/.logs/server.log",
             "error_file": "/.logs/server-error.log"
         }
