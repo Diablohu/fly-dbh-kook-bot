@@ -42,7 +42,7 @@ let launched = false;
     if (isEnvDevelopment) {
         const rootEnvFile = path.resolve(
             path.dirname(fileURLToPath(import.meta.url)),
-            '../.env'
+            '../.env',
         );
         if (!fs.existsSync(rootEnvFile)) throw new Error('.env file missing');
     }

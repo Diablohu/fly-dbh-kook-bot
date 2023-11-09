@@ -43,14 +43,14 @@ const regexUrl =
     /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/;
 function isUrlOnly(str: string): boolean {
     return new RegExp(
-        `^${regexUrl.toString().replace(/^\/(.+)\/$/, '$1')}$`
+        `^${regexUrl.toString().replace(/^\/(.+)\/$/, '$1')}$`,
     ).test(str);
 }
 
 function transformMarkdown(input: string): string {
     return input.replace(
         /[^(](https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/g,
-        `[$1]($1)`
+        `[$1]($1)`,
     );
 }
 
@@ -81,15 +81,15 @@ export async function syncMessage(message: Message) {
             ` \\[(↧| )\\]\\(${regexUrl
                 .toString()
                 .replace(/^\/(.+)\/$/, '$1')}\\)[$]*`,
-            'g'
+            'g',
         ),
-        ''
+        '',
     );
 
     const avatar =
         !!author?.id && !!author?.avatar
             ? await upload(
-                  `https://cdn.discordapp.com/avatars/${author.id}/${author.avatar}.webp`
+                  `https://cdn.discordapp.com/avatars/${author.id}/${author.avatar}.webp`,
               )
             : undefined;
 
@@ -126,7 +126,7 @@ export async function syncMessage(message: Message) {
 
     // 处理图片附件 attachments
     const imageAttachments = [...attachments].filter(([, { contentType }]) =>
-        /^image\//.test(`${contentType}`)
+        /^image\//.test(`${contentType}`),
     );
     if (Array.isArray(imageAttachments)) {
         const images: string[] = [];
@@ -255,7 +255,7 @@ export async function syncMessage(message: Message) {
                                   type: 'kmarkdown',
                                   content: `[${(author.name as string).replace(
                                       /\[(.+?)\]/g,
-                                      '\\[$1\\]'
+                                      '\\[$1\\]',
                                   )}](${author.url})`,
                               }
                             : {
@@ -347,7 +347,7 @@ export async function syncMessage(message: Message) {
                                       !!url
                                           ? `**[${(title as string).replace(
                                                 /\[(.+?)\]/g,
-                                                '\\[$1\\]'
+                                                '\\[$1\\]',
                                             )}](${url})**`
                                           : `**${title}**`,
                                       !!description
@@ -393,7 +393,7 @@ export async function syncMessage(message: Message) {
                                       !!url
                                           ? `**[${(title as string).replace(
                                                 /\[(.+?)\]/g,
-                                                '\\[$1\\]'
+                                                '\\[$1\\]',
                                             )}](${url})**`
                                           : `**${title}**`,
                                   ]
@@ -448,7 +448,7 @@ export async function syncMessage(message: Message) {
                                       !!url
                                           ? `**[${(title as string).replace(
                                                 /\[(.+?)\]/g,
-                                                '\\[$1\\]'
+                                                '\\[$1\\]',
                                             )}](${url})**`
                                           : `**${title}**`,
                                       !!description
@@ -482,7 +482,7 @@ export async function syncMessage(message: Message) {
                             type: 'image',
                             src: await getSourceLogo(
                                 footer.text as MessageSource,
-                                footer.icon_url
+                                footer.icon_url,
                             ),
                         },
                         !!timestamp
@@ -542,6 +542,30 @@ export async function syncMessage(message: Message) {
     postContent.forEach((message) => {
         delete message['__type'];
     });
+
+    // 递归检查
+    {
+        const checkObject = (m: ModuleType): ModuleType => {
+            if (!m) return;
+            if (Array.isArray(m.elements)) {
+                m.elements = m.elements
+                    .map((m) => checkObject(m))
+                    .filter((m) => !!m);
+            }
+            if (Array.isArray(m.fields)) {
+                m.fields = m.fields
+                    .map((m) => checkObject(m))
+                    .filter((m) => !!m);
+            }
+            if (m.type === 'image' && !m.src) {
+                m = undefined;
+            }
+            return m;
+        };
+        postContent.forEach((message) => {
+            message.modules = message.modules.map((m) => checkObject(m));
+        });
+    }
 
     const postData: MessageType = {
         type: 10,

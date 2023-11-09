@@ -42,7 +42,10 @@ export function attachInterceptors(): void {
         //     /\/api\/v\/message\//.test(thisUrl.pathname),
         // );
         // 2023/10/20: 由于 Kook 限制海外 IP 无法发言，转发所有 `/message` 请求到腾讯云
-        if (/\/api\/v\/message\//.test(thisUrl.pathname)) {
+        if (
+            process.env.WEBPACK_BUILD_ENV !== 'dev' &&
+            /\/api\/v\/message\//.test(thisUrl.pathname)
+        ) {
             const axiosSettings = {
                 ...config,
                 // url:
