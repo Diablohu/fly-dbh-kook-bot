@@ -143,6 +143,15 @@ interface OFP {
         est_tow: string;
         est_ldw: string;
     };
+    files: {
+        directory: string;
+        [key: string]:
+            | {
+                  name: string;
+                  link: string;
+              }
+            | string;
+    };
     fms_downloads: {
         directory: string;
         [key: string]:
@@ -502,6 +511,17 @@ async function commandAction(
                               },
                           }
                         : undefined,
+                    {
+                        type: 'button',
+                        theme: 'info',
+                        click: 'link',
+                        value: ofp.files.directory +
+                                ofp.files.pdf.link
+                        text: {
+                           type: 'plain-text',
+                            content: '打开PDF文件',
+                        },
+                    },
                     {
                         type: 'button',
                         theme: 'info',
