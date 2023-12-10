@@ -507,7 +507,19 @@ async function commandAction(
                                   ofp.fms_downloads.mfs.link,
                               text: {
                                   type: 'plain-text',
-                                  content: '下载飞行计划文件',
+                                  content: '下载计划文件',
+                              },
+                          }
+                        : undefined,
+                    ofp.files?.pdf?.link
+                        ? {
+                              type: 'button',
+                              theme: 'info',
+                              click: 'link',
+                              value: ofp.files.directory + ofp.files.pdf.link,
+                              text: {
+                                  type: 'plain-text',
+                                  content: '下载计划PDF',
                               },
                           }
                         : undefined,
@@ -515,21 +527,10 @@ async function commandAction(
                         type: 'button',
                         theme: 'info',
                         click: 'link',
-                        value: ofp.files.directory +
-                                ofp.files.pdf.link
-                        text: {
-                           type: 'plain-text',
-                            content: '打开PDF文件',
-                        },
-                    },
-                    {
-                        type: 'button',
-                        theme: 'info',
-                        click: 'link',
                         value: ofp.prefile.vatsim.link,
                         text: {
                             type: 'plain-text',
-                            content: '提交飞行计划至 VATSIM',
+                            content: '提交至VATSIM',
                         },
                     },
                 ].filter((v) => !!v),
