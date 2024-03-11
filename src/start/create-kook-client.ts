@@ -49,6 +49,7 @@ function logInfo(msg: unknown) {
     // console.log(body);
     logger.info(body);
 }
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function logError(err: any) {
     return _logError(err);
