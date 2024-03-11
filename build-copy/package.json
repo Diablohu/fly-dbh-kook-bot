@@ -1,0 +1,35 @@
+{
+    "name": "fly-dbh-kook-bot-dist",
+    "version": "0.1.0",
+    "description": "Kook bot for fly-dbh.com",
+    "main": "./app.cjs",
+    "type": "module",
+    "scripts": {
+        "start": "node app.cjs"
+    },
+    "private": true,
+    "license": "UNLICENSED",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Diablohu/fly-dbh-kook-bot.git"
+    },
+    "keywords": [
+        "kook"
+    ],
+    "author": {
+        "name": "Diablohu",
+        "email": "diablohudream@gmail.com",
+        "url": "http://diablohu.com"
+    },
+    "bugs": {
+        "url": "https://github.com/Diablohu/fly-dbh-kook-bot/issues"
+    },
+    "homepage": "https://github.com/Diablohu/fly-dbh-kook-bot#readme",
+    "dependencies": {
+        "koa": "^2.11.0",
+        "koa-router": "^8.0.8",
+        "koa-sendfile": "^2.0.1"
+    },
+    "devDependencies": {},
+    "overrides": {}
+}

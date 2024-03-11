@@ -12,12 +12,13 @@ import type { MessageSource } from '../../types';
 import { port } from '../../app.config';
 import { syncMessage } from '../api/sync-message';
 import { syncMessage as syncDiscordMessage } from '../api/sync-discord';
-
-console.log({ port });
+import { logError } from '../logger';
 
 // ============================================================================
 
 async function startKoaServer(): Promise<Koa> {
+    console.log({ port });
+
     const app: Koa = new Koa();
 
     // app.use(async (ctx) => {
@@ -29,7 +30,10 @@ async function startKoaServer(): Promise<Koa> {
         app.listen(port, async function () {
             resolve(undefined);
         }),
-    );
+    ).catch((err) => {
+        logError(err);
+        console.error(err);
+    });
 
     console.log(`Listening port ${port}`);
 
@@ -74,6 +78,9 @@ async function startKoaServer(): Promise<Koa> {
     // });
 
     router.get(`/`, async (ctx) => {
+        await koaSendFile(ctx, path.join(__dirname, 'index.html'));
+    });
+    router.get(`/release`, async (ctx) => {
         await koaSendFile(ctx, path.join(__dirname, 'index.html'));
     });
 

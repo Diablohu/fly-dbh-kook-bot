@@ -19,7 +19,7 @@
         "url": "git+https://github.com/Diablohu/fly-dbh-kook-bot.git"
     },
     "engines": {
-        "node": ">=16.0.0"
+        "node": ">=12.0.0"
     },
     "keywords": [
         "kook"

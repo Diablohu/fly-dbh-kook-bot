@@ -71,10 +71,14 @@ function logError(err: any) {
  *
  **/
 async function createClient(): Promise<void> {
+    console.log({ cacheDir });
+
     cache = fs.existsSync(clientCacheFile)
         ? await fs.readJson(clientCacheFile)
         : {};
     const { sessionId = '', sn = 0 } = cache;
+
+    console.log({ cache });
 
     // 请求 Gateway 获取 WebSocket 连接地址
     const gateway = (
@@ -83,6 +87,7 @@ async function createClient(): Promise<void> {
                 data: { url: string };
             }>('/gateway/index')
             .catch((err) => {
+                console.log({ err });
                 logError(err);
             })
     )?.data.data.url;
@@ -99,6 +104,7 @@ async function createClient(): Promise<void> {
         wsParams.resume = 1;
     }
     const wssUrl = new URL(gateway);
+    console.log({ wssUrl });
     for (const [key, value] of Object.entries(wsParams)) {
         wssUrl.searchParams.set(key, `${value}`);
     }

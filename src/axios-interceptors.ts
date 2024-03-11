@@ -39,12 +39,12 @@ export function attachInterceptors(): void {
         // console.log(
         //     123,
         //     thisUrl.pathname,
-        //     /\/api\/v\/message\//.test(thisUrl.pathname),
+        //     /\/api\/v\/(message|gateway)\//.test(thisUrl.pathname),
         // );
         // 2023/10/20: 由于 Kook 限制海外 IP 无法发言，转发所有 `/message` 请求到腾讯云
         if (
-            process.env.WEBPACK_BUILD_ENV !== 'dev' &&
-            /\/api\/v\/message\//.test(thisUrl.pathname)
+            // process.env.WEBPACK_BUILD_ENV !== 'dev' &&
+            /\/api\/v\/(message|gateway)\//.test(thisUrl.pathname)
         ) {
             const axiosSettings = {
                 ...config,
@@ -57,10 +57,11 @@ export function attachInterceptors(): void {
                 data: {
                     headers: config.headers,
                     url: thisUrl.href,
+                    method: config.method,
                     ...config.data,
                 },
             };
-            console.log(axiosSettings);
+            // console.log('FORWARDING...', axiosSettings);
             return Promise.resolve(axiosSettings);
         }
 

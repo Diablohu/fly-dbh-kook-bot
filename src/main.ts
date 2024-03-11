@@ -17,10 +17,11 @@ dotenv.config();
 function prepareEnvKey(key: string): void {
     if (!process.env[`${key}`]) {
         process.env[`${key}`] =
-            !!process.env[`${key}_FILE`] &&
+            process.env[`${key}.toLowerCase()`] ||
+            (!!process.env[`${key}_FILE`] &&
             fs.existsSync(process.env[`${key}_FILE`] || '')
                 ? fs.readFileSync(process.env[`${key}_FILE`] || '', 'utf-8')
-                : '';
+                : '');
     }
 }
 prepareEnvKey('KOOK_TOKEN');
@@ -38,6 +39,8 @@ let launched = false;
     if (launched) return;
     /** 当前是否是开发环境 */
     const isEnvDevelopment = process.env.WEBPACK_BUILD_ENV === 'dev';
+
+    console.log('KOOK_TOKEN', process.env.KOOK_TOKEN);
 
     // 如果是开发环境，检查 `.env` 文件是否存在
     if (isEnvDevelopment) {
