@@ -17,7 +17,7 @@ dotenv.config();
 function prepareEnvKey(key: string): void {
     if (!process.env[`${key}`]) {
         process.env[`${key}`] =
-            process.env[`${key}.toLowerCase()`] ||
+            process.env[`${key.toLowerCase()}`] ||
             (!!process.env[`${key}_FILE`] &&
             fs.existsSync(process.env[`${key}_FILE`] || '')
                 ? fs.readFileSync(process.env[`${key}_FILE`] || '', 'utf-8')
