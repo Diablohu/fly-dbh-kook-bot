@@ -45,13 +45,11 @@
         "koa-bodyparser": "^4.4.1",
         "koa-router": "^12.0.1",
         "koa-sendfile": "^3.0.0",
-        "listr": "^0.14.3",
         "md5": "^2.3.0",
         "numeral": "^2.0.6",
         "winston": "^3.12.0",
         "winston-daily-rotate-file": "^4.7.1",
-        "ws": "^8.16.0",
-        "zen-observable": "^0.10.0"
+        "ws": "^8.16.0"
     },
     "devDependencies": {
         "@babel/core": "^7.24.0",
@@ -74,6 +72,7 @@
         "jest": "^29.7.0",
         "koot-cli-kit": "^0.0.3",
         "lint-staged": "^15.2.2",
+        "listr": "^0.14.3",
         "prettier": "^3.2.5",
         "prettier-eslint": "^16.3.0",
         "react": "^18.2.0",

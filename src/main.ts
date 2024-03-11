@@ -3,7 +3,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import Koa from 'koa';
 import * as dotenv from 'dotenv';
-import Listr from 'listr';
 
 import initDirs from './start/init-dirs';
 import startKoaServer from './start/koa-server';
@@ -70,55 +69,49 @@ let launched = false;
     attachAxiosInterceptors();
 
     // 开始流程
-    new Listr([
-        {
-            title: 'Initializing directories',
-            task: initDirs,
-        },
-        {
-            title: 'Starting Koa server',
-            task: startKoaServer,
-        },
-        {
-            title: 'Connecting Kook & creating client',
-            task: createKookClient,
-        },
-    ])
-        .run()
-        .catch((err) => {
-            const loggerData: Record<string, unknown> = {
-                type: 'ERROR',
-                error: err,
-                message: err.message,
-            };
+    try {
+        console.log('\nInitializing directories');
+        await initDirs();
 
-            console.log('\n');
-            console.error(err);
+        console.log('\nStarting Koa server');
+        await startKoaServer();
 
-            if (err.response) {
-                loggerData.type = 'AXIOS_ERROR';
-                loggerData.response = err.response;
-                // The request was made and the server responded with a status code
-                // that falls out of the range of 2xx
-                console.log(err.response?.data);
-                console.log(err.response?.status);
-                console.log(err.response?.headers);
-            }
-            if (err.request) {
-                loggerData.type = 'AXIOS_ERROR';
-                loggerData.request = err.request;
-                // The request was made but no response was received
-                // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-                // http.ClientRequest in node.js
-                console.log(err.request);
-            }
-            if (err.config) {
-                loggerData.config = err.config;
-                console.log(err.config);
-            }
+        console.log('\nConnecting Kook & creating client');
+        await createKookClient();
+    } catch (err: any) {
+        const loggerData: Record<string, unknown> = {
+            type: 'ERROR',
+            error: err,
+            message: err.message,
+        };
 
-            logger.error(loggerData);
-        });
+        console.log('\n');
+        console.error(err);
+
+        if (err.response) {
+            loggerData.type = 'AXIOS_ERROR';
+            loggerData.response = err.response;
+            // The request was made and the server responded with a status code
+            // that falls out of the range of 2xx
+            console.log(err.response?.data);
+            console.log(err.response?.status);
+            console.log(err.response?.headers);
+        }
+        if (err.request) {
+            loggerData.type = 'AXIOS_ERROR';
+            loggerData.request = err.request;
+            // The request was made but no response was received
+            // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+            // http.ClientRequest in node.js
+            console.log(err.request);
+        }
+        if (err.config) {
+            loggerData.config = err.config;
+            console.log(err.config);
+        }
+
+        logger.error(loggerData);
+    }
 
     launched = true;
 })();

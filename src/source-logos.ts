@@ -19,14 +19,18 @@ let cache: Record<string, string>;
 
 export async function getSourceLogo(
     source: MessageSource,
-    src?: string
+    src?: string,
 ): Promise<string | undefined> {
     const cacheFile = path.resolve(cacheDir, 'logos.json');
 
     if (!cache) {
-        cache = fs.existsSync(cacheFile)
-            ? (fs.readJSONSync(cacheFile) as Record<MessageSource, string>)
-            : {};
+        try {
+            cache = fs.existsSync(cacheFile)
+                ? (fs.readJSONSync(cacheFile) as Record<MessageSource, string>)
+                : {};
+        } catch (e) {
+            cache = {};
+        }
     }
 
     if (!!cache[source]) return cache[source];

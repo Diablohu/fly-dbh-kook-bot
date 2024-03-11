@@ -25,11 +25,7 @@
         "url": "https://github.com/Diablohu/fly-dbh-kook-bot/issues"
     },
     "homepage": "https://github.com/Diablohu/fly-dbh-kook-bot#readme",
-    "dependencies": {
-        "koa": "^2.11.0",
-        "koa-router": "^8.0.8",
-        "koa-sendfile": "^2.0.1"
-    },
+    "dependencies": {},
     "devDependencies": {},
     "overrides": {}
 }

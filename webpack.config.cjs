@@ -8,6 +8,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 module.exports = () => {
     /** 当前是否是开发环境 */
     const isEnvDevelopment = process.env.WEBPACK_BUILD_ENV === 'dev';
+    // const isEnvDevelopment = true;
     /** 当前是否是 Serverless 模式 */
     const isEnvServerless = process.env.WEBPACK_BUILD_ENV === 'serverless';
     /** 打包结果路径 */
@@ -17,7 +18,8 @@ module.exports = () => {
     );
 
     const config = {
-        mode: isEnvDevelopment ? 'development' : 'production',
+        // mode: isEnvDevelopment ? 'development' : 'production',
+        mode: 'development',
         devtool: isEnvDevelopment ? 'cheap-module-source-map' : 'source-map',
         // target: isEnvDevelopment ? 'async-node' : 'node20',
         target: 'async-node',
@@ -28,10 +30,7 @@ module.exports = () => {
         },
         plugins: [],
         entry: {
-            app: [
-                path.resolve(__dirname, 'src/polyfill.cjs'),
-                path.resolve(__dirname, 'src/main.ts'),
-            ],
+            app: [path.resolve(__dirname, 'src/main.ts')],
         },
         module: {
             rules: [

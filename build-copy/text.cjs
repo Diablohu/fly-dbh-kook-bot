@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 function prepareEnvKey(key) {
     if (!process.env[`${key}`]) {
         process.env[`${key}`] =

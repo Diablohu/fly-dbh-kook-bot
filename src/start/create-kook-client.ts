@@ -35,10 +35,10 @@ let pingTimeout: NodeJS.Timeout;
 let pingRetry = 0;
 let cache: {
     /** 常驻 session */
-    sessionId: string;
+    sessionId?: string;
     /** 序列码 */
-    sn: number;
-} = fs.existsSync(clientCacheFile) ? await fs.readJson(clientCacheFile) : {};
+    sn?: number;
+};
 
 function logInfo(msg: unknown) {
     const body: Record<string, unknown> = {
@@ -55,7 +55,7 @@ function logError(err: any) {
     return _logError(err);
 }
 
-// let msgQueue = [];
+let msgQueue = [];
 
 // ============================================================================
 
@@ -73,9 +73,13 @@ function logError(err: any) {
 async function createClient(): Promise<void> {
     console.log({ cacheDir });
 
-    cache = fs.existsSync(clientCacheFile)
-        ? await fs.readJson(clientCacheFile)
-        : {};
+    try {
+        cache = fs.existsSync(clientCacheFile)
+            ? (await fs.readJson(clientCacheFile)) || {}
+            : {};
+    } catch (e) {
+        cache = {};
+    }
     const { sessionId = '', sn = 0 } = cache;
 
     console.log({ cache });
@@ -88,7 +92,7 @@ async function createClient(): Promise<void> {
             }>('/gateway/index')
             .catch((err) => {
                 console.log({ err });
-                logError(err);
+                // logError(err);
             })
     )?.data.data.url;
     if (typeof gateway !== 'string') {
@@ -104,7 +108,9 @@ async function createClient(): Promise<void> {
         wsParams.resume = 1;
     }
     const wssUrl = new URL(gateway);
+
     console.log({ wssUrl });
+
     for (const [key, value] of Object.entries(wsParams)) {
         wssUrl.searchParams.set(key, `${value}`);
     }
