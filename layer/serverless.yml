@@ -1,0 +1,13 @@
+org: '1321773305'
+app: fly-dbh-bot-demostic-mirror
+stage: prod
+component: layer
+name: fly-dbh-bot-demostic-mirror-layer
+inputs:
+  name: fly-dbh-bot-demostic-mirror-layer
+  region: ap-hongkong
+  src:
+    src: ../node_modules
+    targetDir: /node_modules
+  runtimes:
+    - Nodejs12.16

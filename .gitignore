@@ -61,5 +61,6 @@ typings/
 .next
 
 /dist/
+/dist-serverless
 /.cache
 /.logs
