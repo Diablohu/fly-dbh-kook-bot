@@ -5,7 +5,7 @@ import Koa from 'koa';
 import koaRouter from 'koa-router';
 // import { koaBody } from 'koa-body';
 import bodyParser from 'koa-bodyparser';
-import koaSendFile from 'koa-sendfile';
+// import koaSendFile from 'koa-sendfile';
 
 import type { MessageSource } from '../../types';
 
@@ -77,12 +77,12 @@ async function startKoaServer(): Promise<Koa> {
     //     ctx.body = (await syncDiscordMessage(ctx.request.body)).data;
     // });
 
-    router.get(`/`, async (ctx) => {
-        await koaSendFile(ctx, path.join(__dirname, 'index.html'));
-    });
-    router.get(`/release`, async (ctx) => {
-        await koaSendFile(ctx, path.join(__dirname, 'index.html'));
-    });
+    // router.get(`/`, async (ctx) => {
+    //     await koaSendFile(ctx, path.join(__dirname, 'index.html'));
+    // });
+    // router.get(`/release`, async (ctx) => {
+    //     await koaSendFile(ctx, path.join(__dirname, 'index.html'));
+    // });
 
     app.use(router.routes());
 

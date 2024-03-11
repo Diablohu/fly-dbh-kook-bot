@@ -27,10 +27,21 @@ function prepareEnvKey(key: string): void {
 prepareEnvKey('KOOK_TOKEN');
 prepareEnvKey('AVWX_TOKEN');
 
+console.log('KOOK_TOKEN', process.env.KOOK_TOKEN);
+
 // ============================================================================
 
 export let app: Koa;
 export const messageMap = new Map();
+process.on('uncaughtException', function (exception) {
+    console.log(exception); // to see your exception details in the console
+    // if you are on production, maybe you can send the exception details to your
+    // email as well ?
+});
+process.on('unhandledRejection', (reason, p) => {
+    console.log('Unhandled Rejection at: Promise ', p, ' reason: ', reason);
+    // application specific logging, throwing an error, or other logic here
+});
 
 // ============================================================================
 
@@ -39,8 +50,6 @@ let launched = false;
     if (launched) return;
     /** 当前是否是开发环境 */
     const isEnvDevelopment = process.env.WEBPACK_BUILD_ENV === 'dev';
-
-    console.log('KOOK_TOKEN', process.env.KOOK_TOKEN);
 
     // 如果是开发环境，检查 `.env` 文件是否存在
     if (isEnvDevelopment) {
