@@ -2,10 +2,10 @@
     "name": "fly-dbh-kook-bot",
     "version": "0.1.0",
     "description": "Kook bot for fly-dbh.com",
-    "main": "./dist/main.cjs",
+    "main": "./dist/app.js",
     "type": "module",
     "scripts": {
-        "start": "npm run build && node ./dist/main.cjs",
+        "start": "npm run build && node ./dist/app.js",
         "build": "webpack",
         "pb": "node publish.js",
         "dev": "cross-env WEBPACK_BUILD_ENV=dev webpack",

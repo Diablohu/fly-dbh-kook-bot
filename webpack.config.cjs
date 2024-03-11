@@ -112,7 +112,7 @@ module.exports = () => {
                             'node',
                             [
                                 '--inspect=127.0.0.1:9230',
-                                path.resolve(dist, 'main.cjs'),
+                                path.resolve(dist, 'app.js'),
                             ],
                             {
                                 stdio: 'inherit',
