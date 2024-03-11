@@ -56139,10 +56139,9 @@ async function deleteMessage() {
 /*!*********************************!*\
   !*** ./src/api/sync-message.ts ***!
   \*********************************/
-/***/ ((module, __webpack_exports__, __webpack_require__) => {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
-__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   parseDiscordMessage: () => (/* binding */ parseDiscordMessage),
@@ -56154,8 +56153,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _main__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../main */ "./src/main.ts");
 /* harmony import */ var _source_logos__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../source-logos */ "./src/source-logos.ts");
 /* harmony import */ var _app_config__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../app.config */ "./app.config.ts");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_main__WEBPACK_IMPORTED_MODULE_2__]);
-_main__WEBPACK_IMPORTED_MODULE_2__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
 
 
 
@@ -56511,8 +56508,6 @@ async function syncMessage({
   _main__WEBPACK_IMPORTED_MODULE_2__.messageMap.set(msgId, res.data.data.msg_id);
   return res;
 }
-__webpack_async_result__();
-} catch(e) { __webpack_async_result__(e); } });
 
 /***/ }),
 
@@ -56716,10 +56711,9 @@ function logError(err, originalUrl) {
 /*!*********************!*\
   !*** ./src/main.ts ***!
   \*********************/
-/***/ ((module, __webpack_exports__, __webpack_require__) => {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
-__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   app: () => (/* binding */ app),
@@ -56738,8 +56732,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _start_create_kook_client__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./start/create-kook-client */ "./src/start/create-kook-client.ts");
 /* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./logger */ "./src/logger.ts");
 /* harmony import */ var _axios_interceptors__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./axios-interceptors */ "./src/axios-interceptors.ts");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_start_koa_server__WEBPACK_IMPORTED_MODULE_4__, _start_create_kook_client__WEBPACK_IMPORTED_MODULE_5__]);
-([_start_koa_server__WEBPACK_IMPORTED_MODULE_4__, _start_create_kook_client__WEBPACK_IMPORTED_MODULE_5__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 
 
 
@@ -56839,8 +56831,6 @@ let launched = false;
   }
   launched = true;
 })();
-__webpack_async_result__();
-} catch(e) { __webpack_async_result__(e); } });
 
 /***/ }),
 
@@ -56909,10 +56899,9 @@ async function getSourceLogo(source, src) {
 /*!*****************************************!*\
   !*** ./src/start/create-kook-client.ts ***!
   \*****************************************/
-/***/ ((module, __webpack_exports__, __webpack_require__) => {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
-__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   clientCacheFile: () => (/* binding */ clientCacheFile),
@@ -56958,7 +56947,7 @@ const clientCacheFile = node_path__WEBPACK_IMPORTED_MODULE_0___default().resolve
 // ];
 // let pingTimeout: NodeJS.Timeout;
 // let pingRetry = 0;
-let cache = fs_extra__WEBPACK_IMPORTED_MODULE_2___default().existsSync(clientCacheFile) ? await fs_extra__WEBPACK_IMPORTED_MODULE_2___default().readJson(clientCacheFile) : {};
+let cache;
 
 // function logInfo(msg: unknown) {
 //     const body: Record<string, unknown> = {
@@ -56994,7 +56983,11 @@ async function createClient() {
   console.log({
     cacheDir: _app_config__WEBPACK_IMPORTED_MODULE_1__.cacheDir
   });
-  cache = fs_extra__WEBPACK_IMPORTED_MODULE_2___default().existsSync(clientCacheFile) ? await fs_extra__WEBPACK_IMPORTED_MODULE_2___default().readJson(clientCacheFile) : {};
+  try {
+    cache = fs_extra__WEBPACK_IMPORTED_MODULE_2___default().existsSync(clientCacheFile) ? (await fs_extra__WEBPACK_IMPORTED_MODULE_2___default().readJson(clientCacheFile)) || {} : {};
+  } catch (e) {
+    cache = {};
+  }
   const {
     sessionId = '',
     sn = 0
@@ -57286,8 +57279,6 @@ async function createClient() {
 //     await fs.writeJson(clientCacheFile, cache);
 //     await createClient();
 // }
-__webpack_async_result__();
-} catch(e) { __webpack_async_result__(e); } }, 1);
 
 /***/ }),
 
@@ -57323,10 +57314,9 @@ async function initDirs() {
 /*!*********************************!*\
   !*** ./src/start/koa-server.ts ***!
   \*********************************/
-/***/ ((module, __webpack_exports__, __webpack_require__) => {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
-__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -57340,8 +57330,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _api_sync_message__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../api/sync-message */ "./src/api/sync-message.ts");
 /* harmony import */ var _api_sync_discord__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../api/sync-discord */ "./src/api/sync-discord.ts");
 /* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../logger */ "./src/logger.ts");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_api_sync_message__WEBPACK_IMPORTED_MODULE_4__]);
-_api_sync_message__WEBPACK_IMPORTED_MODULE_4__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
 
 
 // import { koaBody } from 'koa-body';
@@ -57404,8 +57392,6 @@ async function startKoaServer() {
   return app;
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (startKoaServer);
-__webpack_async_result__();
-} catch(e) { __webpack_async_result__(e); } });
 
 /***/ }),
 
@@ -62952,75 +62938,6 @@ module.exports = /*#__PURE__*/JSON.parse('{"name":"winston","description":"A log
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/async module */
-/******/ 	(() => {
-/******/ 		var webpackQueues = typeof Symbol === "function" ? Symbol("webpack queues") : "__webpack_queues__";
-/******/ 		var webpackExports = typeof Symbol === "function" ? Symbol("webpack exports") : "__webpack_exports__";
-/******/ 		var webpackError = typeof Symbol === "function" ? Symbol("webpack error") : "__webpack_error__";
-/******/ 		var resolveQueue = (queue) => {
-/******/ 			if(queue && queue.d < 1) {
-/******/ 				queue.d = 1;
-/******/ 				queue.forEach((fn) => (fn.r--));
-/******/ 				queue.forEach((fn) => (fn.r-- ? fn.r++ : fn()));
-/******/ 			}
-/******/ 		}
-/******/ 		var wrapDeps = (deps) => (deps.map((dep) => {
-/******/ 			if(dep !== null && typeof dep === "object") {
-/******/ 				if(dep[webpackQueues]) return dep;
-/******/ 				if(dep.then) {
-/******/ 					var queue = [];
-/******/ 					queue.d = 0;
-/******/ 					dep.then((r) => {
-/******/ 						obj[webpackExports] = r;
-/******/ 						resolveQueue(queue);
-/******/ 					}, (e) => {
-/******/ 						obj[webpackError] = e;
-/******/ 						resolveQueue(queue);
-/******/ 					});
-/******/ 					var obj = {};
-/******/ 					obj[webpackQueues] = (fn) => (fn(queue));
-/******/ 					return obj;
-/******/ 				}
-/******/ 			}
-/******/ 			var ret = {};
-/******/ 			ret[webpackQueues] = x => {};
-/******/ 			ret[webpackExports] = dep;
-/******/ 			return ret;
-/******/ 		}));
-/******/ 		__webpack_require__.a = (module, body, hasAwait) => {
-/******/ 			var queue;
-/******/ 			hasAwait && ((queue = []).d = -1);
-/******/ 			var depQueues = new Set();
-/******/ 			var exports = module.exports;
-/******/ 			var currentDeps;
-/******/ 			var outerResolve;
-/******/ 			var reject;
-/******/ 			var promise = new Promise((resolve, rej) => {
-/******/ 				reject = rej;
-/******/ 				outerResolve = resolve;
-/******/ 			});
-/******/ 			promise[webpackExports] = exports;
-/******/ 			promise[webpackQueues] = (fn) => (queue && fn(queue), depQueues.forEach(fn), promise["catch"](x => {}));
-/******/ 			module.exports = promise;
-/******/ 			body((deps) => {
-/******/ 				currentDeps = wrapDeps(deps);
-/******/ 				var fn;
-/******/ 				var getResult = () => (currentDeps.map((d) => {
-/******/ 					if(d[webpackError]) throw d[webpackError];
-/******/ 					return d[webpackExports];
-/******/ 				}))
-/******/ 				var promise = new Promise((resolve) => {
-/******/ 					fn = () => (resolve(getResult));
-/******/ 					fn.r = 0;
-/******/ 					var fnQueue = (q) => (q !== queue && !depQueues.has(q) && (depQueues.add(q), q && !q.d && (fn.r++, q.push(fn))));
-/******/ 					currentDeps.map((dep) => (dep[webpackQueues](fnQueue)));
-/******/ 				});
-/******/ 				return fn.r ? promise : getResult();
-/******/ 			}, (err) => ((err ? reject(promise[webpackError] = err) : outerResolve(exports)), resolveQueue(queue)));
-/******/ 			queue && queue.d < 0 && (queue.d = 0);
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/compat get default export */
 /******/ 	(() => {
 /******/ 		// getDefaultExport function for compatibility with non-harmony modules
