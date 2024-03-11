@@ -1,1 +1,1 @@
-function main(){console.log("test"),console.log(process.env)}main();
+function prepareEnvKey(e){process.env[`${e}`]||(process.env[`${e}`]=process.env[`${e.toLowerCase()}`]||(process.env[`${e}_FILE`]&&fs.existsSync(process.env[`${e}_FILE`]||"")?fs.readFileSync(process.env[`${e}_FILE`]||"","utf-8"):""))}function main(){console.log("test"),prepareEnvKey("KOOK_TOKEN"),prepareEnvKey("AVWX_TOKEN"),console.log(process.env)}main();
