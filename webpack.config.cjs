@@ -8,8 +8,13 @@ const CopyPlugin = require('copy-webpack-plugin');
 module.exports = () => {
     /** 当前是否是开发环境 */
     const isEnvDevelopment = process.env.WEBPACK_BUILD_ENV === 'dev';
+    /** 当前是否是 Serverless 模式 */
+    const isEnvServerless = process.env.WEBPACK_BUILD_ENV === 'serverless';
     /** 打包结果路径 */
-    const dist = path.resolve(__dirname, 'dist');
+    const dist = path.resolve(
+        __dirname,
+        isEnvServerless ? 'dist-serverless' : 'dist',
+    );
 
     const config = {
         mode: isEnvDevelopment ? 'development' : 'production',
@@ -71,7 +76,7 @@ module.exports = () => {
         config.plugins.push(
             new CopyPlugin({
                 patterns: [path.resolve(__dirname, './build-copy')],
-            })
+            }),
         );
     } else {
         let child;
@@ -88,7 +93,7 @@ module.exports = () => {
                             child.kill();
                             child = undefined;
                         }
-                    }
+                    },
                 );
                 compiler.hooks.afterEmit.tap(
                     'ApiServerPlugin',
@@ -111,14 +116,14 @@ module.exports = () => {
                             ],
                             {
                                 stdio: 'inherit',
-                            }
+                            },
                         );
                         // child.on('close', (code) => {
                         //     console.log(
                         //         `child process exited with code ${code}`
                         //     );
                         // });
-                    }
+                    },
                 );
             },
         });
