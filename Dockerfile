@@ -1,4 +1,4 @@
-FROM node:18
+FROM node:lts
 WORKDIR .
 RUN npm install -g pm2
 COPY . .
