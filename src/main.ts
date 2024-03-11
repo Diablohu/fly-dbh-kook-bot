@@ -13,6 +13,8 @@ import { attachInterceptors as attachAxiosInterceptors } from './axios-intercept
 
 // ============================================================================
 
+console.log('KOOK_TOKEN', process.env.KOOK_TOKEN);
+
 dotenv.config();
 function prepareEnvKey(key: string): void {
     if (!process.env[`${key}`]) {
