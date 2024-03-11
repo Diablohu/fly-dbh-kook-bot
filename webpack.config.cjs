@@ -19,7 +19,7 @@ module.exports = () => {
     const config = {
         mode: isEnvDevelopment ? 'development' : 'production',
         devtool: isEnvDevelopment ? 'cheap-module-source-map' : 'source-map',
-        target: 'async-node',
+        target: isEnvDevelopment ? 'async-node' : 'node12',
         watch: isEnvDevelopment ? true : false,
         output: {
             filename: '[name].cjs',
