@@ -56139,9 +56139,10 @@ async function deleteMessage() {
 /*!*********************************!*\
   !*** ./src/api/sync-message.ts ***!
   \*********************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   parseDiscordMessage: () => (/* binding */ parseDiscordMessage),
@@ -56153,6 +56154,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _main__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../main */ "./src/main.ts");
 /* harmony import */ var _source_logos__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../source-logos */ "./src/source-logos.ts");
 /* harmony import */ var _app_config__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../app.config */ "./app.config.ts");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_main__WEBPACK_IMPORTED_MODULE_2__]);
+_main__WEBPACK_IMPORTED_MODULE_2__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
 
 
 
@@ -56508,6 +56511,8 @@ async function syncMessage({
   _main__WEBPACK_IMPORTED_MODULE_2__.messageMap.set(msgId, res.data.data.msg_id);
   return res;
 }
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
 
 /***/ }),
 
@@ -56711,16 +56716,17 @@ function logError(err, originalUrl) {
 /*!*********************!*\
   !*** ./src/main.ts ***!
   \*********************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   app: () => (/* binding */ app),
 /* harmony export */   messageMap: () => (/* binding */ messageMap)
 /* harmony export */ });
-/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! fs-extra */ "./node_modules/fs-extra/lib/index.js");
-/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(fs_extra__WEBPACK_IMPORTED_MODULE_7__);
+/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! fs-extra */ "./node_modules/fs-extra/lib/index.js");
+/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(fs_extra__WEBPACK_IMPORTED_MODULE_8__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! path */ "path");
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var url__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! url */ "url");
@@ -56729,17 +56735,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var dotenv__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(dotenv__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var _start_init_dirs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./start/init-dirs */ "./src/start/init-dirs.ts");
 /* harmony import */ var _start_koa_server__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./start/koa-server */ "./src/start/koa-server.ts");
-/* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./logger */ "./src/logger.ts");
-/* harmony import */ var _axios_interceptors__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./axios-interceptors */ "./src/axios-interceptors.ts");
+/* harmony import */ var _start_create_kook_client__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./start/create-kook-client */ "./src/start/create-kook-client.ts");
+/* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./logger */ "./src/logger.ts");
+/* harmony import */ var _axios_interceptors__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./axios-interceptors */ "./src/axios-interceptors.ts");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_start_koa_server__WEBPACK_IMPORTED_MODULE_4__, _start_create_kook_client__WEBPACK_IMPORTED_MODULE_5__]);
+([_start_koa_server__WEBPACK_IMPORTED_MODULE_4__, _start_create_kook_client__WEBPACK_IMPORTED_MODULE_5__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 
 
 
 
-// import Listr from 'listr';
 
 
 
-// import createKookClient from './start/create-kook-client';
 
 
 
@@ -56749,7 +56756,7 @@ console.log('KOOK_TOKEN', process.env.KOOK_TOKEN);
 dotenv__WEBPACK_IMPORTED_MODULE_2__.config();
 function prepareEnvKey(key) {
   if (!process.env[`${key}`]) {
-    process.env[`${key}`] = process.env[`${key.toLowerCase()}`] || (!!process.env[`${key}_FILE`] && fs_extra__WEBPACK_IMPORTED_MODULE_7___default().existsSync(process.env[`${key}_FILE`] || '') ? fs_extra__WEBPACK_IMPORTED_MODULE_7___default().readFileSync(process.env[`${key}_FILE`] || '', 'utf-8') : '');
+    process.env[`${key}`] = process.env[`${key.toLowerCase()}`] || (!!process.env[`${key}_FILE`] && fs_extra__WEBPACK_IMPORTED_MODULE_8___default().existsSync(process.env[`${key}_FILE`] || '') ? fs_extra__WEBPACK_IMPORTED_MODULE_8___default().readFileSync(process.env[`${key}_FILE`] || '', 'utf-8') : '');
   }
 }
 prepareEnvKey('KOOK_TOKEN');
@@ -56781,14 +56788,14 @@ let launched = false;
   // 如果是开发环境，检查 `.env` 文件是否存在
   if (isEnvDevelopment) {
     const rootEnvFile = path__WEBPACK_IMPORTED_MODULE_0___default().resolve(path__WEBPACK_IMPORTED_MODULE_0___default().dirname((0,url__WEBPACK_IMPORTED_MODULE_1__.fileURLToPath)("file:///D:/Projects/@diablohu/fly-dbh-kook-bot/src/main.ts")), '../.env');
-    if (!fs_extra__WEBPACK_IMPORTED_MODULE_7___default().existsSync(rootEnvFile)) throw new Error('.env file missing');
+    if (!fs_extra__WEBPACK_IMPORTED_MODULE_8___default().existsSync(rootEnvFile)) throw new Error('.env file missing');
   }
 
   // 注册结束进程
   process.on('exit', () => {
     // Koa.
   });
-  (0,_axios_interceptors__WEBPACK_IMPORTED_MODULE_6__.attachInterceptors)();
+  (0,_axios_interceptors__WEBPACK_IMPORTED_MODULE_7__.attachInterceptors)();
 
   // 开始流程
   try {
@@ -56796,9 +56803,8 @@ let launched = false;
     await (0,_start_init_dirs__WEBPACK_IMPORTED_MODULE_3__["default"])();
     console.log('\nStarting Koa server');
     await (0,_start_koa_server__WEBPACK_IMPORTED_MODULE_4__["default"])();
-
-    // console.log('\nConnecting Kook & creating client');
-    // await createKookClient();
+    console.log('\nConnecting Kook & creating client');
+    await (0,_start_create_kook_client__WEBPACK_IMPORTED_MODULE_5__["default"])();
   } catch (err) {
     const loggerData = {
       type: 'ERROR',
@@ -56829,10 +56835,12 @@ let launched = false;
       loggerData.config = err.config;
       console.log(err.config);
     }
-    _logger__WEBPACK_IMPORTED_MODULE_5__["default"].error(loggerData);
+    _logger__WEBPACK_IMPORTED_MODULE_6__["default"].error(loggerData);
   }
   launched = true;
 })();
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
 
 /***/ }),
 
@@ -56897,6 +56905,390 @@ async function getSourceLogo(source, src) {
 
 /***/ }),
 
+/***/ "./src/start/create-kook-client.ts":
+/*!*****************************************!*\
+  !*** ./src/start/create-kook-client.ts ***!
+  \*****************************************/
+/***/ ((module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   client: () => (/* binding */ client),
+/* harmony export */   clientCacheFile: () => (/* binding */ clientCacheFile),
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! axios */ "./node_modules/axios/lib/axios.js");
+/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! fs-extra */ "./node_modules/fs-extra/lib/index.js");
+/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(fs_extra__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var node_path__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! node:path */ "node:path");
+/* harmony import */ var node_path__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(node_path__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../logger */ "./src/logger.ts");
+/* harmony import */ var _app_config__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../app.config */ "./app.config.ts");
+
+
+// import zlib from 'node:zlib';
+// import { promisify } from 'node:util';
+
+
+// import {
+//     WSSignalTypes,
+//     WSMessageTypes,
+//     WSMessageType,
+//     // MessageType,
+// } from '../../types';
+
+
+// import sendMessage from '../api/send-message';
+
+// import getCommandResponse from '../commands/index';
+
+// const unzip = promisify(zlib.unzip);
+
+// ============================================================================
+
+let client;
+const clientCacheFile = node_path__WEBPACK_IMPORTED_MODULE_0___default().resolve(_app_config__WEBPACK_IMPORTED_MODULE_2__.cacheDir, 'client.json');
+/**
+ * 公开回应的频道ID
+ * - 在其他频道回应时，会以隐藏方式进行回应，并删除问话
+ */
+// const publicResponseChannelIDs = [
+//     `6061361713354559`,
+//     `6086801551312186`, // Playground Channel
+// ];
+// let pingTimeout: NodeJS.Timeout;
+// let pingRetry = 0;
+let cache = fs_extra__WEBPACK_IMPORTED_MODULE_3___default().existsSync(clientCacheFile) ? await fs_extra__WEBPACK_IMPORTED_MODULE_3___default().readJson(clientCacheFile) : {};
+
+// function logInfo(msg: unknown) {
+//     const body: Record<string, unknown> = {
+//         connectionType: 'websocket-message',
+//     };
+//     if (typeof msg === 'string') body.message = msg;
+//     else body.message = msg;
+//     // console.log(body);
+//     logger.info(body);
+// }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function logError(err) {
+  return (0,_logger__WEBPACK_IMPORTED_MODULE_1__.logError)(err);
+}
+
+// let msgQueue = [];
+
+// ============================================================================
+
+/**                                                _________________
+ *       获取gateWay     连接ws          收到hello |    心跳超时    |
+ *             |           |                |      |      |         |
+ *             v           v                v      |      V         |
+ *      INIT  --> GATEWAY -->  WS_CONNECTED --> CONNECTED --> RETRY |
+ *       ^        |   ^             |                  ^_______|    |
+ *       |        |   |_____________|__________________________|    |
+ *       |        |                 |                          |    |
+ *       |________|_________________|__________________________|____|
+ *
+ **/
+async function createClient() {
+  var _await$axios$get$catc;
+  console.log({
+    cacheDir: _app_config__WEBPACK_IMPORTED_MODULE_2__.cacheDir
+  });
+  cache = fs_extra__WEBPACK_IMPORTED_MODULE_3___default().existsSync(clientCacheFile) ? await fs_extra__WEBPACK_IMPORTED_MODULE_3___default().readJson(clientCacheFile) : {};
+  const {
+    sessionId = '',
+    sn = 0
+  } = cache;
+  console.log({
+    cache
+  });
+
+  // 请求 Gateway 获取 WebSocket 连接地址
+  const gateway = (_await$axios$get$catc = await axios__WEBPACK_IMPORTED_MODULE_4__["default"].get('/gateway/index').catch(err => {
+    console.log({
+      err
+    });
+    logError(err);
+  })) === null || _await$axios$get$catc === void 0 ? void 0 : _await$axios$get$catc.data.data.url;
+  if (typeof gateway !== 'string') {
+    return await createClient();
+  }
+  const wsParams = {
+    compress: 1,
+    sn
+  };
+  if (!!sessionId) {
+    wsParams.sessionId = sessionId;
+    wsParams.resume = 1;
+  }
+  const wssUrl = new URL(gateway);
+  console.log({
+    wssUrl
+  });
+  for (const [key, value] of Object.entries(wsParams)) {
+    wssUrl.searchParams.set(key, `${value}`);
+  }
+
+  // // ========================================================================
+
+  // client = new ws(wssUrl.href);
+
+  // client.on('open', () => {
+  //     sendPing();
+  // });
+  // client.on('error', (...args) => {
+  //     console.log('ERROR', ...args);
+  //     logError(...args);
+  // });
+  // client.on('message', async (buffer: Buffer) => {
+  //     const msg = (await unzip(buffer)).toString();
+  //     let type: WSSignalTypes | undefined = undefined,
+  //         body: string | { [key: string]: string | number } | WSMessageType =
+  //             {},
+  //         sn: number | undefined = undefined;
+  //     try {
+  //         const o = JSON.parse(msg);
+  //         type = o.s;
+  //         body = o.d;
+  //         sn = o.sn;
+  //         // console.log('WSS on Message (Object)', o);
+  //     } catch (e) {
+  //         body = msg;
+  //         // console.log('WSS on Message', msg);
+  //     }
+
+  //     // 存在 type，表示正确的信息
+  //     if (typeof type !== 'undefined') {
+  //         // 获取的信息中存在 sn，刷新 cache
+  //         if (typeof sn === 'number') cache.sn = sn;
+
+  //         switch (type) {
+  //             case WSSignalTypes.HandShake: {
+  //                 if ((body as { [key: string]: number })?.code === 40103) {
+  //                     console.log('Handshake Fail');
+  //                     await reconnect('Handshake Fail');
+  //                     return;
+  //                 }
+  //                 logInfo(body as { [key: string]: string });
+  //                 // 握手成功，获取到 sessionId，刷新 cache
+  //                 if (
+  //                     typeof body === 'object' &&
+  //                     !!(body as { [key: string]: string })?.sessionId
+  //                 )
+  //                     cache.sessionId = (body as { [key: string]: string })
+  //                         ?.sessionId as string;
+  //                 break;
+  //             }
+  //             case WSSignalTypes.RsumeAck: {
+  //                 logInfo(body as { [key: string]: string });
+  //                 // 重连成功，获取到 sessionId，刷新 cache
+  //                 if (
+  //                     typeof body === 'object' &&
+  //                     !!(body as { [key: string]: string }).sessionId
+  //                 )
+  //                     cache.sessionId = (body as { [key: string]: string })
+  //                         .sessionId as string;
+  //                 break;
+  //             }
+  //             case WSSignalTypes.Pong: {
+  //                 // 成功收到 PONG 回应，终止仍存在的 PING 重试尝试，开启新的 PING 倒计时
+  //                 // console.log('PONG!', msg);
+  //                 clearTimeout(pingTimeout);
+  //                 pingRetry = 0;
+  //                 sendPing();
+  //                 break;
+  //             }
+  //             // 需要重连
+  //             case WSSignalTypes.Reconnect: {
+  //                 // 收到重连请求，进行重新连接
+  //                 await reconnect('Signal Reconnect');
+  //                 break;
+  //             }
+  //             default: {
+  //                 await parseMsg(body as WSMessageType, sn as number);
+  //             }
+  //         }
+  //     }
+
+  //     await fs.writeJson(clientCacheFile, cache);
+  // });
+
+  // /** 发送 PING */
+  // function sendPing(
+  //     /** 延迟时间 */
+  //     time = 30 * 1000,
+  // ): NodeJS.Timeout {
+  //     if (client.readyState !== ws.OPEN) {
+  //         pingTimeout = setTimeout(sendPing, 100);
+  //         return pingTimeout;
+  //     }
+
+  //     // console.log(123, time);
+  //     pingTimeout = setTimeout(async () => {
+  //         const ping = {
+  //             s: WSSignalTypes.Ping,
+  //             sn: cache.sn,
+  //         };
+  //         // console.log('PING!', ping);
+  //         client.send(Buffer.from(JSON.stringify(ping)));
+  //         if (pingRetry > 2) {
+  //             await reconnect('Ping Failed after 2 retries');
+  //         } else {
+  //             pingRetry++;
+  //             pingTimeout = sendPing(6 * 1000);
+  //         }
+  //     }, time);
+
+  //     return pingTimeout;
+  // }
+
+  // async function parseMsg(body: WSMessageType, sn: number) {
+  //     // 如果是机器人或系统消息，直接忽略
+  //     if (
+  //         (body?.extra?.type === WSMessageTypes.Markdown ||
+  //             body?.extra?.type === WSMessageTypes.Card) &&
+  //         (body?.extra?.author?.bot === true ||
+  //             body?.extra?.author?.is_sys === true)
+  //     )
+  //         return;
+
+  //     // 如果是以 `/` 开头的消息，判断为命令，进行分析
+  //     if (
+  //         body?.type === WSMessageTypes.Markdown &&
+  //         body?.extra?.type === WSMessageTypes.Markdown &&
+  //         /^\//.test(body?.content)
+  //     ) {
+  //         // 开发环境仅监控一个频道
+  //         if (
+  //             process.env.WEBPACK_BUILD_ENV === 'dev' &&
+  //             body?.target_id !== '6086801551312186'
+  //         )
+  //             return;
+
+  //         const command = body?.content.replace(/^\//, '');
+  //         const channelId = body?.target_id;
+  //         const messageId = body?.msg_id;
+
+  //         logInfo({
+  //             command,
+  //             body,
+  //             sn,
+  //         });
+
+  //         const response = await getCommandResponse(command).catch(logError);
+
+  //         const isPublic =
+  //             publicResponseChannelIDs.includes(channelId) &&
+  //             response?._is_temp !== true;
+  //         delete response?._is_temp;
+  //         if (!isPublic)
+  //             await axios.post('/message/delete', {
+  //                 msg_id: messageId,
+  //             });
+
+  //         if (response) {
+  //             // console.log(response);
+  //             // console.log(123, {
+  //             //     target_id: channelId,
+  //             //     quote: messageId,
+  //             //     ...response,
+  //             // });
+  //             sendMessage({
+  //                 target_id: channelId,
+  //                 quote: isPublic ? messageId : undefined,
+  //                 temp_target_id: isPublic ? undefined : body.author_id,
+  //                 ...response,
+  //             });
+  //         } else {
+  //             sendMessage({
+  //                 target_id: channelId,
+  //                 quote: isPublic ? messageId : undefined,
+  //                 temp_target_id: isPublic ? undefined : body.author_id,
+  //                 type: 9,
+  //                 content: '😣 未知错误',
+  //             });
+  //         }
+  //         /*
+  //         // console.log(response);
+  //         if (typeof response === 'object' && response.type === 'card') {
+  //             const msg: MessageType = {
+  //                 type: 10,
+  //                 target_id: channelId,
+  //                 quote: messageId,
+  //                 content: JSON.stringify([response]),
+  //                 // temp_target_id
+  //             };
+  //             // console.log(msg);
+  //             sendMessage(msg);
+  //         } else if (typeof response === 'string' && !!response) {
+  //             const msg: MessageType = {
+  //                 type: 9,
+  //                 target_id: channelId,
+  //                 quote: messageId,
+  //                 content: response,
+  //             };
+  //             // console.log(msg);
+  //             sendMessage(msg);
+  //         }
+  //         */
+
+  //         return;
+  //     }
+
+  //     // 其他消息
+  //     switch (body?.type) {
+  //         case WSMessageTypes.System: {
+  //             switch (body?.extra?.type) {
+  //                 case 'guild_member_offline':
+  //                 case 'guild_member_online':
+  //                 case 'updated_message': {
+  //                     break;
+  //                 }
+  //                 default: {
+  //                     // console.log('[WebSocket] SYSTEM MESSAGE', body);
+  //                     // logInfo({ body, sn });
+  //                 }
+  //             }
+  //             break;
+  //         }
+  //         default: {
+  //             console.log('[WebSocket] UNKNOWN MESSAGE', body);
+  //             // logInfo({ body, sn });
+  //         }
+  //     }
+  // }
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (createClient);
+
+// ============================================================================
+
+// async function reconnect(reason: string): Promise<void> {
+//     console.log('Signal Reconnect');
+
+//     // console.log('Reconnecting... ' + reason);
+//     logInfo('Reconnecting... ' + reason);
+
+//     client.terminate();
+
+//     clearTimeout(pingTimeout);
+//     pingRetry = 0;
+
+//     cache.sessionId = '';
+//     cache.sn = 0;
+
+//     // msgQueue = [];
+
+//     await fs.writeJson(clientCacheFile, cache);
+//     await createClient();
+// }
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } }, 1);
+
+/***/ }),
+
 /***/ "./src/start/init-dirs.ts":
 /*!********************************!*\
   !*** ./src/start/init-dirs.ts ***!
@@ -56929,9 +57321,10 @@ async function initDirs() {
 /*!*********************************!*\
   !*** ./src/start/koa-server.ts ***!
   \*********************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -56945,6 +57338,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _api_sync_message__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../api/sync-message */ "./src/api/sync-message.ts");
 /* harmony import */ var _api_sync_discord__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../api/sync-discord */ "./src/api/sync-discord.ts");
 /* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../logger */ "./src/logger.ts");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_api_sync_message__WEBPACK_IMPORTED_MODULE_4__]);
+_api_sync_message__WEBPACK_IMPORTED_MODULE_4__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
 
 
 // import { koaBody } from 'koa-body';
@@ -57007,6 +57402,8 @@ async function startKoaServer() {
   return app;
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (startKoaServer);
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
 
 /***/ }),
 
@@ -62553,6 +62950,75 @@ module.exports = /*#__PURE__*/JSON.parse('{"name":"winston","description":"A log
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/async module */
+/******/ 	(() => {
+/******/ 		var webpackQueues = typeof Symbol === "function" ? Symbol("webpack queues") : "__webpack_queues__";
+/******/ 		var webpackExports = typeof Symbol === "function" ? Symbol("webpack exports") : "__webpack_exports__";
+/******/ 		var webpackError = typeof Symbol === "function" ? Symbol("webpack error") : "__webpack_error__";
+/******/ 		var resolveQueue = (queue) => {
+/******/ 			if(queue && queue.d < 1) {
+/******/ 				queue.d = 1;
+/******/ 				queue.forEach((fn) => (fn.r--));
+/******/ 				queue.forEach((fn) => (fn.r-- ? fn.r++ : fn()));
+/******/ 			}
+/******/ 		}
+/******/ 		var wrapDeps = (deps) => (deps.map((dep) => {
+/******/ 			if(dep !== null && typeof dep === "object") {
+/******/ 				if(dep[webpackQueues]) return dep;
+/******/ 				if(dep.then) {
+/******/ 					var queue = [];
+/******/ 					queue.d = 0;
+/******/ 					dep.then((r) => {
+/******/ 						obj[webpackExports] = r;
+/******/ 						resolveQueue(queue);
+/******/ 					}, (e) => {
+/******/ 						obj[webpackError] = e;
+/******/ 						resolveQueue(queue);
+/******/ 					});
+/******/ 					var obj = {};
+/******/ 					obj[webpackQueues] = (fn) => (fn(queue));
+/******/ 					return obj;
+/******/ 				}
+/******/ 			}
+/******/ 			var ret = {};
+/******/ 			ret[webpackQueues] = x => {};
+/******/ 			ret[webpackExports] = dep;
+/******/ 			return ret;
+/******/ 		}));
+/******/ 		__webpack_require__.a = (module, body, hasAwait) => {
+/******/ 			var queue;
+/******/ 			hasAwait && ((queue = []).d = -1);
+/******/ 			var depQueues = new Set();
+/******/ 			var exports = module.exports;
+/******/ 			var currentDeps;
+/******/ 			var outerResolve;
+/******/ 			var reject;
+/******/ 			var promise = new Promise((resolve, rej) => {
+/******/ 				reject = rej;
+/******/ 				outerResolve = resolve;
+/******/ 			});
+/******/ 			promise[webpackExports] = exports;
+/******/ 			promise[webpackQueues] = (fn) => (queue && fn(queue), depQueues.forEach(fn), promise["catch"](x => {}));
+/******/ 			module.exports = promise;
+/******/ 			body((deps) => {
+/******/ 				currentDeps = wrapDeps(deps);
+/******/ 				var fn;
+/******/ 				var getResult = () => (currentDeps.map((d) => {
+/******/ 					if(d[webpackError]) throw d[webpackError];
+/******/ 					return d[webpackExports];
+/******/ 				}))
+/******/ 				var promise = new Promise((resolve) => {
+/******/ 					fn = () => (resolve(getResult));
+/******/ 					fn.r = 0;
+/******/ 					var fnQueue = (q) => (q !== queue && !depQueues.has(q) && (depQueues.add(q), q && !q.d && (fn.r++, q.push(fn))));
+/******/ 					currentDeps.map((dep) => (dep[webpackQueues](fnQueue)));
+/******/ 				});
+/******/ 				return fn.r ? promise : getResult();
+/******/ 			}, (err) => ((err ? reject(promise[webpackError] = err) : outerResolve(exports)), resolveQueue(queue)));
+/******/ 			queue && queue.d < 0 && (queue.d = 0);
+/******/ 		};
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/compat get default export */
 /******/ 	(() => {
 /******/ 		// getDefaultExport function for compatibility with non-harmony modules
