@@ -56918,13 +56918,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   clientCacheFile: () => (/* binding */ clientCacheFile),
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! axios */ "./node_modules/axios/lib/axios.js");
 /* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! fs-extra */ "./node_modules/fs-extra/lib/index.js");
 /* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(fs_extra__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var node_path__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! node:path */ "node:path");
 /* harmony import */ var node_path__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(node_path__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _app_config__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../app.config */ "./app.config.ts");
-
+// import axios from 'axios';
 // import ws from 'ws';
 
 // import zlib from 'node:zlib';
@@ -56992,7 +56991,6 @@ let cache = fs_extra__WEBPACK_IMPORTED_MODULE_2___default().existsSync(clientCac
  *
  **/
 async function createClient() {
-  var _await$axios$get$catc;
   console.log({
     cacheDir: _app_config__WEBPACK_IMPORTED_MODULE_1__.cacheDir
   });
@@ -57006,30 +57004,35 @@ async function createClient() {
   });
 
   // 请求 Gateway 获取 WebSocket 连接地址
-  const gateway = (_await$axios$get$catc = await axios__WEBPACK_IMPORTED_MODULE_3__["default"].get('/gateway/index').catch(err => {
-    console.log({
-      err
-    });
-    // logError(err);
-  })) === null || _await$axios$get$catc === void 0 ? void 0 : _await$axios$get$catc.data.data.url;
-  if (typeof gateway !== 'string') {
-    return await createClient();
-  }
-  const wsParams = {
-    compress: 1,
-    sn
-  };
-  if (!!sessionId) {
-    wsParams.sessionId = sessionId;
-    wsParams.resume = 1;
-  }
-  const wssUrl = new URL(gateway);
-  console.log({
-    wssUrl
-  });
-  for (const [key, value] of Object.entries(wsParams)) {
-    wssUrl.searchParams.set(key, `${value}`);
-  }
+  // const gateway = (
+  //     await axios
+  //         .get<{
+  //             data: { url: string };
+  //         }>('/gateway/index')
+  //         .catch((err) => {
+  //             console.log({ err });
+  //             // logError(err);
+  //         })
+  // )?.data.data.url;
+  // if (typeof gateway !== 'string') {
+  //     return await createClient();
+  // }
+
+  // const wsParams: Record<string, string | number> = {
+  //     compress: 1,
+  //     sn,
+  // };
+  // if (!!sessionId) {
+  //     wsParams.sessionId = sessionId;
+  //     wsParams.resume = 1;
+  // }
+  // const wssUrl = new URL(gateway);
+
+  // console.log({ wssUrl });
+
+  // for (const [key, value] of Object.entries(wsParams)) {
+  //     wssUrl.searchParams.set(key, `${value}`);
+  // }
 
   // // ========================================================================
 
