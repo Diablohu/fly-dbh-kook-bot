@@ -1,0 +1,35 @@
+component: http
+name: http-koa-b-PzGKn1Jx
+inputs:
+  src:
+    src: ./
+    exclude:
+      - .env
+  faas:
+    framework: koa
+    name: '${name}'
+    runtime: Nodejs12.16
+    eip: true
+    timeout: 3
+    memorySize: 512
+    tags: []
+    environments:
+      - key: kook_token
+        value: 1/MTc2NDA=/AdLDQaCoc4Uc8eejkU4CiA==
+      - key: avwx_token
+        value: ufmOcpjHQOc4XJzSLCRWNsUs9xPqggTu7PIvwkaW-Zk
+    layers:
+      - name: '${output:${stage}:${app}:fly-dbh-bot-demostic-mirror-layer.name}'
+        version: '${output:${stage}:${app}:fly-dbh-bot-demostic-mirror-layer.version}'
+  apigw:
+    protocols:
+      - http
+      - https
+    timeout: 60
+    environment: release
+    customDomains: []
+  region: ap-hongkong
+  isAutoCiDeploy: false
+org: '1321773305'
+app: fly-dbh-bot-demostic-mirror
+stage: prod
