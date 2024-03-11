@@ -1,4 +1,4 @@
-export const port = process.env.WEBPACK_BUILD_ENV === 'dev' ? 8081 : 8080;
+export const port = process.env.WEBPACK_BUILD_ENV === 'dev' ? 8081 : 9000;
 export const newsChannelID = '6086801551312186';
 export const cacheDir =
     process.env.WEBPACK_BUILD_ENV === 'dev' ? '.cache' : '/.cache';
