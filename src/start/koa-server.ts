@@ -1,15 +1,19 @@
 import type { Message } from 'discord.js';
 
+import path from 'node:path';
 import Koa from 'koa';
 import koaRouter from 'koa-router';
 // import { koaBody } from 'koa-body';
 import bodyParser from 'koa-bodyparser';
+import koaSendFile from 'koa-sendfile';
 
 import type { MessageSource } from '../../types';
 
 import { port } from '../../app.config';
 import { syncMessage } from '../api/sync-message';
 import { syncMessage as syncDiscordMessage } from '../api/sync-discord';
+
+console.log({ port });
 
 // ============================================================================
 
@@ -24,7 +28,7 @@ async function startKoaServer(): Promise<Koa> {
     await new Promise((resolve) =>
         app.listen(port, async function () {
             resolve(undefined);
-        })
+        }),
     );
 
     console.log(`Listening port ${port}`);
@@ -55,7 +59,7 @@ async function startKoaServer(): Promise<Koa> {
                         type: 'rich' | 'video';
                     }[];
                     source?: MessageSource;
-                }
+                },
             )
         ).data;
     });
@@ -68,6 +72,10 @@ async function startKoaServer(): Promise<Koa> {
     //     ctx.set('Access-Control-Allow-Origin', '*');
     //     ctx.body = (await syncDiscordMessage(ctx.request.body)).data;
     // });
+
+    router.get(`/`, async (ctx) => {
+        await koaSendFile(ctx, path.join(__dirname, 'index.html'));
+    });
 
     app.use(router.routes());
 

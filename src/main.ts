@@ -5,6 +5,7 @@ import Koa from 'koa';
 import * as dotenv from 'dotenv';
 import Listr from 'listr';
 
+import initDirs from './start/init-dirs';
 import startKoaServer from './start/koa-server';
 import createKookClient from './start/create-kook-client';
 import logger from './logger';
@@ -56,6 +57,10 @@ let launched = false;
 
     // 开始流程
     new Listr([
+        {
+            title: 'Initializing directories',
+            task: initDirs,
+        },
         {
             title: 'Starting Koa server',
             task: startKoaServer,

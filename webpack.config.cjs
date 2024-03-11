@@ -22,12 +22,12 @@ module.exports = () => {
         target: isEnvDevelopment ? 'async-node' : 'node12',
         watch: isEnvDevelopment ? true : false,
         output: {
-            filename: '[name].cjs',
+            filename: '[name].js',
             path: dist,
         },
         plugins: [],
         entry: {
-            main: [
+            app: [
                 path.resolve(__dirname, 'src/polyfill.cjs'),
                 path.resolve(__dirname, 'src/main.ts'),
             ],

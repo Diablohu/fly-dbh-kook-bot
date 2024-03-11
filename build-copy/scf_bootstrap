@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-/var/lang/node16/bin/node main.cjs
+/var/lang/node12/bin/node app.js
