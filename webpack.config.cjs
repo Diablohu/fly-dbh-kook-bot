@@ -22,7 +22,7 @@ module.exports = () => {
         target: isEnvDevelopment ? 'async-node' : 'node12',
         watch: isEnvDevelopment ? true : false,
         output: {
-            filename: '[name].js',
+            filename: '[name].cjs',
             path: dist,
         },
         plugins: [],
@@ -112,7 +112,7 @@ module.exports = () => {
                             'node',
                             [
                                 '--inspect=127.0.0.1:9230',
-                                path.resolve(dist, 'app.js'),
+                                path.resolve(dist, 'app.cjs'),
                             ],
                             {
                                 stdio: 'inherit',

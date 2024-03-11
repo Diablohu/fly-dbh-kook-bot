@@ -2,7 +2,7 @@
     "apps": [
         {
             "name": "fly-dbh-kook-bot",
-            "script": "app.js",
+            "script": "app.cjs",
             "max_memory_restart": "150M",
             "max_restarts": "50000",
             "restart_delay": "1000",
