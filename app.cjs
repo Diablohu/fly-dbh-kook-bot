@@ -56915,18 +56915,17 @@ async function getSourceLogo(source, src) {
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   client: () => (/* binding */ client),
 /* harmony export */   clientCacheFile: () => (/* binding */ clientCacheFile),
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! axios */ "./node_modules/axios/lib/axios.js");
-/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! fs-extra */ "./node_modules/fs-extra/lib/index.js");
-/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(fs_extra__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! axios */ "./node_modules/axios/lib/axios.js");
+/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! fs-extra */ "./node_modules/fs-extra/lib/index.js");
+/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(fs_extra__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var node_path__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! node:path */ "node:path");
 /* harmony import */ var node_path__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(node_path__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../logger */ "./src/logger.ts");
-/* harmony import */ var _app_config__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../app.config */ "./app.config.ts");
+/* harmony import */ var _app_config__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../app.config */ "./app.config.ts");
 
+// import ws from 'ws';
 
 // import zlib from 'node:zlib';
 // import { promisify } from 'node:util';
@@ -56938,7 +56937,7 @@ __webpack_require__.r(__webpack_exports__);
 //     WSMessageType,
 //     // MessageType,
 // } from '../../types';
-
+// import logger, { logError as _logError } from '../logger';
 
 // import sendMessage from '../api/send-message';
 
@@ -56948,8 +56947,8 @@ __webpack_require__.r(__webpack_exports__);
 
 // ============================================================================
 
-let client;
-const clientCacheFile = node_path__WEBPACK_IMPORTED_MODULE_0___default().resolve(_app_config__WEBPACK_IMPORTED_MODULE_2__.cacheDir, 'client.json');
+// export let client: ws;
+const clientCacheFile = node_path__WEBPACK_IMPORTED_MODULE_0___default().resolve(_app_config__WEBPACK_IMPORTED_MODULE_1__.cacheDir, 'client.json');
 /**
  * 公开回应的频道ID
  * - 在其他频道回应时，会以隐藏方式进行回应，并删除问话
@@ -56960,7 +56959,7 @@ const clientCacheFile = node_path__WEBPACK_IMPORTED_MODULE_0___default().resolve
 // ];
 // let pingTimeout: NodeJS.Timeout;
 // let pingRetry = 0;
-let cache = fs_extra__WEBPACK_IMPORTED_MODULE_3___default().existsSync(clientCacheFile) ? await fs_extra__WEBPACK_IMPORTED_MODULE_3___default().readJson(clientCacheFile) : {};
+let cache = fs_extra__WEBPACK_IMPORTED_MODULE_2___default().existsSync(clientCacheFile) ? await fs_extra__WEBPACK_IMPORTED_MODULE_2___default().readJson(clientCacheFile) : {};
 
 // function logInfo(msg: unknown) {
 //     const body: Record<string, unknown> = {
@@ -56973,9 +56972,9 @@ let cache = fs_extra__WEBPACK_IMPORTED_MODULE_3___default().existsSync(clientCac
 // }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function logError(err) {
-  return (0,_logger__WEBPACK_IMPORTED_MODULE_1__.logError)(err);
-}
+// function logError(err: any) {
+//     return _logError(err);
+// }
 
 // let msgQueue = [];
 
@@ -56995,9 +56994,9 @@ function logError(err) {
 async function createClient() {
   var _await$axios$get$catc;
   console.log({
-    cacheDir: _app_config__WEBPACK_IMPORTED_MODULE_2__.cacheDir
+    cacheDir: _app_config__WEBPACK_IMPORTED_MODULE_1__.cacheDir
   });
-  cache = fs_extra__WEBPACK_IMPORTED_MODULE_3___default().existsSync(clientCacheFile) ? await fs_extra__WEBPACK_IMPORTED_MODULE_3___default().readJson(clientCacheFile) : {};
+  cache = fs_extra__WEBPACK_IMPORTED_MODULE_2___default().existsSync(clientCacheFile) ? await fs_extra__WEBPACK_IMPORTED_MODULE_2___default().readJson(clientCacheFile) : {};
   const {
     sessionId = '',
     sn = 0
@@ -57007,11 +57006,11 @@ async function createClient() {
   });
 
   // 请求 Gateway 获取 WebSocket 连接地址
-  const gateway = (_await$axios$get$catc = await axios__WEBPACK_IMPORTED_MODULE_4__["default"].get('/gateway/index').catch(err => {
+  const gateway = (_await$axios$get$catc = await axios__WEBPACK_IMPORTED_MODULE_3__["default"].get('/gateway/index').catch(err => {
     console.log({
       err
     });
-    logError(err);
+    // logError(err);
   })) === null || _await$axios$get$catc === void 0 ? void 0 : _await$axios$get$catc.data.data.url;
   if (typeof gateway !== 'string') {
     return await createClient();
