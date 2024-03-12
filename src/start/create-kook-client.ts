@@ -14,6 +14,7 @@ import {
 import logger, { logError as _logError } from '../logger';
 import { cacheDir } from '../../app.config';
 import sendMessage from '../api/send-message';
+import { debugKookClient } from '../debug';
 
 import getCommandResponse from '../commands/index';
 
@@ -71,7 +72,7 @@ let msgQueue = [];
  *
  **/
 async function createClient(): Promise<void> {
-    console.log({ cacheDir });
+    debugKookClient('Creating Kook Client');
 
     try {
         cache = fs.existsSync(clientCacheFile)
@@ -82,7 +83,9 @@ async function createClient(): Promise<void> {
     }
     const { sessionId = '', sn = 0 } = cache;
 
-    console.log({ cache });
+    Object.entries(cache).forEach(([key, value]) => {
+        debugKookClient(`Cached ${key}: ${JSON.stringify(value)}`);
+    });
 
     // 请求 Gateway 获取 WebSocket 连接地址
     const gateway = (
@@ -109,7 +112,7 @@ async function createClient(): Promise<void> {
     }
     const wssUrl = new URL(gateway);
 
-    console.log({ wssUrl });
+    debugKookClient(`Retrived WebSocket URL: ${JSON.stringify(wssUrl.href)}`);
 
     for (const [key, value] of Object.entries(wsParams)) {
         wssUrl.searchParams.set(key, `${value}`);
@@ -120,10 +123,11 @@ async function createClient(): Promise<void> {
     client = new ws(wssUrl.href);
 
     client.on('open', () => {
+        debugKookClient(`WebSocket opened`);
         sendPing();
     });
     client.on('error', (...args) => {
-        console.log('ERROR', ...args);
+        debugKookClient('ERROR', ...args);
         logError(...args);
     });
     client.on('message', async (buffer: Buffer) => {
@@ -151,7 +155,7 @@ async function createClient(): Promise<void> {
             switch (type) {
                 case WSSignalTypes.HandShake: {
                     if ((body as { [key: string]: number })?.code === 40103) {
-                        console.log('Handshake Fail');
+                        debugKookClient('Handshake Fail');
                         await reconnect('Handshake Fail');
                         return;
                     }
@@ -338,7 +342,7 @@ async function createClient(): Promise<void> {
                 break;
             }
             default: {
-                console.log('[WebSocket] UNKNOWN MESSAGE', body);
+                debugKookClient('WebSocket UNKNOWN MESSAGE', body);
                 // logInfo({ body, sn });
             }
         }
@@ -350,9 +354,8 @@ export default createClient;
 // ============================================================================
 
 async function reconnect(reason: string): Promise<void> {
-    console.log('Signal Reconnect');
-
-    // console.log('Reconnecting... ' + reason);
+    debugKookClient('Signal Reconnect');
+    debugKookClient('Reconnecting... ' + reason);
     logInfo('Reconnecting... ' + reason);
 
     client.terminate();

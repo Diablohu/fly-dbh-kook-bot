@@ -1,9 +1,13 @@
 const path = require('path');
 const { spawn } = require('child_process');
-// const debug = require('debug')('webpack');
+const debug = require('debug')('Webpack');
 
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
+
+debug.enabled = true;
+debug.useColors = true;
+debug.color = 12;
 
 module.exports = () => {
     /** 当前是否是开发环境 */
@@ -89,7 +93,9 @@ module.exports = () => {
                     (compilation) => {
                         // console.log('__watchRun');
                         if (child) {
-                            // debug('server reloading...');
+                            debug(
+                                'Detected file change. Re-building & Re-launching app...',
+                            );
                             child.kill();
                             child = undefined;
                         }
@@ -101,9 +107,7 @@ module.exports = () => {
                         // console.log('__afterEmit');
                         if (child) return;
 
-                        // debug(
-                        //     launched ? 'server started!' : 'server reloaded!'
-                        // );
+                        debug('Build completed. Launching app...');
                         // launched = true;
 
                         // console.log('\n\n');

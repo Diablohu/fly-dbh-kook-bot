@@ -13,11 +13,12 @@ import { port } from '../../app.config';
 import { syncMessage } from '../api/sync-message';
 import { syncMessage as syncDiscordMessage } from '../api/sync-discord';
 import { logError } from '../logger';
+import { debugKoaServer } from '../debug';
 
 // ============================================================================
 
 async function startKoaServer(): Promise<Koa> {
-    console.log({ port });
+    debugKoaServer(`Starting Koa server on port ${port}`);
 
     const app: Koa = new Koa();
 
@@ -35,7 +36,7 @@ async function startKoaServer(): Promise<Koa> {
         console.error(err);
     });
 
-    console.log(`Listening port ${port}`);
+    debugKoaServer(`Listening port ${port}`);
 
     // ========================================================================
 
@@ -85,6 +86,8 @@ async function startKoaServer(): Promise<Koa> {
     // });
 
     app.use(router.routes());
+
+    debugKoaServer(`Routes registered`);
 
     // ========================================================================
 

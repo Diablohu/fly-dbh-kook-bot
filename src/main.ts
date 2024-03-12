@@ -9,10 +9,13 @@ import startKoaServer from './start/koa-server';
 import createKookClient from './start/create-kook-client';
 import logger from './logger';
 import { attachInterceptors as attachAxiosInterceptors } from './axios-interceptors';
+import { debugMain } from './debug';
 
 // ============================================================================
 
-console.log('KOOK_TOKEN', process.env.KOOK_TOKEN);
+debugMain(
+    `KOOK_TOKEN (before parsing): ${JSON.stringify(process.env.KOOK_TOKEN)}`,
+);
 
 dotenv.config();
 function prepareEnvKey(key: string): void {
@@ -28,19 +31,21 @@ function prepareEnvKey(key: string): void {
 prepareEnvKey('KOOK_TOKEN');
 prepareEnvKey('AVWX_TOKEN');
 
-console.log('KOOK_TOKEN', process.env.KOOK_TOKEN);
+debugMain(
+    `KOOK_TOKEN (after parsing): ${JSON.stringify(process.env.KOOK_TOKEN)}`,
+);
 
 // ============================================================================
 
 export let app: Koa;
 export const messageMap = new Map();
 process.on('uncaughtException', function (exception) {
-    console.log(exception); // to see your exception details in the console
+    debugMain('Exception!', exception); // to see your exception details in the console
     // if you are on production, maybe you can send the exception details to your
     // email as well ?
 });
 process.on('unhandledRejection', (reason, p) => {
-    console.log('Unhandled Rejection at: Promise ', p, ' reason: ', reason);
+    debugMain('Unhandled Rejection at: Promise ', p, ' reason: ', reason);
     // application specific logging, throwing an error, or other logic here
 });
 
@@ -70,13 +75,10 @@ let launched = false;
 
     // 开始流程
     try {
-        console.log('\nInitializing directories');
         await initDirs();
 
-        console.log('\nStarting Koa server');
         await startKoaServer();
 
-        console.log('\nConnecting Kook & creating client');
         await createKookClient();
     } catch (err: any) {
         const loggerData: Record<string, unknown> = {
