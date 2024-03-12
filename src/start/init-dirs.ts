@@ -6,7 +6,7 @@ import { debugInitializing } from '../debug';
 import { cacheDir, logDir } from '../../app.config';
 
 async function initDirs(): Promise<undefined> {
-    debugInitializing('Initializing directories');
+    debugInitializing('Initializing directories...');
 
     await fs.ensureDir(cacheDir);
     await fs.ensureDir(logDir);

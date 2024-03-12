@@ -72,7 +72,7 @@ let msgQueue = [];
  *
  **/
 async function createClient(): Promise<void> {
-    debugKookClient('Creating Kook Client');
+    debugKookClient('Creating...');
 
     try {
         cache = fs.existsSync(clientCacheFile)
@@ -86,6 +86,8 @@ async function createClient(): Promise<void> {
     Object.entries(cache).forEach(([key, value]) => {
         debugKookClient(`Cached ${key}: ${JSON.stringify(value)}`);
     });
+
+    debugKookClient(`Retriving WebSocket URL...`);
 
     // 请求 Gateway 获取 WebSocket 连接地址
     const gateway = (
@@ -339,6 +341,9 @@ async function createClient(): Promise<void> {
                         // logInfo({ body, sn });
                     }
                 }
+                break;
+            }
+            case WSMessageTypes.Markdown: {
                 break;
             }
             default: {

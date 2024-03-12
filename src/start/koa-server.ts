@@ -18,7 +18,7 @@ import { debugKoaServer } from '../debug';
 // ============================================================================
 
 async function startKoaServer(): Promise<Koa> {
-    debugKoaServer(`Starting Koa server on port ${port}`);
+    debugKoaServer(`Starting on port ${port}...`);
 
     const app: Koa = new Koa();
 

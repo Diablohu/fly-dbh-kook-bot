@@ -54,6 +54,9 @@ process.on('unhandledRejection', (reason, p) => {
 let launched = false;
 (async function () {
     if (launched) return;
+
+    debugMain(`Sequence started. ENV: ${process.env.WEBPACK_BUILD_ENV}`);
+
     /** 当前是否是开发环境 */
     const isEnvDevelopment = process.env.WEBPACK_BUILD_ENV === 'dev';
 
