@@ -14337,24 +14337,6 @@ function patch(fs) {
 
 /***/ }),
 
-/***/ "./node_modules/has-flag/index.js":
-/*!****************************************!*\
-  !*** ./node_modules/has-flag/index.js ***!
-  \****************************************/
-/***/ ((module) => {
-
-"use strict";
-
-
-module.exports = (flag, argv = process.argv) => {
-  const prefix = flag.startsWith('-') ? '' : flag.length === 1 ? '-' : '--';
-  const position = argv.indexOf(prefix + flag);
-  const terminatorPosition = argv.indexOf('--');
-  return position !== -1 && (terminatorPosition === -1 || position < terminatorPosition);
-};
-
-/***/ }),
-
 /***/ "./node_modules/has-symbols/index.js":
 /*!*******************************************!*\
   !*** ./node_modules/has-symbols/index.js ***!
@@ -51586,118 +51568,6 @@ function simpleEnd(buf) {
 
 /***/ }),
 
-/***/ "./node_modules/supports-color/index.js":
-/*!**********************************************!*\
-  !*** ./node_modules/supports-color/index.js ***!
-  \**********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-const os = __webpack_require__(/*! os */ "os");
-const tty = __webpack_require__(/*! tty */ "tty");
-const hasFlag = __webpack_require__(/*! has-flag */ "./node_modules/has-flag/index.js");
-const {
-  env
-} = process;
-let forceColor;
-if (hasFlag('no-color') || hasFlag('no-colors') || hasFlag('color=false') || hasFlag('color=never')) {
-  forceColor = 0;
-} else if (hasFlag('color') || hasFlag('colors') || hasFlag('color=true') || hasFlag('color=always')) {
-  forceColor = 1;
-}
-if ('FORCE_COLOR' in env) {
-  if (env.FORCE_COLOR === 'true') {
-    forceColor = 1;
-  } else if (env.FORCE_COLOR === 'false') {
-    forceColor = 0;
-  } else {
-    forceColor = env.FORCE_COLOR.length === 0 ? 1 : Math.min(parseInt(env.FORCE_COLOR, 10), 3);
-  }
-}
-function translateLevel(level) {
-  if (level === 0) {
-    return false;
-  }
-  return {
-    level,
-    hasBasic: true,
-    has256: level >= 2,
-    has16m: level >= 3
-  };
-}
-function supportsColor(haveStream, streamIsTTY) {
-  if (forceColor === 0) {
-    return 0;
-  }
-  if (hasFlag('color=16m') || hasFlag('color=full') || hasFlag('color=truecolor')) {
-    return 3;
-  }
-  if (hasFlag('color=256')) {
-    return 2;
-  }
-  if (haveStream && !streamIsTTY && forceColor === undefined) {
-    return 0;
-  }
-  const min = forceColor || 0;
-  if (env.TERM === 'dumb') {
-    return min;
-  }
-  if (process.platform === 'win32') {
-    // Windows 10 build 10586 is the first Windows release that supports 256 colors.
-    // Windows 10 build 14931 is the first release that supports 16m/TrueColor.
-    const osRelease = os.release().split('.');
-    if (Number(osRelease[0]) >= 10 && Number(osRelease[2]) >= 10586) {
-      return Number(osRelease[2]) >= 14931 ? 3 : 2;
-    }
-    return 1;
-  }
-  if ('CI' in env) {
-    if (['TRAVIS', 'CIRCLECI', 'APPVEYOR', 'GITLAB_CI', 'GITHUB_ACTIONS', 'BUILDKITE'].some(sign => sign in env) || env.CI_NAME === 'codeship') {
-      return 1;
-    }
-    return min;
-  }
-  if ('TEAMCITY_VERSION' in env) {
-    return /^(9\.(0*[1-9]\d*)\.|\d{2,}\.)/.test(env.TEAMCITY_VERSION) ? 1 : 0;
-  }
-  if (env.COLORTERM === 'truecolor') {
-    return 3;
-  }
-  if ('TERM_PROGRAM' in env) {
-    const version = parseInt((env.TERM_PROGRAM_VERSION || '').split('.')[0], 10);
-    switch (env.TERM_PROGRAM) {
-      case 'iTerm.app':
-        return version >= 3 ? 3 : 2;
-      case 'Apple_Terminal':
-        return 2;
-      // No default
-    }
-  }
-  if (/-256(color)?$/i.test(env.TERM)) {
-    return 2;
-  }
-  if (/^screen|^xterm|^vt100|^vt220|^rxvt|color|ansi|cygwin|linux/i.test(env.TERM)) {
-    return 1;
-  }
-  if ('COLORTERM' in env) {
-    return 1;
-  }
-  return min;
-}
-function getSupportLevel(stream) {
-  const level = supportsColor(stream, stream && stream.isTTY);
-  return translateLevel(level);
-}
-module.exports = {
-  supportsColor: getSupportLevel,
-  stdout: translateLevel(supportsColor(true, tty.isatty(1))),
-  stderr: translateLevel(supportsColor(true, tty.isatty(2)))
-};
-
-/***/ }),
-
 /***/ "./node_modules/text-hex/index.js":
 /*!****************************************!*\
   !*** ./node_modules/text-hex/index.js ***!
@@ -62106,6 +61976,38 @@ setTimeout(() => {
 
 /***/ }),
 
+/***/ "./src/debug.ts":
+/*!**********************!*\
+  !*** ./src/debug.ts ***!
+  \**********************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   debugInitializing: () => (/* binding */ debugInitializing),
+/* harmony export */   debugKoaServer: () => (/* binding */ debugKoaServer),
+/* harmony export */   debugKookClient: () => (/* binding */ debugKookClient),
+/* harmony export */   debugMain: () => (/* binding */ debugMain)
+/* harmony export */ });
+/* harmony import */ var debug__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! debug */ "./node_modules/debug/src/index.js");
+/* harmony import */ var debug__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(debug__WEBPACK_IMPORTED_MODULE_0__);
+
+
+// const debugEnabled = process.env.WEBPACK_BUILD_ENV === 'dev'
+const debugEnabled = true;
+const debugMain = debug__WEBPACK_IMPORTED_MODULE_0___default()('Main');
+debugMain.enabled = debugEnabled;
+const debugInitializing = debug__WEBPACK_IMPORTED_MODULE_0___default()('Initializing');
+// debugInitializing.color = '13';
+debugInitializing.enabled = debugEnabled;
+const debugKoaServer = debug__WEBPACK_IMPORTED_MODULE_0___default()('Koa Server');
+debugKoaServer.enabled = debugEnabled;
+const debugKookClient = debug__WEBPACK_IMPORTED_MODULE_0___default()('Kook Client');
+debugKookClient.enabled = debugEnabled;
+
+/***/ }),
+
 /***/ "./src/headers.ts":
 /*!************************!*\
   !*** ./src/headers.ts ***!
@@ -62225,8 +62127,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   app: () => (/* binding */ app),
 /* harmony export */   messageMap: () => (/* binding */ messageMap)
 /* harmony export */ });
-/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! fs-extra */ "./node_modules/fs-extra/lib/index.js");
-/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(fs_extra__WEBPACK_IMPORTED_MODULE_8__);
+/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! fs-extra */ "./node_modules/fs-extra/lib/index.js");
+/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(fs_extra__WEBPACK_IMPORTED_MODULE_9__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! path */ "path");
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var url__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! url */ "url");
@@ -62238,6 +62140,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _start_create_kook_client__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./start/create-kook-client */ "./src/start/create-kook-client.ts");
 /* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./logger */ "./src/logger.ts");
 /* harmony import */ var _axios_interceptors__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./axios-interceptors */ "./src/axios-interceptors.ts");
+/* harmony import */ var _debug__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./debug */ "./src/debug.ts");
+
 
 
 
@@ -62250,28 +62154,28 @@ __webpack_require__.r(__webpack_exports__);
 
 // ============================================================================
 
-console.log('KOOK_TOKEN', process.env.KOOK_TOKEN);
+(0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugMain)(`KOOK_TOKEN (before parsing): ${JSON.stringify(process.env.KOOK_TOKEN)}`);
 dotenv__WEBPACK_IMPORTED_MODULE_2__.config();
 function prepareEnvKey(key) {
   if (!process.env[`${key}`]) {
-    process.env[`${key}`] = process.env[`${key.toLowerCase()}`] || (!!process.env[`${key}_FILE`] && fs_extra__WEBPACK_IMPORTED_MODULE_8___default().existsSync(process.env[`${key}_FILE`] || '') ? fs_extra__WEBPACK_IMPORTED_MODULE_8___default().readFileSync(process.env[`${key}_FILE`] || '', 'utf-8') : '');
+    process.env[`${key}`] = process.env[`${key.toLowerCase()}`] || (!!process.env[`${key}_FILE`] && fs_extra__WEBPACK_IMPORTED_MODULE_9___default().existsSync(process.env[`${key}_FILE`] || '') ? fs_extra__WEBPACK_IMPORTED_MODULE_9___default().readFileSync(process.env[`${key}_FILE`] || '', 'utf-8') : '');
   }
 }
 prepareEnvKey('KOOK_TOKEN');
 prepareEnvKey('AVWX_TOKEN');
-console.log('KOOK_TOKEN', process.env.KOOK_TOKEN);
+(0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugMain)(`KOOK_TOKEN (after parsing): ${JSON.stringify(process.env.KOOK_TOKEN)}`);
 
 // ============================================================================
 
 let app;
 const messageMap = new Map();
 process.on('uncaughtException', function (exception) {
-  console.log(exception); // to see your exception details in the console
+  (0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugMain)('Exception!', exception); // to see your exception details in the console
   // if you are on production, maybe you can send the exception details to your
   // email as well ?
 });
 process.on('unhandledRejection', (reason, p) => {
-  console.log('Unhandled Rejection at: Promise ', p, ' reason: ', reason);
+  (0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugMain)('Unhandled Rejection at: Promise ', p, ' reason: ', reason);
   // application specific logging, throwing an error, or other logic here
 });
 
@@ -62280,13 +62184,15 @@ process.on('unhandledRejection', (reason, p) => {
 let launched = false;
 (async function () {
   if (launched) return;
+  (0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugMain)(`Sequence started. ENV: ${process.env.WEBPACK_BUILD_ENV}`);
+
   /** 当前是否是开发环境 */
   const isEnvDevelopment = process.env.WEBPACK_BUILD_ENV === 'dev';
 
   // 如果是开发环境，检查 `.env` 文件是否存在
   if (isEnvDevelopment) {
-    const rootEnvFile = path__WEBPACK_IMPORTED_MODULE_0___default().resolve(path__WEBPACK_IMPORTED_MODULE_0___default().dirname((0,url__WEBPACK_IMPORTED_MODULE_1__.fileURLToPath)("file:///D:/Projects/@diablohu/fly-dbh-kook-bot/src/main.ts")), '../.env');
-    if (!fs_extra__WEBPACK_IMPORTED_MODULE_8___default().existsSync(rootEnvFile)) throw new Error('.env file missing');
+    const rootEnvFile = path__WEBPACK_IMPORTED_MODULE_0___default().resolve(path__WEBPACK_IMPORTED_MODULE_0___default().dirname((0,url__WEBPACK_IMPORTED_MODULE_1__.fileURLToPath)("file:///C:/Projects/@diablohu/fly-dbh-kook-bot/src/main.ts")), '../.env');
+    if (!fs_extra__WEBPACK_IMPORTED_MODULE_9___default().existsSync(rootEnvFile)) throw new Error('.env file missing');
   }
 
   // 注册结束进程
@@ -62297,11 +62203,8 @@ let launched = false;
 
   // 开始流程
   try {
-    console.log('\nInitializing directories');
     await (0,_start_init_dirs__WEBPACK_IMPORTED_MODULE_3__["default"])();
-    console.log('\nStarting Koa server');
     await (0,_start_koa_server__WEBPACK_IMPORTED_MODULE_4__["default"])();
-    console.log('\nConnecting Kook & creating client');
     await (0,_start_create_kook_client__WEBPACK_IMPORTED_MODULE_5__["default"])();
   } catch (err) {
     const loggerData = {
@@ -62418,10 +62321,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   clientCacheFile: () => (/* binding */ clientCacheFile),
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! axios */ "./node_modules/axios/lib/axios.js");
+/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! axios */ "./node_modules/axios/lib/axios.js");
 /* harmony import */ var ws__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ws */ "./node_modules/ws/wrapper.mjs");
-/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! fs-extra */ "./node_modules/fs-extra/lib/index.js");
-/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(fs_extra__WEBPACK_IMPORTED_MODULE_9__);
+/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! fs-extra */ "./node_modules/fs-extra/lib/index.js");
+/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(fs_extra__WEBPACK_IMPORTED_MODULE_10__);
 /* harmony import */ var node_zlib__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! node:zlib */ "node:zlib");
 /* harmony import */ var node_zlib__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(node_zlib__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var node_util__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! node:util */ "node:util");
@@ -62432,7 +62335,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../logger */ "./src/logger.ts");
 /* harmony import */ var _app_config__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../app.config */ "./app.config.ts");
 /* harmony import */ var _api_send_message__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../api/send-message */ "./src/api/send-message.ts");
-/* harmony import */ var _commands_index__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../commands/index */ "./src/commands/index.ts");
+/* harmony import */ var _debug__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../debug */ "./src/debug.ts");
+/* harmony import */ var _commands_index__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../commands/index */ "./src/commands/index.ts");
+
 
 
 
@@ -62489,11 +62394,9 @@ let msgQueue = [];
  **/
 async function createClient() {
   var _await$axios$get$catc;
-  console.log({
-    cacheDir: _app_config__WEBPACK_IMPORTED_MODULE_6__.cacheDir
-  });
+  (0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugKookClient)('Creating...');
   try {
-    cache = fs_extra__WEBPACK_IMPORTED_MODULE_9___default().existsSync(clientCacheFile) ? (await fs_extra__WEBPACK_IMPORTED_MODULE_9___default().readJson(clientCacheFile)) || {} : {};
+    cache = fs_extra__WEBPACK_IMPORTED_MODULE_10___default().existsSync(clientCacheFile) ? (await fs_extra__WEBPACK_IMPORTED_MODULE_10___default().readJson(clientCacheFile)) || {} : {};
   } catch (e) {
     cache = {};
   }
@@ -62501,12 +62404,13 @@ async function createClient() {
     sessionId = '',
     sn = 0
   } = cache;
-  console.log({
-    cache
+  Object.entries(cache).forEach(([key, value]) => {
+    (0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugKookClient)(`Cached ${key}: ${JSON.stringify(value)}`);
   });
+  (0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugKookClient)(`Retriving WebSocket URL...`);
 
   // 请求 Gateway 获取 WebSocket 连接地址
-  const gateway = (_await$axios$get$catc = await axios__WEBPACK_IMPORTED_MODULE_10__["default"].get('/gateway/index').catch(err => {
+  const gateway = (_await$axios$get$catc = await axios__WEBPACK_IMPORTED_MODULE_11__["default"].get('/gateway/index').catch(err => {
     console.log({
       err
     });
@@ -62524,9 +62428,7 @@ async function createClient() {
     wsParams.resume = 1;
   }
   const wssUrl = new URL(gateway);
-  console.log({
-    wssUrl
-  });
+  (0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugKookClient)(`Retrived WebSocket URL: ${JSON.stringify(wssUrl.href)}`);
   for (const [key, value] of Object.entries(wsParams)) {
     wssUrl.searchParams.set(key, `${value}`);
   }
@@ -62535,10 +62437,11 @@ async function createClient() {
 
   client = new ws__WEBPACK_IMPORTED_MODULE_0__["default"](wssUrl.href);
   client.on('open', () => {
+    (0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugKookClient)(`WebSocket opened`);
     sendPing();
   });
   client.on('error', (...args) => {
-    console.log('ERROR', ...args);
+    (0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugKookClient)('ERROR', ...args);
     logError(...args);
   });
   client.on('message', async buffer => {
@@ -62566,7 +62469,7 @@ async function createClient() {
           {
             var _body, _body2, _body3;
             if (((_body = body) === null || _body === void 0 ? void 0 : _body.code) === 40103) {
-              console.log('Handshake Fail');
+              (0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugKookClient)('Handshake Fail');
               await reconnect('Handshake Fail');
               return;
             }
@@ -62604,7 +62507,7 @@ async function createClient() {
           }
       }
     }
-    await fs_extra__WEBPACK_IMPORTED_MODULE_9___default().writeJson(clientCacheFile, cache);
+    await fs_extra__WEBPACK_IMPORTED_MODULE_10___default().writeJson(clientCacheFile, cache);
   });
 
   /** 发送 PING */
@@ -62649,10 +62552,10 @@ async function createClient() {
         body,
         sn
       });
-      const response = await (0,_commands_index__WEBPACK_IMPORTED_MODULE_8__["default"])(command).catch(logError);
+      const response = await (0,_commands_index__WEBPACK_IMPORTED_MODULE_9__["default"])(command).catch(logError);
       const isPublic = publicResponseChannelIDs.includes(channelId) && (response === null || response === void 0 ? void 0 : response._is_temp) !== true;
       response === null || response === void 0 ? true : delete response._is_temp;
-      if (!isPublic) await axios__WEBPACK_IMPORTED_MODULE_10__["default"].post('/message/delete', {
+      if (!isPublic) await axios__WEBPACK_IMPORTED_MODULE_11__["default"].post('/message/delete', {
         msg_id: messageId
       });
       if (response) {
@@ -62724,9 +62627,13 @@ async function createClient() {
           }
           break;
         }
+      case _types__WEBPACK_IMPORTED_MODULE_4__.WSMessageTypes.Markdown:
+        {
+          break;
+        }
       default:
         {
-          console.log('[WebSocket] UNKNOWN MESSAGE', body);
+          (0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugKookClient)('WebSocket UNKNOWN MESSAGE', body);
           // logInfo({ body, sn });
         }
     }
@@ -62737,9 +62644,8 @@ async function createClient() {
 // ============================================================================
 
 async function reconnect(reason) {
-  console.log('Signal Reconnect');
-
-  // console.log('Reconnecting... ' + reason);
+  (0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugKookClient)('Signal Reconnect');
+  (0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugKookClient)('Reconnecting... ' + reason);
   logInfo('Reconnecting... ' + reason);
   client.terminate();
   clearTimeout(pingTimeout);
@@ -62749,7 +62655,7 @@ async function reconnect(reason) {
 
   // msgQueue = [];
 
-  await fs_extra__WEBPACK_IMPORTED_MODULE_9___default().writeJson(clientCacheFile, cache);
+  await fs_extra__WEBPACK_IMPORTED_MODULE_10___default().writeJson(clientCacheFile, cache);
   await createClient();
 }
 
@@ -62766,17 +62672,21 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! fs-extra */ "./node_modules/fs-extra/lib/index.js");
-/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(fs_extra__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _app_config__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../app.config */ "./app.config.ts");
+/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! fs-extra */ "./node_modules/fs-extra/lib/index.js");
+/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(fs_extra__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _debug__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../debug */ "./src/debug.ts");
+/* harmony import */ var _app_config__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../app.config */ "./app.config.ts");
+
 
 
 // cacheDir
 // logDir
 
 async function initDirs() {
-  await fs_extra__WEBPACK_IMPORTED_MODULE_1___default().ensureDir(_app_config__WEBPACK_IMPORTED_MODULE_0__.cacheDir);
-  await fs_extra__WEBPACK_IMPORTED_MODULE_1___default().ensureDir(_app_config__WEBPACK_IMPORTED_MODULE_0__.logDir);
+  (0,_debug__WEBPACK_IMPORTED_MODULE_0__.debugInitializing)('Initializing directories...');
+  await fs_extra__WEBPACK_IMPORTED_MODULE_2___default().ensureDir(_app_config__WEBPACK_IMPORTED_MODULE_1__.cacheDir);
+  await fs_extra__WEBPACK_IMPORTED_MODULE_2___default().ensureDir(_app_config__WEBPACK_IMPORTED_MODULE_1__.logDir);
+  (0,_debug__WEBPACK_IMPORTED_MODULE_0__.debugInitializing)('Completed');
   return undefined;
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (initDirs);
@@ -62803,6 +62713,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _api_sync_message__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../api/sync-message */ "./src/api/sync-message.ts");
 /* harmony import */ var _api_sync_discord__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../api/sync-discord */ "./src/api/sync-discord.ts");
 /* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../logger */ "./src/logger.ts");
+/* harmony import */ var _debug__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../debug */ "./src/debug.ts");
 
 
 // import { koaBody } from 'koa-body';
@@ -62814,12 +62725,11 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
 // ============================================================================
 
 async function startKoaServer() {
-  console.log({
-    port: _app_config__WEBPACK_IMPORTED_MODULE_3__.port
-  });
+  (0,_debug__WEBPACK_IMPORTED_MODULE_7__.debugKoaServer)(`Starting on port ${_app_config__WEBPACK_IMPORTED_MODULE_3__.port}...`);
   const app = new koa__WEBPACK_IMPORTED_MODULE_0__["default"]();
 
   // app.use(async (ctx) => {
@@ -62832,7 +62742,7 @@ async function startKoaServer() {
     (0,_logger__WEBPACK_IMPORTED_MODULE_6__.logError)(err);
     console.error(err);
   });
-  console.log(`Listening port ${_app_config__WEBPACK_IMPORTED_MODULE_3__.port}`);
+  (0,_debug__WEBPACK_IMPORTED_MODULE_7__.debugKoaServer)(`Listening port ${_app_config__WEBPACK_IMPORTED_MODULE_3__.port}`);
 
   // ========================================================================
 
@@ -62859,6 +62769,7 @@ async function startKoaServer() {
   // });
 
   app.use(router.routes());
+  (0,_debug__WEBPACK_IMPORTED_MODULE_7__.debugKoaServer)(`Routes registered`);
 
   // ========================================================================
 
@@ -63405,6 +63316,17 @@ module.exports = require("net");
 
 /***/ }),
 
+/***/ "node:os":
+/*!**************************!*\
+  !*** external "node:os" ***!
+  \**************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:os");
+
+/***/ }),
+
 /***/ "node:path":
 /*!****************************!*\
   !*** external "node:path" ***!
@@ -63413,6 +63335,28 @@ module.exports = require("net");
 
 "use strict";
 module.exports = require("node:path");
+
+/***/ }),
+
+/***/ "node:process":
+/*!*******************************!*\
+  !*** external "node:process" ***!
+  \*******************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:process");
+
+/***/ }),
+
+/***/ "node:tty":
+/*!***************************!*\
+  !*** external "node:tty" ***!
+  \***************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:tty");
 
 /***/ }),
 
@@ -68366,6 +68310,168 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_lib_application_js__WEBPACK_IMPORTED_MODULE_0__);
 const HttpError = _lib_application_js__WEBPACK_IMPORTED_MODULE_0__.HttpError;
+
+/***/ }),
+
+/***/ "./node_modules/supports-color/index.js":
+/*!**********************************************!*\
+  !*** ./node_modules/supports-color/index.js ***!
+  \**********************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   createSupportsColor: () => (/* binding */ createSupportsColor),
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var node_process__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! node:process */ "node:process");
+/* harmony import */ var node_os__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! node:os */ "node:os");
+/* harmony import */ var node_tty__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! node:tty */ "node:tty");
+
+
+
+
+// From: https://github.com/sindresorhus/has-flag/blob/main/index.js
+/// function hasFlag(flag, argv = globalThis.Deno?.args ?? process.argv) {
+function hasFlag(flag, argv = globalThis.Deno ? globalThis.Deno.args : node_process__WEBPACK_IMPORTED_MODULE_0__.argv) {
+  const prefix = flag.startsWith('-') ? '' : flag.length === 1 ? '-' : '--';
+  const position = argv.indexOf(prefix + flag);
+  const terminatorPosition = argv.indexOf('--');
+  return position !== -1 && (terminatorPosition === -1 || position < terminatorPosition);
+}
+const {
+  env
+} = node_process__WEBPACK_IMPORTED_MODULE_0__;
+let flagForceColor;
+if (hasFlag('no-color') || hasFlag('no-colors') || hasFlag('color=false') || hasFlag('color=never')) {
+  flagForceColor = 0;
+} else if (hasFlag('color') || hasFlag('colors') || hasFlag('color=true') || hasFlag('color=always')) {
+  flagForceColor = 1;
+}
+function envForceColor() {
+  if ('FORCE_COLOR' in env) {
+    if (env.FORCE_COLOR === 'true') {
+      return 1;
+    }
+    if (env.FORCE_COLOR === 'false') {
+      return 0;
+    }
+    return env.FORCE_COLOR.length === 0 ? 1 : Math.min(Number.parseInt(env.FORCE_COLOR, 10), 3);
+  }
+}
+function translateLevel(level) {
+  if (level === 0) {
+    return false;
+  }
+  return {
+    level,
+    hasBasic: true,
+    has256: level >= 2,
+    has16m: level >= 3
+  };
+}
+function _supportsColor(haveStream, {
+  streamIsTTY,
+  sniffFlags = true
+} = {}) {
+  const noFlagForceColor = envForceColor();
+  if (noFlagForceColor !== undefined) {
+    flagForceColor = noFlagForceColor;
+  }
+  const forceColor = sniffFlags ? flagForceColor : noFlagForceColor;
+  if (forceColor === 0) {
+    return 0;
+  }
+  if (sniffFlags) {
+    if (hasFlag('color=16m') || hasFlag('color=full') || hasFlag('color=truecolor')) {
+      return 3;
+    }
+    if (hasFlag('color=256')) {
+      return 2;
+    }
+  }
+
+  // Check for Azure DevOps pipelines.
+  // Has to be above the `!streamIsTTY` check.
+  if ('TF_BUILD' in env && 'AGENT_NAME' in env) {
+    return 1;
+  }
+  if (haveStream && !streamIsTTY && forceColor === undefined) {
+    return 0;
+  }
+  const min = forceColor || 0;
+  if (env.TERM === 'dumb') {
+    return min;
+  }
+  if (node_process__WEBPACK_IMPORTED_MODULE_0__.platform === 'win32') {
+    // Windows 10 build 10586 is the first Windows release that supports 256 colors.
+    // Windows 10 build 14931 is the first release that supports 16m/TrueColor.
+    const osRelease = node_os__WEBPACK_IMPORTED_MODULE_1__.release().split('.');
+    if (Number(osRelease[0]) >= 10 && Number(osRelease[2]) >= 10_586) {
+      return Number(osRelease[2]) >= 14_931 ? 3 : 2;
+    }
+    return 1;
+  }
+  if ('CI' in env) {
+    if ('GITHUB_ACTIONS' in env || 'GITEA_ACTIONS' in env) {
+      return 3;
+    }
+    if (['TRAVIS', 'CIRCLECI', 'APPVEYOR', 'GITLAB_CI', 'BUILDKITE', 'DRONE'].some(sign => sign in env) || env.CI_NAME === 'codeship') {
+      return 1;
+    }
+    return min;
+  }
+  if ('TEAMCITY_VERSION' in env) {
+    return /^(9\.(0*[1-9]\d*)\.|\d{2,}\.)/.test(env.TEAMCITY_VERSION) ? 1 : 0;
+  }
+  if (env.COLORTERM === 'truecolor') {
+    return 3;
+  }
+  if (env.TERM === 'xterm-kitty') {
+    return 3;
+  }
+  if ('TERM_PROGRAM' in env) {
+    const version = Number.parseInt((env.TERM_PROGRAM_VERSION || '').split('.')[0], 10);
+    switch (env.TERM_PROGRAM) {
+      case 'iTerm.app':
+        {
+          return version >= 3 ? 3 : 2;
+        }
+      case 'Apple_Terminal':
+        {
+          return 2;
+        }
+      // No default
+    }
+  }
+  if (/-256(color)?$/i.test(env.TERM)) {
+    return 2;
+  }
+  if (/^screen|^xterm|^vt100|^vt220|^rxvt|color|ansi|cygwin|linux/i.test(env.TERM)) {
+    return 1;
+  }
+  if ('COLORTERM' in env) {
+    return 1;
+  }
+  return min;
+}
+function createSupportsColor(stream, options = {}) {
+  const level = _supportsColor(stream, {
+    streamIsTTY: stream && stream.isTTY,
+    ...options
+  });
+  return translateLevel(level);
+}
+const supportsColor = {
+  stdout: createSupportsColor({
+    isTTY: node_tty__WEBPACK_IMPORTED_MODULE_2__.isatty(1)
+  }),
+  stderr: createSupportsColor({
+    isTTY: node_tty__WEBPACK_IMPORTED_MODULE_2__.isatty(2)
+  })
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (supportsColor);
 
 /***/ }),
 
