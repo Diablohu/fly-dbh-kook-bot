@@ -343,7 +343,13 @@ async function createClient(): Promise<void> {
                 }
                 break;
             }
+            case WSMessageTypes.Image: {
+                break;
+            }
             case WSMessageTypes.Markdown: {
+                break;
+            }
+            case WSMessageTypes.Card: {
                 break;
             }
             default: {

@@ -44,6 +44,7 @@ export interface WSMessageKMarkdownType {
     channel_part: string[];
 }
 export enum WSMessageTypes {
+    Image = 2,
     Markdown = 9,
     Card = 10,
     System = 255,
