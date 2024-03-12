@@ -62627,7 +62627,15 @@ async function createClient() {
           }
           break;
         }
+      case _types__WEBPACK_IMPORTED_MODULE_4__.WSMessageTypes.Image:
+        {
+          break;
+        }
       case _types__WEBPACK_IMPORTED_MODULE_4__.WSMessageTypes.Markdown:
+        {
+          break;
+        }
+      case _types__WEBPACK_IMPORTED_MODULE_4__.WSMessageTypes.Card:
         {
           break;
         }
@@ -62886,6 +62894,7 @@ let WSSignalTypes = /*#__PURE__*/function (WSSignalTypes) {
   return WSSignalTypes;
 }({});
 let WSMessageTypes = /*#__PURE__*/function (WSMessageTypes) {
+  WSMessageTypes[WSMessageTypes["Image"] = 2] = "Image";
   WSMessageTypes[WSMessageTypes["Markdown"] = 9] = "Markdown";
   WSMessageTypes[WSMessageTypes["Card"] = 10] = "Card";
   WSMessageTypes[WSMessageTypes["System"] = 255] = "System";
