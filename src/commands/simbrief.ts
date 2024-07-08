@@ -185,7 +185,7 @@ const postCardDivider = {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function commandAction(
     args: Parameters<CommandAction>[0],
-    options: Parameters<CommandAction>[1]
+    options: Parameters<CommandAction>[1],
 ): ReturnType<CommandAction> {
     const user = args[0];
 
@@ -211,10 +211,10 @@ async function commandAction(
     const res = await axios
         .get<OFP>(
             `https://www.simbrief.com/api/xml.fetcher.php?${Object.entries(
-                params
+                params,
             )
                 .map(([key, value]) => `${key}=${value}`)
-                .join('&')}`
+                .join('&')}`,
         )
         .then((res) => {
             log.http(res);
@@ -252,7 +252,7 @@ async function commandAction(
         }, initialClimbAlt) || initialClimbAlt;
 
     const ofpRouteMap = await upload(
-        ofp.images.directory + ofp.images.map?.[0].link
+        ofp.images.directory + ofp.images.map?.[0].link,
     ).catch((e) => {
         // console.log(e);
     });
@@ -310,13 +310,13 @@ async function commandAction(
                         {
                             type: 'kmarkdown',
                             content: `**🗺 航线总长**\n　  ${numeral(
-                                ofp.general.route_distance
+                                ofp.general.route_distance,
                             ).format('0,0')} nm`,
                         },
                         {
                             type: 'kmarkdown',
                             content: `**⌚ 预计飞行时间**\n　  ${numeral(
-                                ofp.times.est_time_enroute
+                                ofp.times.est_time_enroute,
                             )
                                 .format('00:00:00')
                                 .split(':')
@@ -364,7 +364,7 @@ async function commandAction(
                       type: 'section',
                       text: {
                           type: 'kmarkdown',
-                          content: `**阶段式爬升**\n> \`${ofp.general.stepclimb_string}\``,
+                          content: `**梯级爬升 (Step Climb)**\n> \`${ofp.general.stepclimb_string}\``,
                       },
                   }
                 : undefined,
@@ -387,11 +387,11 @@ async function commandAction(
                                   content: `**成本指数 (CI)**\n> ${ofp.general.costindex}`,
                               }
                             : !!ofp.general.climb_profile
-                            ? {
-                                  type: 'kmarkdown',
-                                  content: `**爬升性能**\n> ${ofp.general.climb_profile}`,
-                              }
-                            : undefined,
+                              ? {
+                                    type: 'kmarkdown',
+                                    content: `**爬升性能**\n> ${ofp.general.climb_profile}`,
+                                }
+                              : undefined,
                     ].filter((v) => !!v),
                 },
             },
@@ -408,13 +408,13 @@ async function commandAction(
                         {
                             type: 'kmarkdown',
                             content: `**预计零油重量 (ZFW)**\n> ${numeral(
-                                ofp.weights.est_zfw
+                                ofp.weights.est_zfw,
                             ).format('0,0')} ${W}`,
                         },
                         {
                             type: 'kmarkdown',
                             content: `**预计起飞重量 (TOW)**\n> ${numeral(
-                                ofp.weights.est_tow
+                                ofp.weights.est_tow,
                             ).format('0,0')} ${W}`,
                         },
                         {
@@ -422,25 +422,25 @@ async function commandAction(
                             content: `**预计乘客数 × 平均体重**\n> ${
                                 ofp.weights.pax_count
                             } × ${numeral(ofp.weights.pax_weight).format(
-                                '0.000'
+                                '0.000',
                             )} ${W}`,
                         },
                         {
                             type: 'kmarkdown',
                             content: `**预计货重 (含所有行李)**\n> ${numeral(
-                                ofp.weights.cargo
+                                ofp.weights.cargo,
                             ).format('0,0')} ${W}`,
                         },
                         {
                             type: 'kmarkdown',
                             content: `**预计总载荷**\n> ${numeral(
-                                ofp.weights.payload
+                                ofp.weights.payload,
                             ).format('0,0')} ${W}`,
                         },
                         {
                             type: 'kmarkdown',
                             content: `**预计着陆重量**\n> ${numeral(
-                                ofp.weights.est_ldw
+                                ofp.weights.est_ldw,
                             ).format('0,0')} ${W}`,
                         },
                     ],
@@ -459,19 +459,19 @@ async function commandAction(
                         {
                             type: 'kmarkdown',
                             content: `**初始燃油量**\n> ${numeral(
-                                ofp.fuel.plan_ramp
+                                ofp.fuel.plan_ramp,
                             ).format('0,0')} ${W}`,
                         },
                         {
                             type: 'kmarkdown',
                             content: `**预计着陆剩余燃油量**\n> ${numeral(
-                                ofp.fuel.plan_landing
+                                ofp.fuel.plan_landing,
                             ).format('0,0')} ${W}`,
                         },
                         {
                             type: 'kmarkdown',
                             content: `**预计储备燃油量**\n> ${numeral(
-                                ofp.fuel.reserve
+                                ofp.fuel.reserve,
                             ).format('0,0')} ${W}`,
                         },
                     ],
