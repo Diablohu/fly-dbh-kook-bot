@@ -42,6 +42,7 @@ export function attachInterceptors(): void {
         //     /\/api\/v\/(message|gateway)\//.test(thisUrl.pathname),
         // );
         // 2023/10/20: 由于 Kook 限制海外 IP 无法发言，转发所有 `/message` 请求到腾讯云
+        // TODO: 2024/07/26: 由于腾讯云业务调整，转发目标所使用的 Serverless 服务将于 2025/06/30 关闭，需要在此之前进行迁移
         if (
             // process.env.WEBPACK_BUILD_ENV !== 'dev' &&
             /\/api\/v\/(message|gateway)\//.test(thisUrl.pathname)
