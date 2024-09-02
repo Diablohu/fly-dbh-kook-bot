@@ -11,6 +11,7 @@
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   cacheDir: () => (/* binding */ cacheDir),
+/* harmony export */   channelMapDiscordToKook: () => (/* binding */ channelMapDiscordToKook),
 /* harmony export */   logDir: () => (/* binding */ logDir),
 /* harmony export */   newsChannelID: () => (/* binding */ newsChannelID),
 /* harmony export */   port: () => (/* binding */ port)
@@ -19,6 +20,39 @@ const port = process.env.WEBPACK_BUILD_ENV === 'dev' ? 8081 : 8080;
 const newsChannelID = '6086801551312186';
 const cacheDir = process.env.WEBPACK_BUILD_ENV === 'dev' ? '.cache' : '/.cache';
 const logDir = process.env.WEBPACK_BUILD_ENV === 'dev' ? '.logs' : '/.logs';
+
+/**
+ * Discord 频道 ID -> Kook 频道 ID
+ */
+const channelMapDiscordToKook = process.env.WEBPACK_BUILD_ENV === 'dev' ? {
+  '1057919252922892298': '6086801551312186',
+  // playground channel -> playground channel
+  '1061924579100078090': '6086801551312186' // local dev channel -> playground channel
+} : {
+  '1057919252922892298': '6086801551312186',
+  // playground channel -> playground channel
+
+  // MSFS
+  '983629937451892766': '6218098845719397',
+  // fs news channel 1
+  '1058110232972247103': '6218098845719397',
+  // fs news channel 2
+  '1097849730731626578': '6218098845719397',
+  // fs news channel 3
+  '1060032674988826664': '6218098845719397',
+  // fs news manual sync
+  '1061038884143763538': '9294847620576543',
+  // fs group
+
+  // Other Games
+  '1059769292717039626': '5037270702167031',
+  // imas news channel
+  '1069820588538986536': '4872647462994083',
+  // kancolle news channel
+
+  // Other Topics
+  '1280002286046674974': '4754713495587085' // VT
+};
 
 /***/ }),
 
@@ -60529,7 +60563,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _upload__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../upload */ "./src/upload.ts");
 /* harmony import */ var _source_logos__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../source-logos */ "./src/source-logos.ts");
 /* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../logger */ "./src/logger.ts");
-/* harmony import */ var _send_message__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./send-message */ "./src/api/send-message.ts");
+/* harmony import */ var _app_config__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../app.config */ "./app.config.ts");
+/* harmony import */ var _send_message__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./send-message */ "./src/api/send-message.ts");
+
 
 
 
@@ -60537,34 +60573,6 @@ __webpack_require__.r(__webpack_exports__);
 
 // ============================================================================
 
-/**
- * Discord 频道 ID -> Kook 频道 ID
- */
-const channelMap = process.env.WEBPACK_BUILD_ENV === 'dev' ? {
-  '1057919252922892298': '6086801551312186',
-  // playground channel -> playground channel
-  '1061924579100078090': '6086801551312186' // local dev channel -> playground channel
-} : {
-  '1057919252922892298': '6086801551312186',
-  // playground channel -> playground channel
-
-  // MSFS
-  '983629937451892766': '6218098845719397',
-  // fs news channel 1
-  '1058110232972247103': '6218098845719397',
-  // fs news channel 2
-  '1097849730731626578': '6218098845719397',
-  // fs news channel 3
-  '1060032674988826664': '6218098845719397',
-  // fs news manual sync
-  '1061038884143763538': '9294847620576543',
-  // fs group
-
-  // Other Games
-  '1059769292717039626': '5037270702167031',
-  // imas news channel
-  '1069820588538986536': '4872647462994083' // kancolle news channel
-};
 const regexUrl = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/;
 function isUrlOnly(str) {
   return new RegExp(`^${regexUrl.toString().replace(/^\/(.+)\/$/, '$1')}$`).test(str);
@@ -60932,11 +60940,11 @@ async function syncMessage(message) {
   }
   const postData = {
     type: 10,
-    target_id: channelId in channelMap ? channelMap[channelId] : '6086801551312186',
+    target_id: channelId in _app_config__WEBPACK_IMPORTED_MODULE_3__.channelMapDiscordToKook ? _app_config__WEBPACK_IMPORTED_MODULE_3__.channelMapDiscordToKook[channelId] : '6086801551312186',
     content: JSON.stringify(postContent),
     discord_msg_id: id
   };
-  (0,_send_message__WEBPACK_IMPORTED_MODULE_3__["default"])(postData);
+  (0,_send_message__WEBPACK_IMPORTED_MODULE_4__["default"])(postData);
   return {
     data: 'sync-discord request queued.'
   };
@@ -61377,6 +61385,7 @@ function attachInterceptors() {
     //     /\/api\/v\/(message|gateway)\//.test(thisUrl.pathname),
     // );
     // 2023/10/20: 由于 Kook 限制海外 IP 无法发言，转发所有 `/message` 请求到腾讯云
+    // TODO: 2024/07/26: 由于腾讯云业务调整，转发目标所使用的 Serverless 服务将于 2025/06/30 关闭，需要在此之前进行迁移
     if (
     // process.env.WEBPACK_BUILD_ENV !== 'dev' &&
     /\/api\/v\/(message|gateway)\//.test(thisUrl.pathname)) {
@@ -61837,7 +61846,7 @@ async function commandAction(args, options) {
       type: 'section',
       text: {
         type: 'kmarkdown',
-        content: `**阶段式爬升**\n> \`${ofp.general.stepclimb_string}\``
+        content: `**梯级爬升 (Step Climb)**\n> \`${ofp.general.stepclimb_string}\``
       }
     } : undefined,
     // 巡航速度、CI
