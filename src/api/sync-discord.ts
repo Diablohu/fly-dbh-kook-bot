@@ -10,34 +10,11 @@ import type {
 import upload from '../upload';
 import { getSourceLogo } from '../source-logos';
 import logger from '../logger';
+import { channelMapDiscordToKook } from '../../app.config';
 
 import sendMessage from './send-message';
 
 // ============================================================================
-
-/**
- * Discord 频道 ID -> Kook 频道 ID
- */
-const channelMap: Record<string, string> =
-    process.env.WEBPACK_BUILD_ENV === 'dev'
-        ? {
-              '1057919252922892298': '6086801551312186', // playground channel -> playground channel
-              '1061924579100078090': '6086801551312186', // local dev channel -> playground channel
-          }
-        : {
-              '1057919252922892298': '6086801551312186', // playground channel -> playground channel
-
-              // MSFS
-              '983629937451892766': '6218098845719397', // fs news channel 1
-              '1058110232972247103': '6218098845719397', // fs news channel 2
-              '1097849730731626578': '6218098845719397', // fs news channel 3
-              '1060032674988826664': '6218098845719397', // fs news manual sync
-              '1061038884143763538': '9294847620576543', // fs group
-
-              // Other Games
-              '1059769292717039626': '5037270702167031', // imas news channel
-              '1069820588538986536': '4872647462994083', // kancolle news channel
-          };
 
 const regexUrl =
     /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/;
@@ -570,8 +547,10 @@ export async function syncMessage(message: Message) {
     const postData: MessageType = {
         type: 10,
         target_id:
-            channelId in channelMap
-                ? channelMap[channelId as keyof typeof channelMap]
+            channelId in channelMapDiscordToKook
+                ? channelMapDiscordToKook[
+                      channelId as keyof typeof channelMapDiscordToKook
+                  ]
                 : '6086801551312186',
         content: JSON.stringify(postContent),
         discord_msg_id: id,
