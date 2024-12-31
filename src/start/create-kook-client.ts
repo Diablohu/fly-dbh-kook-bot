@@ -24,6 +24,7 @@ const unzip = promisify(zlib.unzip);
 
 export let client: ws;
 export const clientCacheFile = path.resolve(cacheDir, 'client.json');
+let timeoutKeepClient: NodeJS.Timeout;
 /**
  * 公开回应的频道ID
  * - 在其他频道回应时，会以隐藏方式进行回应，并删除问话
@@ -127,6 +128,7 @@ async function createClient(): Promise<void> {
     client.on('open', () => {
         debugKookClient(`WebSocket opened`);
         sendPing();
+        keepClient();
     });
     client.on('error', (...args) => {
         debugKookClient('ERROR', ...args);
@@ -138,6 +140,7 @@ async function createClient(): Promise<void> {
             body: string | { [key: string]: string | number } | WSMessageType =
                 {},
             sn: number | undefined = undefined;
+        // console.log(msg);
         try {
             const o = JSON.parse(msg);
             type = o.s;
@@ -185,6 +188,7 @@ async function createClient(): Promise<void> {
                 case WSSignalTypes.Pong: {
                     // 成功收到 PONG 回应，终止仍存在的 PING 重试尝试，开启新的 PING 倒计时
                     // console.log('PONG!', msg);
+                    debugKookClient(`PONG!`, msg);
                     clearTimeout(pingTimeout);
                     pingRetry = 0;
                     sendPing();
@@ -222,6 +226,7 @@ async function createClient(): Promise<void> {
                 sn: cache.sn,
             };
             // console.log('PING!', ping);
+            debugKookClient(`PING!`, ping);
             client.send(Buffer.from(JSON.stringify(ping)));
             if (pingRetry > 2) {
                 await reconnect('Ping Failed after 2 retries');
@@ -381,4 +386,22 @@ async function reconnect(reason: string): Promise<void> {
 
     await fs.writeJson(clientCacheFile, cache);
     await createClient();
+}
+
+// ============================================================================
+
+function keepClient() {
+    if (timeoutKeepClient) clearTimeout(timeoutKeepClient);
+
+    debugKookClient(`Vital Check:`, client.readyState);
+
+    switch (client.readyState) {
+        case 3: {
+            reconnect('No Vital');
+            break;
+        }
+        default: {
+            timeoutKeepClient = setTimeout(keepClient, 10_000);
+        }
+    }
 }
