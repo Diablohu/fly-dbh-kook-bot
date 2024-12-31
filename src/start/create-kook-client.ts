@@ -135,7 +135,9 @@ async function createClient(): Promise<void> {
         logError(...args);
     });
     client.on('message', async (buffer: Buffer) => {
-        const msg = (await unzip(buffer)).toString();
+        const msg = (
+            await unzip(buffer as unknown as zlib.InputType)
+        ).toString();
         let type: WSSignalTypes | undefined = undefined,
             body: string | { [key: string]: string | number } | WSMessageType =
                 {},
@@ -401,7 +403,7 @@ function keepClient() {
             break;
         }
         default: {
-            timeoutKeepClient = setTimeout(keepClient, 10_000);
+            timeoutKeepClient = setTimeout(keepClient, 30_000);
         }
     }
 }
