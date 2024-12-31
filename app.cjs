@@ -62364,6 +62364,7 @@ const unzip = (0,node_util__WEBPACK_IMPORTED_MODULE_2__.promisify)((node_zlib__W
 
 let client;
 const clientCacheFile = node_path__WEBPACK_IMPORTED_MODULE_3___default().resolve(_app_config__WEBPACK_IMPORTED_MODULE_6__.cacheDir, 'client.json');
+let timeoutKeepClient;
 /**
  * 公开回应的频道ID
  * - 在其他频道回应时，会以隐藏方式进行回应，并删除问话
@@ -62448,6 +62449,7 @@ async function createClient() {
   client.on('open', () => {
     (0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugKookClient)(`WebSocket opened`);
     sendPing();
+    keepClient();
   });
   client.on('error', (...args) => {
     (0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugKookClient)('ERROR', ...args);
@@ -62458,6 +62460,7 @@ async function createClient() {
     let type = undefined,
       body = {},
       sn = undefined;
+    // console.log(msg);
     try {
       const o = JSON.parse(msg);
       type = o.s;
@@ -62498,6 +62501,7 @@ async function createClient() {
           {
             // 成功收到 PONG 回应，终止仍存在的 PING 重试尝试，开启新的 PING 倒计时
             // console.log('PONG!', msg);
+            (0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugKookClient)(`PONG!`, msg);
             clearTimeout(pingTimeout);
             pingRetry = 0;
             sendPing();
@@ -62534,6 +62538,7 @@ async function createClient() {
         sn: cache.sn
       };
       // console.log('PING!', ping);
+      (0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugKookClient)(`PING!`, ping);
       client.send(Buffer.from(JSON.stringify(ping)));
       if (pingRetry > 2) {
         await reconnect('Ping Failed after 2 retries');
@@ -62674,6 +62679,24 @@ async function reconnect(reason) {
 
   await fs_extra__WEBPACK_IMPORTED_MODULE_10___default().writeJson(clientCacheFile, cache);
   await createClient();
+}
+
+// ============================================================================
+
+function keepClient() {
+  if (timeoutKeepClient) clearTimeout(timeoutKeepClient);
+  (0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugKookClient)(`Vital Check:`, client.readyState);
+  switch (client.readyState) {
+    case 3:
+      {
+        reconnect('No Vital');
+        break;
+      }
+    default:
+      {
+        timeoutKeepClient = setTimeout(keepClient, 10_000);
+      }
+  }
 }
 
 /***/ }),
@@ -62904,6 +62927,7 @@ let WSSignalTypes = /*#__PURE__*/function (WSSignalTypes) {
 }({});
 let WSMessageTypes = /*#__PURE__*/function (WSMessageTypes) {
   WSMessageTypes[WSMessageTypes["Image"] = 2] = "Image";
+  WSMessageTypes[WSMessageTypes["Video"] = 3] = "Video";
   WSMessageTypes[WSMessageTypes["Markdown"] = 9] = "Markdown";
   WSMessageTypes[WSMessageTypes["Card"] = 10] = "Card";
   WSMessageTypes[WSMessageTypes["System"] = 255] = "System";
