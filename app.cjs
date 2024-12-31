@@ -62694,7 +62694,7 @@ function keepClient() {
       }
     default:
       {
-        timeoutKeepClient = setTimeout(keepClient, 10_000);
+        timeoutKeepClient = setTimeout(keepClient, 30_000);
       }
   }
 }
