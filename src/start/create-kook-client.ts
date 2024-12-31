@@ -126,9 +126,9 @@ async function createClient(): Promise<void> {
     client = new ws(wssUrl.href);
 
     client.on('open', () => {
-        debugKookClient(`WebSocket opened`);
+        debugKookClient(`✅ WebSocket opened`);
         sendPing();
-        keepClient();
+        keepClient(true);
     });
     client.on('error', (...args) => {
         debugKookClient('ERROR', ...args);
@@ -190,7 +190,7 @@ async function createClient(): Promise<void> {
                 case WSSignalTypes.Pong: {
                     // 成功收到 PONG 回应，终止仍存在的 PING 重试尝试，开启新的 PING 倒计时
                     // console.log('PONG!', msg);
-                    debugKookClient(`PONG!`, msg);
+                    debugKookClient(`🏓 PONG!`);
                     clearTimeout(pingTimeout);
                     pingRetry = 0;
                     sendPing();
@@ -199,6 +199,7 @@ async function createClient(): Promise<void> {
                 // 需要重连
                 case WSSignalTypes.Reconnect: {
                     // 收到重连请求，进行重新连接
+                    debugKookClient('Signal Reconnect');
                     await reconnect('Signal Reconnect');
                     break;
                 }
@@ -228,7 +229,7 @@ async function createClient(): Promise<void> {
                 sn: cache.sn,
             };
             // console.log('PING!', ping);
-            debugKookClient(`PING!`, ping);
+            debugKookClient(`🏓 PING!`);
             client.send(Buffer.from(JSON.stringify(ping)));
             if (pingRetry > 2) {
                 await reconnect('Ping Failed after 2 retries');
@@ -372,8 +373,7 @@ export default createClient;
 // ============================================================================
 
 async function reconnect(reason: string): Promise<void> {
-    debugKookClient('Signal Reconnect');
-    debugKookClient('Reconnecting... ' + reason);
+    debugKookClient('🔄 Reconnecting... ' + reason);
     logInfo('Reconnecting... ' + reason);
 
     client.terminate();
@@ -392,18 +392,28 @@ async function reconnect(reason: string): Promise<void> {
 
 // ============================================================================
 
-function keepClient() {
+function getReadyState(state: typeof client.readyState): string {
+    const readyStates = {
+        0: 'CONNECTING',
+        1: 'OPEN',
+        2: 'CLOSING',
+        3: 'CLOSED',
+    };
+    return `(${state}) ${readyStates[state] || 'UNKNOWN'}`;
+}
+function keepClient(isOnOpen = false) {
     if (timeoutKeepClient) clearTimeout(timeoutKeepClient);
 
-    debugKookClient(`Vital Check:`, client.readyState);
+    if (!isOnOpen)
+        debugKookClient(`💓 Vital Check:`, getReadyState(client.readyState));
 
     switch (client.readyState) {
         case 3: {
-            reconnect('No Vital');
+            reconnect('💀 No Vital');
             break;
         }
         default: {
-            timeoutKeepClient = setTimeout(keepClient, 30_000);
+            timeoutKeepClient = setTimeout(keepClient, 100_000);
         }
     }
 }
