@@ -215,29 +215,34 @@ async function createClient(): Promise<void> {
         /** 延迟时间 */
         delay = 30_000,
     ): NodeJS.Timeout {
-        if (client.readyState !== ws.OPEN) {
-            if (pingTimeout) clearTimeout(pingTimeout);
-            return sendPing(100);
-        }
-
-        // console.log({ delay });
-        if (pingTimeout) clearTimeout(pingTimeout);
-        pingTimeout = setTimeout(() => {
-            const ping = {
-                s: WSSignalTypes.Ping,
-                sn: cache.sn,
-            };
-            // console.log('PING!', ping);
-            debugKookClient(`🏓 PING!`);
-            client.send(Buffer.from(JSON.stringify(ping)));
-            // console.log({ pingRetryCount });
-            if (pingRetryCount > 2) {
-                reconnect('Ping Failed after 2 retries');
-            } else {
-                pingRetryCount++;
-                sendPing(6_000);
+        try {
+            if (client?.readyState !== ws.OPEN) {
+                if (pingTimeout) clearTimeout(pingTimeout);
+                return sendPing(100);
             }
-        }, delay);
+
+            // console.log({ delay });
+            if (pingTimeout) clearTimeout(pingTimeout);
+            pingTimeout = setTimeout(() => {
+                const ping = {
+                    s: WSSignalTypes.Ping,
+                    sn: cache.sn,
+                };
+                // console.log('PING!', ping);
+                debugKookClient(`🏓 PING!`);
+                client.send(Buffer.from(JSON.stringify(ping)));
+                // console.log({ pingRetryCount });
+                if (pingRetryCount > 2) {
+                    reconnect('Ping Failed after 2 retries');
+                } else {
+                    pingRetryCount++;
+                    sendPing(6_000);
+                }
+            }, delay);
+        } catch (e) {
+            if (client.readyState === ws.CLOSED)
+                reconnect(e instanceof Error ? e.message : `${e}`);
+        }
 
         return pingTimeout;
     }
