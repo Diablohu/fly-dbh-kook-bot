@@ -62972,6 +62972,7 @@ __webpack_require__.r(__webpack_exports__);
 
 // ============================================================================
 
+console.log(' ');
 (0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugMain)(`KOOK_TOKEN (before parsing): ${JSON.stringify(process.env.KOOK_TOKEN)}`);
 dotenv__WEBPACK_IMPORTED_MODULE_2__.config();
 function prepareEnvKey(key) {
@@ -63185,7 +63186,7 @@ const clientCacheFile = node_path__WEBPACK_IMPORTED_MODULE_3___default().resolve
 let clientOpenAt;
 let keepClientTimeout;
 let pingTimeout;
-let pingRetry = 0;
+let pingRetryCount = 0;
 let cache;
 function logInfo(msg) {
   const body = {
@@ -63269,6 +63270,7 @@ async function createClient() {
   client.on('error', (...args) => {
     (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)('ERROR', ...args);
     logError(...args);
+    if (client.readyState === ws__WEBPACK_IMPORTED_MODULE_0__["default"].CLOSED) reconnect('💀 Crash On Error');
   });
   client.on('message', async buffer => {
     const msg = (await unzip(buffer)).toString();
@@ -63317,7 +63319,7 @@ async function createClient() {
             // 成功收到 PONG 回应，终止仍存在的 PING 重试尝试，开启新的 PING 倒计时
             // console.log('PONG!', msg);
             (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`🏓 PONG!`);
-            pingRetry = 0;
+            pingRetryCount = 0;
             sendPing();
             break;
           }
@@ -63340,15 +63342,15 @@ async function createClient() {
 
   /** 发送 PING */
   function sendPing(/** 延迟时间 */
-  time = 30 * 1000) {
-    if (pingTimeout) clearTimeout(pingTimeout);
+  delay = 30_000) {
     if (client.readyState !== ws__WEBPACK_IMPORTED_MODULE_0__["default"].OPEN) {
-      pingTimeout = setTimeout(sendPing, 100);
-      return pingTimeout;
+      if (pingTimeout) clearTimeout(pingTimeout);
+      return sendPing(100);
     }
 
-    // console.log(123, time);
-    pingTimeout = setTimeout(async () => {
+    // console.log({ delay });
+    if (pingTimeout) clearTimeout(pingTimeout);
+    pingTimeout = setTimeout(() => {
       const ping = {
         s: _types__WEBPACK_IMPORTED_MODULE_6__.WSSignalTypes.Ping,
         sn: cache.sn
@@ -63356,13 +63358,14 @@ async function createClient() {
       // console.log('PING!', ping);
       (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`🏓 PING!`);
       client.send(Buffer.from(JSON.stringify(ping)));
-      if (pingRetry > 2) {
-        await reconnect('Ping Failed after 2 retries');
+      // console.log({ pingRetryCount });
+      if (pingRetryCount > 2) {
+        reconnect('Ping Failed after 2 retries');
       } else {
-        pingRetry++;
-        pingTimeout = sendPing(6 * 1000);
+        pingRetryCount++;
+        sendPing(6_000);
       }
-    }, time);
+    }, delay);
     return pingTimeout;
   }
   async function parseMsg(body, sn) {
@@ -63457,21 +63460,16 @@ async function createClient() {
           }
           break;
         }
+      case _types__WEBPACK_IMPORTED_MODULE_6__.WSMessageTypes.Video:
       case _types__WEBPACK_IMPORTED_MODULE_6__.WSMessageTypes.Image:
-        {
-          break;
-        }
       case _types__WEBPACK_IMPORTED_MODULE_6__.WSMessageTypes.Markdown:
-        {
-          break;
-        }
       case _types__WEBPACK_IMPORTED_MODULE_6__.WSMessageTypes.Card:
         {
           break;
         }
       default:
         {
-          (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)('WebSocket UNKNOWN MESSAGE', body);
+          (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)('❔ Unknown WebSocket Message Type', body);
           // logInfo({ body, sn });
         }
     }
@@ -63486,7 +63484,7 @@ async function reconnect(reason) {
   logInfo('Reconnecting... ' + reason);
   if (keepClientTimeout) clearTimeout(keepClientTimeout);
   if (pingTimeout) clearTimeout(pingTimeout);
-  pingRetry = 0;
+  pingRetryCount = 0;
   client.terminate();
   cache.sessionId = '';
   cache.sn = 0;
@@ -63501,25 +63499,25 @@ async function reconnect(reason) {
 
 function getReadyState(state) {
   const readyStates = {
-    0: 'CONNECTING',
-    1: 'OPEN',
-    2: 'CLOSING',
-    3: 'CLOSED'
+    [ws__WEBPACK_IMPORTED_MODULE_0__["default"].CONNECTING]: 'CONNECTING',
+    [ws__WEBPACK_IMPORTED_MODULE_0__["default"].OPEN]: 'OPEN',
+    [ws__WEBPACK_IMPORTED_MODULE_0__["default"].CLOSING]: 'CLOSING',
+    [ws__WEBPACK_IMPORTED_MODULE_0__["default"].CLOSED]: 'CLOSED'
   };
   return `[${state}] ${readyStates[state] || 'UNKNOWN'}`;
 }
-function keepClient(isOnOpen = false) {
+function keepClient(isOnOpen = false, delay = 100_000) {
   if (keepClientTimeout) clearTimeout(keepClientTimeout);
   if (!isOnOpen) (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`💓 Vital: ${getReadyState(client.readyState)} (${clientOpenAt.fromNow(true)})`);
   switch (client.readyState) {
-    case 3:
+    case ws__WEBPACK_IMPORTED_MODULE_0__["default"].CLOSED:
       {
         reconnect('💀 No Vital');
         break;
       }
     default:
       {
-        keepClientTimeout = setTimeout(keepClient, 100_000);
+        keepClientTimeout = setTimeout(keepClient, delay);
       }
   }
 }
