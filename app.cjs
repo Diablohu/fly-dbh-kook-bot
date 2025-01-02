@@ -63187,6 +63187,8 @@ let clientOpenAt;
 let keepClientTimeout;
 let pingTimeout;
 let pingRetryCount = 0;
+const pingIntervalTime = 29_500;
+let lastPingTime = 0;
 let cache;
 function logInfo(msg) {
   const body = {
@@ -63271,13 +63273,14 @@ async function createClient() {
 
   client = new ws__WEBPACK_IMPORTED_MODULE_0__["default"](wssUrl.href);
   client.on('open', () => {
+    var _client;
     clientOpenAt = dayjs__WEBPACK_IMPORTED_MODULE_4___default()(new Date());
-    (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`✅ WebSocket opened`);
+    (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`✅ WebSocket Client ${getReadyStateString((_client = client) === null || _client === void 0 ? void 0 : _client.readyState)}`);
     sendPing();
     keepClient(true);
   });
   client.on('error', (...args) => {
-    (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)('ERROR', ...args);
+    (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)('WebSocket Client Error', ...args);
     logError(...args);
     if (client.readyState === ws__WEBPACK_IMPORTED_MODULE_0__["default"].CLOSED) reconnect('💀 Crash On Error');
   });
@@ -63327,7 +63330,7 @@ async function createClient() {
           {
             // 成功收到 PONG 回应，终止仍存在的 PING 重试尝试，开启新的 PING 倒计时
             // console.log('PONG!', msg);
-            (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`🏓 PONG!`);
+            (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`🤝 PONG!`);
             pingRetryCount = 0;
             sendPing();
             break;
@@ -63352,14 +63355,20 @@ async function createClient() {
     // const reasonText = (
     //     await unzip(reason as unknown as zlib.InputType)
     // ).toString();
-    (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)([`⛔`, `Closed [${code}]`, `${reason === null || reason === void 0 ? void 0 : reason.toString()}`].filter(s => s !== '').join(''));
+    (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)([`⛔`, `WebSocket Client Closed [${code}]`, `${reason === null || reason === void 0 ? void 0 : reason.toString()}`].filter(s => s !== '').join(' '));
   });
 
   /** 发送 PING */
-  function sendPing(/** 延迟时间 */
-  delay = 30_000) {
-    var _client;
-    switch ((_client = client) === null || _client === void 0 ? void 0 : _client.readyState) {
+  function sendPing(
+  /**
+   * 延迟时间
+   * - 两次 Ping 之间不超过 `pingIntervalTime` 毫秒
+   */
+  delay = Math.min(pingIntervalTime, lastPingTime ? pingIntervalTime - Date.now() + lastPingTime : pingIntervalTime)) {
+    var _client2;
+    // console.log({ delay });
+    // console.log(client?.readyState);
+    switch ((_client2 = client) === null || _client2 === void 0 ? void 0 : _client2.readyState) {
       case ws__WEBPACK_IMPORTED_MODULE_0__["default"].CONNECTING:
         {
           break;
@@ -63372,9 +63381,10 @@ async function createClient() {
               s: _types__WEBPACK_IMPORTED_MODULE_6__.WSSignalTypes.Ping,
               sn: cache.sn
             };
-            console.log('PING!', ping);
-            (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`🏓 PING!`);
+            // console.log('PING!', ping, client?.readyState);
+            (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`👋 PING!`);
             client.send(Buffer.from(JSON.stringify(ping)));
+            lastPingTime = Date.now();
             // console.log({ pingRetryCount });
             if (pingRetryCount > 2) {
               reconnect('Ping Failed after 2 retries');
@@ -63391,8 +63401,8 @@ async function createClient() {
       // }
       default:
         {
-          var _client2;
-          reconnect(`💀 Client ${getReadyStateString((_client2 = client) === null || _client2 === void 0 ? void 0 : _client2.readyState)} before sending Ping signal`);
+          var _client3;
+          reconnect(`💀 Client ${getReadyStateString((_client3 = client) === null || _client3 === void 0 ? void 0 : _client3.readyState)} before sending Ping signal`);
         }
     }
   }
