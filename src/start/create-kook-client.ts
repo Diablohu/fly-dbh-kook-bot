@@ -123,10 +123,10 @@ async function createClient(): Promise<void> {
     client = new ws(wssUrl.href);
 
     client.on('open', () => {
+        clientOpenAt = dayjs(new Date());
         debugKookClient(`✅ WebSocket opened`);
         sendPing();
         keepClient(true);
-        clientOpenAt = dayjs(new Date());
     });
     client.on('error', (...args) => {
         debugKookClient('ERROR', ...args);
@@ -214,37 +214,37 @@ async function createClient(): Promise<void> {
     function sendPing(
         /** 延迟时间 */
         delay = 30_000,
-    ): NodeJS.Timeout {
-        try {
-            if (client?.readyState !== ws.OPEN) {
-                if (pingTimeout) clearTimeout(pingTimeout);
-                return sendPing(100);
+    ): void {
+        switch (client?.readyState) {
+            case ws.CONNECTING: {
+                break;
             }
-
-            // console.log({ delay });
-            if (pingTimeout) clearTimeout(pingTimeout);
-            pingTimeout = setTimeout(() => {
-                const ping = {
-                    s: WSSignalTypes.Ping,
-                    sn: cache.sn,
-                };
-                // console.log('PING!', ping);
-                debugKookClient(`🏓 PING!`);
-                client.send(Buffer.from(JSON.stringify(ping)));
-                // console.log({ pingRetryCount });
-                if (pingRetryCount > 2) {
-                    reconnect('Ping Failed after 2 retries');
-                } else {
-                    pingRetryCount++;
-                    sendPing(6_000);
-                }
-            }, delay);
-        } catch (e) {
-            if (client.readyState === ws.CLOSED)
-                reconnect(e instanceof Error ? e.message : `${e}`);
+            case ws.OPEN: {
+                if (pingTimeout) clearTimeout(pingTimeout);
+                pingTimeout = setTimeout(() => {
+                    const ping = {
+                        s: WSSignalTypes.Ping,
+                        sn: cache.sn,
+                    };
+                    // console.log('PING!', ping);
+                    debugKookClient(`🏓 PING!`);
+                    client.send(Buffer.from(JSON.stringify(ping)));
+                    // console.log({ pingRetryCount });
+                    if (pingRetryCount > 2) {
+                        reconnect('Ping Failed after 2 retries');
+                    } else {
+                        pingRetryCount++;
+                        sendPing(6_000);
+                    }
+                }, delay);
+                break;
+            }
+            case ws.CLOSING:
+            case ws.CLOSED: {
+                reconnect(`💀 Client closed before sending Ping signal`);
+                break;
+            }
         }
-
-        return pingTimeout;
     }
 
     async function parseMsg(body: WSMessageType, sn: number) {
