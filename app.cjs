@@ -63201,6 +63201,15 @@ function logInfo(msg) {
 function logError(err) {
   return (0,_logger__WEBPACK_IMPORTED_MODULE_7__.logError)(err);
 }
+function getReadyStateString(state) {
+  const readyStates = {
+    [ws__WEBPACK_IMPORTED_MODULE_0__["default"].CONNECTING]: 'CONNECTING',
+    [ws__WEBPACK_IMPORTED_MODULE_0__["default"].OPEN]: 'OPEN',
+    [ws__WEBPACK_IMPORTED_MODULE_0__["default"].CLOSING]: 'CLOSING',
+    [ws__WEBPACK_IMPORTED_MODULE_0__["default"].CLOSED]: 'CLOSED'
+  };
+  return `[${state}] ${readyStates[state] || 'UNKNOWN'}`;
+}
 
 // let msgQueue = [];
 
@@ -63327,7 +63336,7 @@ async function createClient() {
         case _types__WEBPACK_IMPORTED_MODULE_6__.WSSignalTypes.Reconnect:
           {
             // 收到重连请求，进行重新连接
-            (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)('Signal Reconnect');
+            (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)('📡 Signal Reconnect');
             await reconnect('Signal Reconnect');
             break;
           }
@@ -63338,6 +63347,12 @@ async function createClient() {
       }
     }
     await fs_extra__WEBPACK_IMPORTED_MODULE_13___default().writeJson(clientCacheFile, cache);
+  });
+  client.on('close', async (code, reason) => {
+    // const reasonText = (
+    //     await unzip(reason as unknown as zlib.InputType)
+    // ).toString();
+    (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)([`⛔`, `Closed [${code}]`, `${reason === null || reason === void 0 ? void 0 : reason.toString()}`].filter(s => s !== '').join(''));
   });
 
   /** 发送 PING */
@@ -63357,7 +63372,7 @@ async function createClient() {
               s: _types__WEBPACK_IMPORTED_MODULE_6__.WSSignalTypes.Ping,
               sn: cache.sn
             };
-            // console.log('PING!', ping);
+            console.log('PING!', ping);
             (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`🏓 PING!`);
             client.send(Buffer.from(JSON.stringify(ping)));
             // console.log({ pingRetryCount });
@@ -63376,7 +63391,8 @@ async function createClient() {
       // }
       default:
         {
-          reconnect(`💀 Client closed before sending Ping signal`);
+          var _client2;
+          reconnect(`💀 Client ${getReadyStateString((_client2 = client) === null || _client2 === void 0 ? void 0 : _client2.readyState)} before sending Ping signal`);
         }
     }
   }
@@ -63509,18 +63525,9 @@ async function reconnect(reason) {
 
 // ============================================================================
 
-function getReadyState(state) {
-  const readyStates = {
-    [ws__WEBPACK_IMPORTED_MODULE_0__["default"].CONNECTING]: 'CONNECTING',
-    [ws__WEBPACK_IMPORTED_MODULE_0__["default"].OPEN]: 'OPEN',
-    [ws__WEBPACK_IMPORTED_MODULE_0__["default"].CLOSING]: 'CLOSING',
-    [ws__WEBPACK_IMPORTED_MODULE_0__["default"].CLOSED]: 'CLOSED'
-  };
-  return `[${state}] ${readyStates[state] || 'UNKNOWN'}`;
-}
 function keepClient(isOnOpen = false, delay = 100_000) {
   if (keepClientTimeout) clearTimeout(keepClientTimeout);
-  if (!isOnOpen) (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`💓 Vital: ${getReadyState(client.readyState)} (${clientOpenAt.fromNow(true)})`);
+  if (!isOnOpen) (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`💓 Vital: ${getReadyStateString(client.readyState)} (${clientOpenAt.fromNow(true)})`);
   switch (client.readyState) {
     case ws__WEBPACK_IMPORTED_MODULE_0__["default"].CLOSED:
       {
