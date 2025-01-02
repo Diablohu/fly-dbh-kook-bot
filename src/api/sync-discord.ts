@@ -167,7 +167,7 @@ export async function syncMessage(message: Message) {
             color,
             author,
             provider,
-            title,
+            title = '',
             description,
             image,
             // video,
