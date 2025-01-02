@@ -53,6 +53,9 @@ module.exports = () => {
             concatenateModules: false,
         },
         resolve: {
+            alias: {
+                '@': path.resolve(__dirname, 'src/'),
+            },
             modules: ['__modules', 'node_modules'],
             extensions: ['.js', '.ts', '.mjs', '.cjs', '.json'],
         },

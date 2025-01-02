@@ -4,6 +4,8 @@ import fs from 'fs-extra';
 import zlib from 'node:zlib';
 import { promisify } from 'node:util';
 import path from 'node:path';
+import dayjs, { type Dayjs } from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 
 import {
     WSSignalTypes,
@@ -15,24 +17,19 @@ import logger, { logError as _logError } from '../logger';
 import { cacheDir } from '../../app.config';
 import sendMessage from '../api/send-message';
 import { debugKookClient } from '../debug';
+import { kookPublicResponseChannelIDs } from '@/vars';
 
 import getCommandResponse from '../commands/index';
 
 const unzip = promisify(zlib.unzip);
+dayjs.extend(relativeTime);
 
 // ============================================================================
 
 export let client: ws;
 export const clientCacheFile = path.resolve(cacheDir, 'client.json');
-let timeoutKeepClient: NodeJS.Timeout;
-/**
- * 公开回应的频道ID
- * - 在其他频道回应时，会以隐藏方式进行回应，并删除问话
- */
-const publicResponseChannelIDs = [
-    `6061361713354559`,
-    `6086801551312186`, // Playground Channel
-];
+let clientOpenAt: Dayjs;
+let keepClientTimeout: NodeJS.Timeout;
 let pingTimeout: NodeJS.Timeout;
 let pingRetry = 0;
 let cache: {
@@ -57,7 +54,7 @@ function logError(err: any) {
     return _logError(err);
 }
 
-let msgQueue = [];
+// let msgQueue = [];
 
 // ============================================================================
 
@@ -129,6 +126,7 @@ async function createClient(): Promise<void> {
         debugKookClient(`✅ WebSocket opened`);
         sendPing();
         keepClient(true);
+        clientOpenAt = dayjs(new Date());
     });
     client.on('error', (...args) => {
         debugKookClient('ERROR', ...args);
@@ -191,7 +189,6 @@ async function createClient(): Promise<void> {
                     // 成功收到 PONG 回应，终止仍存在的 PING 重试尝试，开启新的 PING 倒计时
                     // console.log('PONG!', msg);
                     debugKookClient(`🏓 PONG!`);
-                    clearTimeout(pingTimeout);
                     pingRetry = 0;
                     sendPing();
                     break;
@@ -217,6 +214,8 @@ async function createClient(): Promise<void> {
         /** 延迟时间 */
         time = 30 * 1000,
     ): NodeJS.Timeout {
+        if (pingTimeout) clearTimeout(pingTimeout);
+
         if (client.readyState !== ws.OPEN) {
             pingTimeout = setTimeout(sendPing, 100);
             return pingTimeout;
@@ -278,7 +277,7 @@ async function createClient(): Promise<void> {
             const response = await getCommandResponse(command).catch(logError);
 
             const isPublic =
-                publicResponseChannelIDs.includes(channelId) &&
+                kookPublicResponseChannelIDs.includes(channelId) &&
                 response?._is_temp !== true;
             delete response?._is_temp;
             if (!isPublic)
@@ -376,10 +375,11 @@ async function reconnect(reason: string): Promise<void> {
     debugKookClient('🔄 Reconnecting... ' + reason);
     logInfo('Reconnecting... ' + reason);
 
-    client.terminate();
-
-    clearTimeout(pingTimeout);
+    if (keepClientTimeout) clearTimeout(keepClientTimeout);
+    if (pingTimeout) clearTimeout(pingTimeout);
     pingRetry = 0;
+
+    client.terminate();
 
     cache.sessionId = '';
     cache.sn = 0;
@@ -399,13 +399,15 @@ function getReadyState(state: typeof client.readyState): string {
         2: 'CLOSING',
         3: 'CLOSED',
     };
-    return `(${state}) ${readyStates[state] || 'UNKNOWN'}`;
+    return `[${state}] ${readyStates[state] || 'UNKNOWN'}`;
 }
 function keepClient(isOnOpen = false) {
-    if (timeoutKeepClient) clearTimeout(timeoutKeepClient);
+    if (keepClientTimeout) clearTimeout(keepClientTimeout);
 
     if (!isOnOpen)
-        debugKookClient(`💓 Vital Check:`, getReadyState(client.readyState));
+        debugKookClient(
+            `💓 Vital: ${getReadyState(client.readyState)} (${clientOpenAt.fromNow(true)})`,
+        );
 
     switch (client.readyState) {
         case 3: {
@@ -413,7 +415,7 @@ function keepClient(isOnOpen = false) {
             break;
         }
         default: {
-            timeoutKeepClient = setTimeout(keepClient, 100_000);
+            keepClientTimeout = setTimeout(keepClient, 100_000);
         }
     }
 }
