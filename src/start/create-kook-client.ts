@@ -54,6 +54,16 @@ function logError(err: any) {
     return _logError(err);
 }
 
+function getReadyStateString(state: typeof client.readyState): string {
+    const readyStates = {
+        [ws.CONNECTING]: 'CONNECTING',
+        [ws.OPEN]: 'OPEN',
+        [ws.CLOSING]: 'CLOSING',
+        [ws.CLOSED]: 'CLOSED',
+    };
+    return `[${state}] ${readyStates[state] || 'UNKNOWN'}`;
+}
+
 // let msgQueue = [];
 
 // ============================================================================
@@ -197,7 +207,7 @@ async function createClient(): Promise<void> {
                 // 需要重连
                 case WSSignalTypes.Reconnect: {
                     // 收到重连请求，进行重新连接
-                    debugKookClient('Signal Reconnect');
+                    debugKookClient('📡 Signal Reconnect');
                     await reconnect('Signal Reconnect');
                     break;
                 }
@@ -208,6 +218,16 @@ async function createClient(): Promise<void> {
         }
 
         await fs.writeJson(clientCacheFile, cache);
+    });
+    client.on('close', async (code, reason) => {
+        // const reasonText = (
+        //     await unzip(reason as unknown as zlib.InputType)
+        // ).toString();
+        debugKookClient(
+            [`⛔`, `Closed [${code}]`, `${reason?.toString()}`]
+                .filter((s) => s !== '')
+                .join(''),
+        );
     });
 
     /** 发送 PING */
@@ -226,7 +246,7 @@ async function createClient(): Promise<void> {
                         s: WSSignalTypes.Ping,
                         sn: cache.sn,
                     };
-                    // console.log('PING!', ping);
+                    console.log('PING!', ping);
                     debugKookClient(`🏓 PING!`);
                     client.send(Buffer.from(JSON.stringify(ping)));
                     // console.log({ pingRetryCount });
@@ -244,7 +264,9 @@ async function createClient(): Promise<void> {
             //     break;
             // }
             default: {
-                reconnect(`💀 Client closed before sending Ping signal`);
+                reconnect(
+                    `💀 Client ${getReadyStateString(client?.readyState)} before sending Ping signal`,
+                );
             }
         }
     }
@@ -397,21 +419,12 @@ async function reconnect(reason: string): Promise<void> {
 
 // ============================================================================
 
-function getReadyState(state: typeof client.readyState): string {
-    const readyStates = {
-        [ws.CONNECTING]: 'CONNECTING',
-        [ws.OPEN]: 'OPEN',
-        [ws.CLOSING]: 'CLOSING',
-        [ws.CLOSED]: 'CLOSED',
-    };
-    return `[${state}] ${readyStates[state] || 'UNKNOWN'}`;
-}
 function keepClient(isOnOpen = false, delay = 100_000) {
     if (keepClientTimeout) clearTimeout(keepClientTimeout);
 
     if (!isOnOpen)
         debugKookClient(
-            `💓 Vital: ${getReadyState(client.readyState)} (${clientOpenAt.fromNow(true)})`,
+            `💓 Vital: ${getReadyStateString(client.readyState)} (${clientOpenAt.fromNow(true)})`,
         );
 
     switch (client.readyState) {
