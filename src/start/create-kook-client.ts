@@ -32,6 +32,8 @@ let clientOpenAt: Dayjs;
 let keepClientTimeout: NodeJS.Timeout;
 let pingTimeout: NodeJS.Timeout;
 let pingRetryCount = 0;
+const pingIntervalTime = 29_500;
+let lastPingTime = 0;
 let cache: {
     /** 常驻 session */
     sessionId?: string;
@@ -134,12 +136,14 @@ async function createClient(): Promise<void> {
 
     client.on('open', () => {
         clientOpenAt = dayjs(new Date());
-        debugKookClient(`✅ WebSocket opened`);
+        debugKookClient(
+            `✅ WebSocket Client ${getReadyStateString(client?.readyState)}`,
+        );
         sendPing();
         keepClient(true);
     });
     client.on('error', (...args) => {
-        debugKookClient('ERROR', ...args);
+        debugKookClient('WebSocket Client Error', ...args);
         logError(...args);
         if (client.readyState === ws.CLOSED) reconnect('💀 Crash On Error');
     });
@@ -199,7 +203,7 @@ async function createClient(): Promise<void> {
                 case WSSignalTypes.Pong: {
                     // 成功收到 PONG 回应，终止仍存在的 PING 重试尝试，开启新的 PING 倒计时
                     // console.log('PONG!', msg);
-                    debugKookClient(`🏓 PONG!`);
+                    debugKookClient(`🤝 PONG!`);
                     pingRetryCount = 0;
                     sendPing();
                     break;
@@ -224,17 +228,27 @@ async function createClient(): Promise<void> {
         //     await unzip(reason as unknown as zlib.InputType)
         // ).toString();
         debugKookClient(
-            [`⛔`, `Closed [${code}]`, `${reason?.toString()}`]
+            [`⛔`, `WebSocket Client Closed [${code}]`, `${reason?.toString()}`]
                 .filter((s) => s !== '')
-                .join(''),
+                .join(' '),
         );
     });
 
     /** 发送 PING */
     function sendPing(
-        /** 延迟时间 */
-        delay = 30_000,
+        /**
+         * 延迟时间
+         * - 两次 Ping 之间不超过 `pingIntervalTime` 毫秒
+         */
+        delay = Math.min(
+            pingIntervalTime,
+            lastPingTime
+                ? pingIntervalTime - Date.now() + lastPingTime
+                : pingIntervalTime,
+        ),
     ): void {
+        // console.log({ delay });
+        // console.log(client?.readyState);
         switch (client?.readyState) {
             case ws.CONNECTING: {
                 break;
@@ -246,9 +260,10 @@ async function createClient(): Promise<void> {
                         s: WSSignalTypes.Ping,
                         sn: cache.sn,
                     };
-                    console.log('PING!', ping);
-                    debugKookClient(`🏓 PING!`);
+                    // console.log('PING!', ping, client?.readyState);
+                    debugKookClient(`👋 PING!`);
                     client.send(Buffer.from(JSON.stringify(ping)));
+                    lastPingTime = Date.now();
                     // console.log({ pingRetryCount });
                     if (pingRetryCount > 2) {
                         reconnect('Ping Failed after 2 retries');
