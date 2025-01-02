@@ -96,6 +96,7 @@ module.exports = () => {
                     (compilation) => {
                         // console.log('__watchRun');
                         if (child) {
+                            console.log(' \n');
                             debug(
                                 'Detected file change. Re-building & Re-launching app...',
                             );
@@ -111,6 +112,7 @@ module.exports = () => {
                         if (child) return;
 
                         debug('Build completed. Launching app...');
+                        console.log(' ');
                         // launched = true;
 
                         // console.log('\n\n');

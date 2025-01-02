@@ -13,6 +13,7 @@ import { debugMain } from './debug';
 
 // ============================================================================
 
+console.log(' ');
 debugMain(
     `KOOK_TOKEN (before parsing): ${JSON.stringify(process.env.KOOK_TOKEN)}`,
 );

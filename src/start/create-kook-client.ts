@@ -31,7 +31,7 @@ export const clientCacheFile = path.resolve(cacheDir, 'client.json');
 let clientOpenAt: Dayjs;
 let keepClientTimeout: NodeJS.Timeout;
 let pingTimeout: NodeJS.Timeout;
-let pingRetry = 0;
+let pingRetryCount = 0;
 let cache: {
     /** 常驻 session */
     sessionId?: string;
@@ -131,6 +131,7 @@ async function createClient(): Promise<void> {
     client.on('error', (...args) => {
         debugKookClient('ERROR', ...args);
         logError(...args);
+        if (client.readyState === ws.CLOSED) reconnect('💀 Crash On Error');
     });
     client.on('message', async (buffer: Buffer) => {
         const msg = (
@@ -189,7 +190,7 @@ async function createClient(): Promise<void> {
                     // 成功收到 PONG 回应，终止仍存在的 PING 重试尝试，开启新的 PING 倒计时
                     // console.log('PONG!', msg);
                     debugKookClient(`🏓 PONG!`);
-                    pingRetry = 0;
+                    pingRetryCount = 0;
                     sendPing();
                     break;
                 }
@@ -212,17 +213,16 @@ async function createClient(): Promise<void> {
     /** 发送 PING */
     function sendPing(
         /** 延迟时间 */
-        time = 30 * 1000,
+        delay = 30_000,
     ): NodeJS.Timeout {
-        if (pingTimeout) clearTimeout(pingTimeout);
-
         if (client.readyState !== ws.OPEN) {
-            pingTimeout = setTimeout(sendPing, 100);
-            return pingTimeout;
+            if (pingTimeout) clearTimeout(pingTimeout);
+            return sendPing(100);
         }
 
-        // console.log(123, time);
-        pingTimeout = setTimeout(async () => {
+        // console.log({ delay });
+        if (pingTimeout) clearTimeout(pingTimeout);
+        pingTimeout = setTimeout(() => {
             const ping = {
                 s: WSSignalTypes.Ping,
                 sn: cache.sn,
@@ -230,13 +230,14 @@ async function createClient(): Promise<void> {
             // console.log('PING!', ping);
             debugKookClient(`🏓 PING!`);
             client.send(Buffer.from(JSON.stringify(ping)));
-            if (pingRetry > 2) {
-                await reconnect('Ping Failed after 2 retries');
+            // console.log({ pingRetryCount });
+            if (pingRetryCount > 2) {
+                reconnect('Ping Failed after 2 retries');
             } else {
-                pingRetry++;
-                pingTimeout = sendPing(6 * 1000);
+                pingRetryCount++;
+                sendPing(6_000);
             }
-        }, time);
+        }, delay);
 
         return pingTimeout;
     }
@@ -350,17 +351,14 @@ async function createClient(): Promise<void> {
                 }
                 break;
             }
-            case WSMessageTypes.Image: {
-                break;
-            }
-            case WSMessageTypes.Markdown: {
-                break;
-            }
+            case WSMessageTypes.Video:
+            case WSMessageTypes.Image:
+            case WSMessageTypes.Markdown:
             case WSMessageTypes.Card: {
                 break;
             }
             default: {
-                debugKookClient('WebSocket UNKNOWN MESSAGE', body);
+                debugKookClient('❔ Unknown WebSocket Message Type', body);
                 // logInfo({ body, sn });
             }
         }
@@ -377,7 +375,7 @@ async function reconnect(reason: string): Promise<void> {
 
     if (keepClientTimeout) clearTimeout(keepClientTimeout);
     if (pingTimeout) clearTimeout(pingTimeout);
-    pingRetry = 0;
+    pingRetryCount = 0;
 
     client.terminate();
 
@@ -394,14 +392,14 @@ async function reconnect(reason: string): Promise<void> {
 
 function getReadyState(state: typeof client.readyState): string {
     const readyStates = {
-        0: 'CONNECTING',
-        1: 'OPEN',
-        2: 'CLOSING',
-        3: 'CLOSED',
+        [ws.CONNECTING]: 'CONNECTING',
+        [ws.OPEN]: 'OPEN',
+        [ws.CLOSING]: 'CLOSING',
+        [ws.CLOSED]: 'CLOSED',
     };
     return `[${state}] ${readyStates[state] || 'UNKNOWN'}`;
 }
-function keepClient(isOnOpen = false) {
+function keepClient(isOnOpen = false, delay = 100_000) {
     if (keepClientTimeout) clearTimeout(keepClientTimeout);
 
     if (!isOnOpen)
@@ -410,12 +408,12 @@ function keepClient(isOnOpen = false) {
         );
 
     switch (client.readyState) {
-        case 3: {
+        case ws.CLOSED: {
             reconnect('💀 No Vital');
             break;
         }
         default: {
-            keepClientTimeout = setTimeout(keepClient, 100_000);
+            keepClientTimeout = setTimeout(keepClient, delay);
         }
     }
 }
