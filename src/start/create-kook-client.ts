@@ -239,10 +239,12 @@ async function createClient(): Promise<void> {
                 }, delay);
                 break;
             }
-            case ws.CLOSING:
-            case ws.CLOSED: {
+            // case ws.CLOSING:
+            // case ws.CLOSED: {
+            //     break;
+            // }
+            default: {
                 reconnect(`💀 Client closed before sending Ping signal`);
-                break;
             }
         }
     }
