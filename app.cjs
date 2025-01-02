@@ -63343,29 +63343,34 @@ async function createClient() {
   /** 发送 PING */
   function sendPing(/** 延迟时间 */
   delay = 30_000) {
-    if (client.readyState !== ws__WEBPACK_IMPORTED_MODULE_0__["default"].OPEN) {
-      if (pingTimeout) clearTimeout(pingTimeout);
-      return sendPing(100);
-    }
-
-    // console.log({ delay });
-    if (pingTimeout) clearTimeout(pingTimeout);
-    pingTimeout = setTimeout(() => {
-      const ping = {
-        s: _types__WEBPACK_IMPORTED_MODULE_6__.WSSignalTypes.Ping,
-        sn: cache.sn
-      };
-      // console.log('PING!', ping);
-      (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`🏓 PING!`);
-      client.send(Buffer.from(JSON.stringify(ping)));
-      // console.log({ pingRetryCount });
-      if (pingRetryCount > 2) {
-        reconnect('Ping Failed after 2 retries');
-      } else {
-        pingRetryCount++;
-        sendPing(6_000);
+    try {
+      var _client;
+      if (((_client = client) === null || _client === void 0 ? void 0 : _client.readyState) !== ws__WEBPACK_IMPORTED_MODULE_0__["default"].OPEN) {
+        if (pingTimeout) clearTimeout(pingTimeout);
+        return sendPing(100);
       }
-    }, delay);
+
+      // console.log({ delay });
+      if (pingTimeout) clearTimeout(pingTimeout);
+      pingTimeout = setTimeout(() => {
+        const ping = {
+          s: _types__WEBPACK_IMPORTED_MODULE_6__.WSSignalTypes.Ping,
+          sn: cache.sn
+        };
+        // console.log('PING!', ping);
+        (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`🏓 PING!`);
+        client.send(Buffer.from(JSON.stringify(ping)));
+        // console.log({ pingRetryCount });
+        if (pingRetryCount > 2) {
+          reconnect('Ping Failed after 2 retries');
+        } else {
+          pingRetryCount++;
+          sendPing(6_000);
+        }
+      }, delay);
+    } catch (e) {
+      if (client.readyState === ws__WEBPACK_IMPORTED_MODULE_0__["default"].CLOSED) reconnect(e instanceof Error ? e.message : `${e}`);
+    }
     return pingTimeout;
   }
   async function parseMsg(body, sn) {
