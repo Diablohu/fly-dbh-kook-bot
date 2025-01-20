@@ -177,7 +177,7 @@ export async function syncMessage(message: Message) {
             timestamp,
         } of embeds as Array<
             Embed & {
-                type: 'rich' | 'video' | 'link' | 'article';
+                type: 'rich' | 'video' | 'image' | 'link' | 'article';
                 author?: {
                     name?: string;
                     icon_url?: string;
@@ -414,6 +414,7 @@ export async function syncMessage(message: Message) {
                     });
                     break;
                 }
+                case 'image':
                 case 'article': {
                     await addProvider();
                     thisCard.modules.push({
