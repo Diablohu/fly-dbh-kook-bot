@@ -45,8 +45,25 @@ export async function syncMessage(message: Message) {
         author,
         // content,
         attachments,
-        embeds,
+        embeds: _embeds,
     } = message;
+
+    const embeds = _embeds as Array<
+        Embed & {
+            type: 'rich' | 'video' | 'image' | 'link' | 'article';
+            author?: {
+                name?: string;
+                icon_url?: string;
+                url?: string;
+                proxy_icon_url?: string;
+            };
+            footer?: {
+                text?: string;
+                proxy_icon_url?: string;
+                icon_url?: string;
+            };
+        }
+    >;
 
     /**
      * 转换 TweetShift 的神奇格式
@@ -175,27 +192,19 @@ export async function syncMessage(message: Message) {
             url,
             footer,
             timestamp,
-        } of embeds as Array<
-            Embed & {
-                type: 'rich' | 'video' | 'image' | 'link' | 'article';
-                author?: {
-                    name?: string;
-                    icon_url?: string;
-                    url?: string;
-                    proxy_icon_url?: string;
-                };
-                footer?: {
-                    text?: string;
-                    proxy_icon_url?: string;
-                    icon_url?: string;
-                };
-            }
-        >) {
+        } of embeds) {
+            const lastEmbed = index ? embeds[index - 1] : undefined;
+
             /**
              * 是否使用上一个卡片
              * - 没有标题时，认为仅为媒体，将媒体放入上一个卡片中
              */
             const useLastCard = !title && cards.length > 0;
+            const isSameFooterAsLastEmbed =
+                lastEmbed &&
+                lastEmbed.footer?.text === footer?.text &&
+                lastEmbed.footer?.proxy_icon_url === footer?.proxy_icon_url &&
+                lastEmbed.footer?.icon_url === footer?.icon_url;
             const thisCard: ExtendedCardMessageType = useLastCard
                 ? cards[cards.length - 1]
                 : {
@@ -452,7 +461,7 @@ export async function syncMessage(message: Message) {
                     });
                 }
             }
-            if (!!footer) {
+            if (!!footer && !isSameFooterAsLastEmbed) {
                 thisCard.modules.push({
                     type: 'context',
                     elements: [
