@@ -61814,7 +61814,7 @@ async function parseDiscordMessage() {
   //
 }
 function transformMarkdown(input) {
-  return input.replace(/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/g, `[$1]($1)`);
+  return input.replace(/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/g, `[$1]($1)`).replace(/\ud83c/g, '').replace(/�/g, '');
 }
 async function syncMessage({
   msgId,
@@ -63540,7 +63540,11 @@ async function reconnect(reason) {
 
 function keepClient(delay = 100_000) {
   if (keepClientTimeout) clearTimeout(keepClientTimeout);
-  if (client && client.readyState) (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`💓 Vital: ${getReadyStateString(client.readyState)} (${clientOpenAt.fromNow(true)})`);
+  if (!(client instanceof ws__WEBPACK_IMPORTED_MODULE_0__["default"])) {
+    keepClientTimeout = setTimeout(keepClient, delay);
+    return;
+  }
+  if (client.readyState) (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`💓 Vital: ${getReadyStateString(client.readyState)} (${clientOpenAt.fromNow(true)})`);
   switch (client.readyState) {
     case ws__WEBPACK_IMPORTED_MODULE_0__["default"].CLOSED:
       {
@@ -63548,9 +63552,7 @@ function keepClient(delay = 100_000) {
         break;
       }
     default:
-      {
-        keepClientTimeout = setTimeout(keepClient, delay);
-      }
+      {}
   }
 }
 
