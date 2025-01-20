@@ -82,6 +82,8 @@ function getReadyStateString(state: typeof client.readyState): string {
  *
  **/
 async function createClient(): Promise<void> {
+    keepClient();
+
     debugKookClient('Creating...');
 
     try {
@@ -140,11 +142,13 @@ async function createClient(): Promise<void> {
             `✅ WebSocket Client ${getReadyStateString(client?.readyState)}`,
         );
         sendPing();
-        keepClient(true);
     });
     client.on('error', (...args) => {
         debugKookClient('WebSocket Client Error', ...args);
         logError(...args);
+        if (!client) return reconnect('💀 Crash On Starting');
+        if (typeof client.readyState === 'undefined')
+            return reconnect('💀 Crash On Starting');
         if (client.readyState === ws.CLOSED) reconnect('💀 Crash On Error');
     });
     client.on('message', async (buffer: Buffer) => {
@@ -265,7 +269,7 @@ async function createClient(): Promise<void> {
                     client.send(Buffer.from(JSON.stringify(ping)));
                     lastPingTime = Date.now();
                     // console.log({ pingRetryCount });
-                    if (pingRetryCount > 2) {
+                    if (pingRetryCount > 1) {
                         reconnect('Ping Failed after 2 retries');
                     } else {
                         pingRetryCount++;
@@ -434,10 +438,10 @@ async function reconnect(reason: string): Promise<void> {
 
 // ============================================================================
 
-function keepClient(isOnOpen = false, delay = 100_000) {
+function keepClient(delay = 100_000) {
     if (keepClientTimeout) clearTimeout(keepClientTimeout);
 
-    if (!isOnOpen)
+    if (client && client.readyState)
         debugKookClient(
             `💓 Vital: ${getReadyStateString(client.readyState)} (${clientOpenAt.fromNow(true)})`,
         );
