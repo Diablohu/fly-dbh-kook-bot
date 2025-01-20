@@ -218,7 +218,7 @@ async function createClient(): Promise<void> {
                 case WSSignalTypes.Pong: {
                     // 成功收到 PONG 回应，终止仍存在的 PING 重试尝试，开启新的 PING 倒计时
                     // console.log('PONG!', msg);
-                    debugKookClient(`🤝 PONG!`);
+                    // debugKookClient(`🤝 PONG!`);
                     pingRetryCount = 0;
                     sendPing();
                     break;
@@ -266,7 +266,7 @@ async function createClient(): Promise<void> {
                         sn: cache.sn,
                     };
                     // console.log('PING!', ping, client?.readyState);
-                    debugKookClient(`👋 PING!`);
+                    // debugKookClient(`👋 PING!`);
                     client.send(Buffer.from(JSON.stringify(ping)));
                     lastPingTime = Date.now();
                     // console.log({ pingRetryCount });
