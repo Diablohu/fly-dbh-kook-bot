@@ -63230,6 +63230,7 @@ function getReadyStateString(state) {
  **/
 async function createClient() {
   var _await$axios$get$catc;
+  keepClient();
   (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)('Creating...');
   try {
     cache = fs_extra__WEBPACK_IMPORTED_MODULE_13___default().existsSync(clientCacheFile) ? (await fs_extra__WEBPACK_IMPORTED_MODULE_13___default().readJson(clientCacheFile)) || {} : {};
@@ -63277,11 +63278,12 @@ async function createClient() {
     clientOpenAt = dayjs__WEBPACK_IMPORTED_MODULE_4___default()(new Date());
     (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`✅ WebSocket Client ${getReadyStateString((_client = client) === null || _client === void 0 ? void 0 : _client.readyState)}`);
     sendPing();
-    keepClient(true);
   });
   client.on('error', (...args) => {
     (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)('WebSocket Client Error', ...args);
     logError(...args);
+    if (!client) return reconnect('💀 Crash On Starting');
+    if (typeof client.readyState === 'undefined') return reconnect('💀 Crash On Starting');
     if (client.readyState === ws__WEBPACK_IMPORTED_MODULE_0__["default"].CLOSED) reconnect('💀 Crash On Error');
   });
   client.on('message', async buffer => {
@@ -63386,7 +63388,7 @@ async function createClient() {
             client.send(Buffer.from(JSON.stringify(ping)));
             lastPingTime = Date.now();
             // console.log({ pingRetryCount });
-            if (pingRetryCount > 2) {
+            if (pingRetryCount > 1) {
               reconnect('Ping Failed after 2 retries');
             } else {
               pingRetryCount++;
@@ -63535,9 +63537,9 @@ async function reconnect(reason) {
 
 // ============================================================================
 
-function keepClient(isOnOpen = false, delay = 100_000) {
+function keepClient(delay = 100_000) {
   if (keepClientTimeout) clearTimeout(keepClientTimeout);
-  if (!isOnOpen) (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`💓 Vital: ${getReadyStateString(client.readyState)} (${clientOpenAt.fromNow(true)})`);
+  if (client && client.readyState) (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`💓 Vital: ${getReadyStateString(client.readyState)} (${clientOpenAt.fromNow(true)})`);
   switch (client.readyState) {
     case ws__WEBPACK_IMPORTED_MODULE_0__["default"].CLOSED:
       {
