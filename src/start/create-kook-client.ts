@@ -443,7 +443,12 @@ async function reconnect(reason: string): Promise<void> {
 function keepClient(delay = 100_000) {
     if (keepClientTimeout) clearTimeout(keepClientTimeout);
 
-    if (client && client.readyState)
+    if (!(client instanceof ws)) {
+        keepClientTimeout = setTimeout(keepClient, delay);
+        return;
+    }
+
+    if (client.readyState)
         debugKookClient(
             `💓 Vital: ${getReadyStateString(client.readyState)} (${clientOpenAt.fromNow(true)})`,
         );
@@ -454,7 +459,6 @@ function keepClient(delay = 100_000) {
             break;
         }
         default: {
-            keepClientTimeout = setTimeout(keepClient, delay);
         }
     }
 }
