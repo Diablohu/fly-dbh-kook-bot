@@ -63236,7 +63236,6 @@ function getReadyStateString(state) {
  **/
 async function createClient() {
   var _await$axios$get$catc;
-  keepClient();
   (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)('Creating...');
   try {
     cache = fs_extra__WEBPACK_IMPORTED_MODULE_13___default().existsSync(clientCacheFile) ? (await fs_extra__WEBPACK_IMPORTED_MODULE_13___default().readJson(clientCacheFile)) || {} : {};
@@ -63284,6 +63283,7 @@ async function createClient() {
     clientOpenAt = dayjs__WEBPACK_IMPORTED_MODULE_4___default()(new Date());
     (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`✅ WebSocket Client ${getReadyStateString((_client = client) === null || _client === void 0 ? void 0 : _client.readyState)}`);
     sendPing();
+    keepClient();
   });
   client.on('error', (...args) => {
     (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)('WebSocket Client Error', ...args);
@@ -63345,7 +63345,7 @@ async function createClient() {
           {
             // 成功收到 PONG 回应，终止仍存在的 PING 重试尝试，开启新的 PING 倒计时
             // console.log('PONG!', msg);
-            (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`🤝 PONG!`);
+            // debugKookClient(`🤝 PONG!`);
             pingRetryCount = 0;
             sendPing();
             break;
@@ -63391,7 +63391,7 @@ async function createClient() {
               sn: cache.sn
             };
             // console.log('PING!', ping, client?.readyState);
-            (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`👋 PING!`);
+            // debugKookClient(`👋 PING!`);
             client.send(Buffer.from(JSON.stringify(ping)));
             lastPingTime = Date.now();
             // console.log({ pingRetryCount });
@@ -63545,12 +63545,9 @@ async function reconnect(reason) {
 // ============================================================================
 
 function keepClient(delay = 100_000) {
+  if (!(client instanceof ws__WEBPACK_IMPORTED_MODULE_0__["default"])) return;
+  if (Boolean(keepClientTimeout)) (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`💓 Vital: ${getReadyStateString(client.readyState)} (${clientOpenAt.fromNow(true)})`);
   if (keepClientTimeout) clearTimeout(keepClientTimeout);
-  if (!(client instanceof ws__WEBPACK_IMPORTED_MODULE_0__["default"])) {
-    keepClientTimeout = setTimeout(keepClient, delay);
-    return;
-  }
-  if (client.readyState) (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`💓 Vital: ${getReadyStateString(client.readyState)} (${clientOpenAt.fromNow(true)})`);
   switch (client.readyState) {
     case ws__WEBPACK_IMPORTED_MODULE_0__["default"].CLOSED:
       {
@@ -63560,6 +63557,8 @@ function keepClient(delay = 100_000) {
     default:
       {}
   }
+  keepClientTimeout = setTimeout(keepClient, delay);
+  return;
 }
 
 /***/ }),
