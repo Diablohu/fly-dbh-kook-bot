@@ -61652,6 +61652,7 @@ async function syncMessage(message) {
             });
             break;
           }
+        case 'image':
         case 'article':
           {
             await addProvider();
