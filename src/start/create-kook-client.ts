@@ -146,10 +146,22 @@ async function createClient(): Promise<void> {
     client.on('error', (...args) => {
         debugKookClient('WebSocket Client Error', ...args);
         logError(...args);
-        if (!client) return reconnect('💀 Crash On Starting');
+        if (!client) return reconnect('💀 Crashed when Connecting');
         if (typeof client.readyState === 'undefined')
-            return reconnect('💀 Crash On Starting');
-        if (client.readyState === ws.CLOSED) reconnect('💀 Crash On Error');
+            return reconnect('💀 Crashed when Connecting');
+        if (client.readyState === ws.CONNECTING)
+            reconnect('💀 Crashed when Connecting');
+        if (client.readyState === ws.CLOSED) reconnect('💀 Crashed On Error');
+    });
+    client.on('close', async (code, reason) => {
+        // const reasonText = (
+        //     await unzip(reason as unknown as zlib.InputType)
+        // ).toString();
+        debugKookClient(
+            [`⛔`, `WebSocket Client Closed [${code}]`, `${reason?.toString()}`]
+                .filter((s) => s !== '')
+                .join(' '),
+        );
     });
     client.on('message', async (buffer: Buffer) => {
         const msg = (
@@ -226,16 +238,6 @@ async function createClient(): Promise<void> {
         }
 
         await fs.writeJson(clientCacheFile, cache);
-    });
-    client.on('close', async (code, reason) => {
-        // const reasonText = (
-        //     await unzip(reason as unknown as zlib.InputType)
-        // ).toString();
-        debugKookClient(
-            [`⛔`, `WebSocket Client Closed [${code}]`, `${reason?.toString()}`]
-                .filter((s) => s !== '')
-                .join(' '),
-        );
     });
 
     /** 发送 PING */
