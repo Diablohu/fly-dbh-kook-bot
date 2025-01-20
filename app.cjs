@@ -63282,9 +63282,16 @@ async function createClient() {
   client.on('error', (...args) => {
     (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)('WebSocket Client Error', ...args);
     logError(...args);
-    if (!client) return reconnect('💀 Crash On Starting');
-    if (typeof client.readyState === 'undefined') return reconnect('💀 Crash On Starting');
-    if (client.readyState === ws__WEBPACK_IMPORTED_MODULE_0__["default"].CLOSED) reconnect('💀 Crash On Error');
+    if (!client) return reconnect('💀 Crashed when Connecting');
+    if (typeof client.readyState === 'undefined') return reconnect('💀 Crashed when Connecting');
+    if (client.readyState === ws__WEBPACK_IMPORTED_MODULE_0__["default"].CONNECTING) reconnect('💀 Crashed when Connecting');
+    if (client.readyState === ws__WEBPACK_IMPORTED_MODULE_0__["default"].CLOSED) reconnect('💀 Crashed On Error');
+  });
+  client.on('close', async (code, reason) => {
+    // const reasonText = (
+    //     await unzip(reason as unknown as zlib.InputType)
+    // ).toString();
+    (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)([`⛔`, `WebSocket Client Closed [${code}]`, `${reason === null || reason === void 0 ? void 0 : reason.toString()}`].filter(s => s !== '').join(' '));
   });
   client.on('message', async buffer => {
     const msg = (await unzip(buffer)).toString();
@@ -63352,12 +63359,6 @@ async function createClient() {
       }
     }
     await fs_extra__WEBPACK_IMPORTED_MODULE_13___default().writeJson(clientCacheFile, cache);
-  });
-  client.on('close', async (code, reason) => {
-    // const reasonText = (
-    //     await unzip(reason as unknown as zlib.InputType)
-    // ).toString();
-    (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)([`⛔`, `WebSocket Client Closed [${code}]`, `${reason === null || reason === void 0 ? void 0 : reason.toString()}`].filter(s => s !== '').join(' '));
   });
 
   /** 发送 PING */
