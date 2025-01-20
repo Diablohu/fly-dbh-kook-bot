@@ -61399,8 +61399,9 @@ async function syncMessage(message) {
     author,
     // content,
     attachments,
-    embeds
+    embeds: _embeds
   } = message;
+  const embeds = _embeds;
 
   /**
    * 转换 TweetShift 的神奇格式
@@ -61498,11 +61499,15 @@ async function syncMessage(message) {
       footer,
       timestamp
     } of embeds) {
+      var _lastEmbed$footer, _lastEmbed$footer2, _lastEmbed$footer3;
+      const lastEmbed = index ? embeds[index - 1] : undefined;
+
       /**
        * 是否使用上一个卡片
        * - 没有标题时，认为仅为媒体，将媒体放入上一个卡片中
        */
       const useLastCard = !title && cards.length > 0;
+      const isSameFooterAsLastEmbed = lastEmbed && ((_lastEmbed$footer = lastEmbed.footer) === null || _lastEmbed$footer === void 0 ? void 0 : _lastEmbed$footer.text) === (footer === null || footer === void 0 ? void 0 : footer.text) && ((_lastEmbed$footer2 = lastEmbed.footer) === null || _lastEmbed$footer2 === void 0 ? void 0 : _lastEmbed$footer2.proxy_icon_url) === (footer === null || footer === void 0 ? void 0 : footer.proxy_icon_url) && ((_lastEmbed$footer3 = lastEmbed.footer) === null || _lastEmbed$footer3 === void 0 ? void 0 : _lastEmbed$footer3.icon_url) === (footer === null || footer === void 0 ? void 0 : footer.icon_url);
       const thisCard = useLastCard ? cards[cards.length - 1] : {
         type: 'card',
         theme: 'secondary',
@@ -61678,7 +61683,7 @@ async function syncMessage(message) {
             });
           }
       }
-      if (!!footer) {
+      if (!!footer && !isSameFooterAsLastEmbed) {
         thisCard.modules.push({
           type: 'context',
           elements: [{
