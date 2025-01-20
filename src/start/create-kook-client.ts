@@ -82,8 +82,6 @@ function getReadyStateString(state: typeof client.readyState): string {
  *
  **/
 async function createClient(): Promise<void> {
-    keepClient();
-
     debugKookClient('Creating...');
 
     try {
@@ -142,6 +140,7 @@ async function createClient(): Promise<void> {
             `✅ WebSocket Client ${getReadyStateString(client?.readyState)}`,
         );
         sendPing();
+        keepClient();
     });
     client.on('error', (...args) => {
         debugKookClient('WebSocket Client Error', ...args);
@@ -441,17 +440,14 @@ async function reconnect(reason: string): Promise<void> {
 // ============================================================================
 
 function keepClient(delay = 100_000) {
-    if (keepClientTimeout) clearTimeout(keepClientTimeout);
+    if (!(client instanceof ws)) return;
 
-    if (!(client instanceof ws)) {
-        keepClientTimeout = setTimeout(keepClient, delay);
-        return;
-    }
-
-    if (client.readyState)
+    if (Boolean(keepClientTimeout))
         debugKookClient(
             `💓 Vital: ${getReadyStateString(client.readyState)} (${clientOpenAt.fromNow(true)})`,
         );
+
+    if (keepClientTimeout) clearTimeout(keepClientTimeout);
 
     switch (client.readyState) {
         case ws.CLOSED: {
@@ -461,4 +457,7 @@ function keepClient(delay = 100_000) {
         default: {
         }
     }
+
+    keepClientTimeout = setTimeout(keepClient, delay);
+    return;
 }
