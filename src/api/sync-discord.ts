@@ -25,10 +25,16 @@ function isUrlOnly(str: string): boolean {
 }
 
 function transformMarkdown(input: string): string {
+    // console.log({ input });
     return input.replace(
-        /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/g,
-        `[$1]($1)`,
+        /(.?)(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})(.?)/g,
+        (match, p1, p2, p3) => {
+            if (p1 === '(' && p3 === ')') return match;
+            if (p1 === '(' && p2.slice(-1) === ')') return match;
+            return `${p1}[${p2}](${p2})${p3}`;
+        },
     );
+    // return input;
 }
 
 type ExtendedCardMessageType = CardMessageType & {
