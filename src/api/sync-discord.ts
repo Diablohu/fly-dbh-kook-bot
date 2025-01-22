@@ -6,7 +6,10 @@ import type {
     CardMessageType,
     MessageType,
 } from '../../types';
+import { regexStringUrlPattern } from '../vars';
 
+import isStringUrlOnly from '../helpers/is-string-url-only';
+import transformStringToKMarkdown from '@/helpers/transform-string-to-kmarkdown';
 import upload from '../upload';
 import { getSourceLogo } from '../source-logos';
 import logger from '../logger';
@@ -15,27 +18,6 @@ import { channelMapDiscordToKook } from '../../app.config';
 import sendMessage from './send-message';
 
 // ============================================================================
-
-const regexUrl =
-    /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/;
-function isUrlOnly(str: string): boolean {
-    return new RegExp(
-        `^${regexUrl.toString().replace(/^\/(.+)\/$/, '$1')}$`,
-    ).test(str);
-}
-
-function transformMarkdown(input: string): string {
-    // console.log({ input });
-    return input.replace(
-        /(.?)(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})(.?)/g,
-        (match, p1, p2, p3) => {
-            if (p1 === '(' && p3 === ')') return match;
-            if (p1 === '(' && p2.slice(-1) === ')') return match;
-            return `${p1}[${p2}](${p2})${p3}`;
-        },
-    );
-    // return input;
-}
 
 type ExtendedCardMessageType = CardMessageType & {
     __type?: 'embed';
@@ -77,12 +59,7 @@ export async function syncMessage(message: Message) {
      * LINK [↧](ANOTHER_LINK) [↧](ANOTHER_LINK)
      */
     const content = message.content.replaceAll(
-        new RegExp(
-            ` \\[(↧| )\\]\\(${regexUrl
-                .toString()
-                .replace(/^\/(.+)\/$/, '$1')}\\)[$]*`,
-            'g',
-        ),
+        new RegExp(` \\[(↧| )\\]\\(${regexStringUrlPattern}\\)[$]*`, 'g'),
         '',
     );
 
@@ -117,7 +94,7 @@ export async function syncMessage(message: Message) {
                     type: 'section',
                     text: {
                         type: 'kmarkdown',
-                        content: transformMarkdown(content),
+                        content: transformStringToKMarkdown(content),
                     },
                 },
             ],
@@ -319,7 +296,8 @@ export async function syncMessage(message: Message) {
                                 type: 'section',
                                 text: {
                                     type: 'kmarkdown',
-                                    content: transformMarkdown(description),
+                                    content:
+                                        transformStringToKMarkdown(description),
                                     //
                                 },
                             });
@@ -343,7 +321,9 @@ export async function syncMessage(message: Message) {
                                             )}](${url})**`
                                           : `**${title}**`,
                                       !!description
-                                          ? transformMarkdown(description)
+                                          ? transformStringToKMarkdown(
+                                                description,
+                                            )
                                           : undefined,
                                   ]
                                       .filter((v) => !!v)
@@ -445,7 +425,9 @@ export async function syncMessage(message: Message) {
                                             )}](${url})**`
                                           : `**${title}**`,
                                       !!description
-                                          ? transformMarkdown(description)
+                                          ? transformStringToKMarkdown(
+                                                description,
+                                            )
                                           : undefined,
                                   ]
                                       .filter((v) => !!v)
@@ -525,7 +507,7 @@ export async function syncMessage(message: Message) {
     // 后续存在 embed
     if (
         imageAttachments.length < 1 &&
-        isUrlOnly(content) &&
+        isStringUrlOnly(content) &&
         postContent.some(({ __type }) => __type === 'embed')
     ) {
         postContent.shift();
