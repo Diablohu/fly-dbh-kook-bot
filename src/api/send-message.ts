@@ -61,8 +61,20 @@ async function msgQueueRun() {
             const url = '/message/' + (!!msg.msg_id ? 'update' : 'create');
             const res = await axios.post(url, msg);
 
+            // { code: 40000, message: '不支持该类型：header1', data: {}
+            if (
+                res.data.code === 40000 &&
+                res.data.message === 'json格式不正确'
+            ) {
+                console.log(` `);
+                console.log(`❓ [${res.data.code}] ${res.data.message} ❓`);
+                console.log(`    Type: ${msg.type}`);
+                console.log(`    Message: ${msg.content}`);
+                console.log(` `);
+                return await next.after?.();
+            }
+
             if (res.data.code !== 0) {
-                // { code: 40000, message: '不支持该类型：header1', data: {}
                 throw res;
             }
 
@@ -77,7 +89,7 @@ async function msgQueueRun() {
                 message_map: discordMessageMap,
             });
 
-            if (typeof next.after === 'function') await next.after();
+            return await next.after?.();
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {

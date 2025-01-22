@@ -294,7 +294,7 @@ async function createClient(): Promise<void> {
     async function parseMsg(body: WSMessageType, sn: number) {
         // 如果是机器人或系统消息，直接忽略
         if (
-            (body?.extra?.type === WSMessageTypes.Markdown ||
+            (body?.extra?.type === WSMessageTypes.KMarkdown ||
                 body?.extra?.type === WSMessageTypes.Card) &&
             (body?.extra?.author?.bot === true ||
                 body?.extra?.author?.is_sys === true)
@@ -303,8 +303,8 @@ async function createClient(): Promise<void> {
 
         // 如果是以 `/` 开头的消息，判断为命令，进行分析
         if (
-            body?.type === WSMessageTypes.Markdown &&
-            body?.extra?.type === WSMessageTypes.Markdown &&
+            body?.type === WSMessageTypes.KMarkdown &&
+            body?.extra?.type === WSMessageTypes.KMarkdown &&
             /^\//.test(body?.content)
         ) {
             // 开发环境仅监控一个频道
@@ -402,7 +402,7 @@ async function createClient(): Promise<void> {
             }
             case WSMessageTypes.Video:
             case WSMessageTypes.Image:
-            case WSMessageTypes.Markdown:
+            case WSMessageTypes.KMarkdown:
             case WSMessageTypes.Card: {
                 break;
             }
