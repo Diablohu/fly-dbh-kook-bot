@@ -9,7 +9,7 @@ import type {
 import { regexStringUrlPattern } from '../vars';
 
 import isStringUrlOnly from '../helpers/is-string-url-only';
-import transformStringToKMarkdown from '@/helpers/transform-string-to-kmarkdown';
+import transformStringToKMarkdown from '../helpers/transform-string-to-kmarkdown';
 import upload from '../upload';
 import { getSourceLogo } from '../source-logos';
 import logger from '../logger';
