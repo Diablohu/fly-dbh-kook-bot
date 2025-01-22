@@ -61305,14 +61305,25 @@ async function msgQueueRun() {
 
     // console.log(next.message);
     try {
+      var _next$after2;
       const {
         discord_msg_id,
         ...msg
       } = next.message;
       const url = '/message/' + (!!msg.msg_id ? 'update' : 'create');
       const res = await axios__WEBPACK_IMPORTED_MODULE_2__["default"].post(url, msg);
+
+      // { code: 40000, message: '不支持该类型：header1', data: {}
+      if (res.data.code === 40000 && res.data.message === 'json格式不正确') {
+        var _next$after;
+        console.log(` `);
+        console.log(`❓ [${res.data.code}] ${res.data.message} ❓`);
+        console.log(`    Type: ${msg.type}`);
+        console.log(`    Message: ${msg.content}`);
+        console.log(` `);
+        return await ((_next$after = next.after) === null || _next$after === void 0 ? void 0 : _next$after.call(next));
+      }
       if (res.data.code !== 0) {
-        // { code: 40000, message: '不支持该类型：header1', data: {}
         throw res;
       }
 
@@ -61324,7 +61335,7 @@ async function msgQueueRun() {
         message_id: res.data.data.msg_id,
         message_map: discordMessageMap
       });
-      if (typeof next.after === 'function') await next.after();
+      return await ((_next$after2 = next.after) === null || _next$after2 === void 0 ? void 0 : _next$after2.call(next));
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e) {
@@ -61387,7 +61398,7 @@ function isUrlOnly(str) {
   return new RegExp(`^${regexUrl.toString().replace(/^\/(.+)\/$/, '$1')}$`).test(str);
 }
 function transformMarkdown(input) {
-  return input.replace(/[^(](https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/g, `[$1]($1)`);
+  return input.replace(/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/g, `[$1]($1)`);
 }
 // ============================================================================
 
@@ -63418,10 +63429,10 @@ async function createClient() {
   async function parseMsg(body, sn) {
     var _body$extra, _body$extra2, _body$extra3, _body$extra3$author, _body$extra4, _body$extra4$author, _body$extra5;
     // 如果是机器人或系统消息，直接忽略
-    if (((body === null || body === void 0 ? void 0 : (_body$extra = body.extra) === null || _body$extra === void 0 ? void 0 : _body$extra.type) === _types__WEBPACK_IMPORTED_MODULE_6__.WSMessageTypes.Markdown || (body === null || body === void 0 ? void 0 : (_body$extra2 = body.extra) === null || _body$extra2 === void 0 ? void 0 : _body$extra2.type) === _types__WEBPACK_IMPORTED_MODULE_6__.WSMessageTypes.Card) && ((body === null || body === void 0 ? void 0 : (_body$extra3 = body.extra) === null || _body$extra3 === void 0 ? void 0 : (_body$extra3$author = _body$extra3.author) === null || _body$extra3$author === void 0 ? void 0 : _body$extra3$author.bot) === true || (body === null || body === void 0 ? void 0 : (_body$extra4 = body.extra) === null || _body$extra4 === void 0 ? void 0 : (_body$extra4$author = _body$extra4.author) === null || _body$extra4$author === void 0 ? void 0 : _body$extra4$author.is_sys) === true)) return;
+    if (((body === null || body === void 0 ? void 0 : (_body$extra = body.extra) === null || _body$extra === void 0 ? void 0 : _body$extra.type) === _types__WEBPACK_IMPORTED_MODULE_6__.WSMessageTypes.KMarkdown || (body === null || body === void 0 ? void 0 : (_body$extra2 = body.extra) === null || _body$extra2 === void 0 ? void 0 : _body$extra2.type) === _types__WEBPACK_IMPORTED_MODULE_6__.WSMessageTypes.Card) && ((body === null || body === void 0 ? void 0 : (_body$extra3 = body.extra) === null || _body$extra3 === void 0 ? void 0 : (_body$extra3$author = _body$extra3.author) === null || _body$extra3$author === void 0 ? void 0 : _body$extra3$author.bot) === true || (body === null || body === void 0 ? void 0 : (_body$extra4 = body.extra) === null || _body$extra4 === void 0 ? void 0 : (_body$extra4$author = _body$extra4.author) === null || _body$extra4$author === void 0 ? void 0 : _body$extra4$author.is_sys) === true)) return;
 
     // 如果是以 `/` 开头的消息，判断为命令，进行分析
-    if ((body === null || body === void 0 ? void 0 : body.type) === _types__WEBPACK_IMPORTED_MODULE_6__.WSMessageTypes.Markdown && (body === null || body === void 0 ? void 0 : (_body$extra5 = body.extra) === null || _body$extra5 === void 0 ? void 0 : _body$extra5.type) === _types__WEBPACK_IMPORTED_MODULE_6__.WSMessageTypes.Markdown && /^\//.test(body === null || body === void 0 ? void 0 : body.content)) {
+    if ((body === null || body === void 0 ? void 0 : body.type) === _types__WEBPACK_IMPORTED_MODULE_6__.WSMessageTypes.KMarkdown && (body === null || body === void 0 ? void 0 : (_body$extra5 = body.extra) === null || _body$extra5 === void 0 ? void 0 : _body$extra5.type) === _types__WEBPACK_IMPORTED_MODULE_6__.WSMessageTypes.KMarkdown && /^\//.test(body === null || body === void 0 ? void 0 : body.content)) {
       // 开发环境仅监控一个频道
       if (process.env.WEBPACK_BUILD_ENV === 'dev' && (body === null || body === void 0 ? void 0 : body.target_id) !== '6086801551312186') return;
       const command = body === null || body === void 0 ? void 0 : body.content.replace(/^\//, '');
@@ -63509,7 +63520,7 @@ async function createClient() {
         }
       case _types__WEBPACK_IMPORTED_MODULE_6__.WSMessageTypes.Video:
       case _types__WEBPACK_IMPORTED_MODULE_6__.WSMessageTypes.Image:
-      case _types__WEBPACK_IMPORTED_MODULE_6__.WSMessageTypes.Markdown:
+      case _types__WEBPACK_IMPORTED_MODULE_6__.WSMessageTypes.KMarkdown:
       case _types__WEBPACK_IMPORTED_MODULE_6__.WSMessageTypes.Card:
         {
           break;
@@ -63810,7 +63821,7 @@ let WSSignalTypes = /*#__PURE__*/function (WSSignalTypes) {
 let WSMessageTypes = /*#__PURE__*/function (WSMessageTypes) {
   WSMessageTypes[WSMessageTypes["Image"] = 2] = "Image";
   WSMessageTypes[WSMessageTypes["Video"] = 3] = "Video";
-  WSMessageTypes[WSMessageTypes["Markdown"] = 9] = "Markdown";
+  WSMessageTypes[WSMessageTypes["KMarkdown"] = 9] = "KMarkdown";
   WSMessageTypes[WSMessageTypes["Card"] = 10] = "Card";
   WSMessageTypes[WSMessageTypes["System"] = 255] = "System";
   return WSMessageTypes;
