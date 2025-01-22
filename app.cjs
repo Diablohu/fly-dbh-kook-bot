@@ -61380,11 +61380,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   deleteMessage: () => (/* binding */ deleteMessage),
 /* harmony export */   syncMessage: () => (/* binding */ syncMessage)
 /* harmony export */ });
-/* harmony import */ var _upload__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../upload */ "./src/upload.ts");
-/* harmony import */ var _source_logos__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../source-logos */ "./src/source-logos.ts");
-/* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../logger */ "./src/logger.ts");
-/* harmony import */ var _app_config__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../app.config */ "./app.config.ts");
-/* harmony import */ var _send_message__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./send-message */ "./src/api/send-message.ts");
+/* harmony import */ var _vars__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../vars */ "./src/vars.ts");
+/* harmony import */ var _helpers_is_string_url_only__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../helpers/is-string-url-only */ "./src/helpers/is-string-url-only.ts");
+/* harmony import */ var _helpers_transform_string_to_kmarkdown__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @/helpers/transform-string-to-kmarkdown */ "./src/helpers/transform-string-to-kmarkdown.ts");
+/* harmony import */ var _upload__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../upload */ "./src/upload.ts");
+/* harmony import */ var _source_logos__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../source-logos */ "./src/source-logos.ts");
+/* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../logger */ "./src/logger.ts");
+/* harmony import */ var _app_config__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../app.config */ "./app.config.ts");
+/* harmony import */ var _send_message__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./send-message */ "./src/api/send-message.ts");
+
+
+
 
 
 
@@ -61393,19 +61399,6 @@ __webpack_require__.r(__webpack_exports__);
 
 // ============================================================================
 
-const regexUrl = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/;
-function isUrlOnly(str) {
-  return new RegExp(`^${regexUrl.toString().replace(/^\/(.+)\/$/, '$1')}$`).test(str);
-}
-function transformMarkdown(input) {
-  // console.log({ input });
-  return input.replace(/(.?)(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})(.?)/g, (match, p1, p2, p3) => {
-    if (p1 === '(' && p3 === ')') return match;
-    if (p1 === '(' && p2.slice(-1) === ')') return match;
-    return `${p1}[${p2}](${p2})${p3}`;
-  });
-  // return input;
-}
 // ============================================================================
 
 async function syncMessage(message) {
@@ -61425,8 +61418,8 @@ async function syncMessage(message) {
    * LINK [](ANOTHER_LINK) [](ANOTHER_LINK)
    * LINK [↧](ANOTHER_LINK) [↧](ANOTHER_LINK)
    */
-  const content = message.content.replaceAll(new RegExp(` \\[(↧| )\\]\\(${regexUrl.toString().replace(/^\/(.+)\/$/, '$1')}\\)[$]*`, 'g'), '');
-  const avatar = !!(author !== null && author !== void 0 && author.id) && !!(author !== null && author !== void 0 && author.avatar) ? await (0,_upload__WEBPACK_IMPORTED_MODULE_0__["default"])(`https://cdn.discordapp.com/avatars/${author.id}/${author.avatar}.webp`) : undefined;
+  const content = message.content.replaceAll(new RegExp(` \\[(↧| )\\]\\(${_vars__WEBPACK_IMPORTED_MODULE_0__.regexStringUrlPattern}\\)[$]*`, 'g'), '');
+  const avatar = !!(author !== null && author !== void 0 && author.id) && !!(author !== null && author !== void 0 && author.avatar) ? await (0,_upload__WEBPACK_IMPORTED_MODULE_3__["default"])(`https://cdn.discordapp.com/avatars/${author.id}/${author.avatar}.webp`) : undefined;
 
   /** 用以提交的 Kook 结构的消息内容 */
   const postContent = [{
@@ -61446,7 +61439,7 @@ async function syncMessage(message) {
       type: 'section',
       text: {
         type: 'kmarkdown',
-        content: transformMarkdown(content)
+        content: (0,_helpers_transform_string_to_kmarkdown__WEBPACK_IMPORTED_MODULE_2__["default"])(content)
       }
     }]
   }];
@@ -61460,7 +61453,7 @@ async function syncMessage(message) {
     for (const [, {
       url
     }] of imageAttachments) {
-      images.push(await (0,_upload__WEBPACK_IMPORTED_MODULE_0__["default"])(url));
+      images.push(await (0,_upload__WEBPACK_IMPORTED_MODULE_3__["default"])(url));
     }
     if (images.length === 1) {
       postContent[0].modules.push({
@@ -61486,7 +61479,7 @@ async function syncMessage(message) {
     type: 'context',
     elements: [{
       type: 'image',
-      src: await (0,_source_logos__WEBPACK_IMPORTED_MODULE_1__.getSourceLogo)('discord')
+      src: await (0,_source_logos__WEBPACK_IMPORTED_MODULE_4__.getSourceLogo)('discord')
     }, {
       type: 'plain-text',
       content: ['Discord', new Intl.DateTimeFormat('zh-CN', {
@@ -61546,7 +61539,7 @@ async function syncMessage(message) {
           elements: [!!author.icon_url ? {
             type: 'image',
             //   size: 'sm',
-            src: await (0,_upload__WEBPACK_IMPORTED_MODULE_0__["default"])(author.icon_url)
+            src: await (0,_upload__WEBPACK_IMPORTED_MODULE_3__["default"])(author.icon_url)
           } : undefined, !!author.url ? {
             type: 'kmarkdown',
             content: `[${author.name.replace(/\[(.+?)\]/g, '\\[$1\\]')}](${author.url})`
@@ -61575,7 +61568,7 @@ async function syncMessage(message) {
             type: 'container',
             elements: [{
               type: 'image',
-              src: await (0,_upload__WEBPACK_IMPORTED_MODULE_0__["default"])(image.url)
+              src: await (0,_upload__WEBPACK_IMPORTED_MODULE_3__["default"])(image.url)
             }]
           };
           thisCard.modules.push(thisIimageModule);
@@ -61584,7 +61577,7 @@ async function syncMessage(message) {
           thisIimageModule.type = 'image-group';
           (_thisIimageModule$ele = thisIimageModule.elements) === null || _thisIimageModule$ele === void 0 ? void 0 : _thisIimageModule$ele.push({
             type: 'image',
-            src: await (0,_upload__WEBPACK_IMPORTED_MODULE_0__["default"])(image.url)
+            src: await (0,_upload__WEBPACK_IMPORTED_MODULE_3__["default"])(image.url)
           });
         }
       }
@@ -61599,7 +61592,7 @@ async function syncMessage(message) {
                 type: 'section',
                 text: {
                   type: 'kmarkdown',
-                  content: transformMarkdown(description)
+                  content: (0,_helpers_transform_string_to_kmarkdown__WEBPACK_IMPORTED_MODULE_2__["default"])(description)
                   //
                 }
               });
@@ -61615,7 +61608,7 @@ async function syncMessage(message) {
               type: 'section',
               text: !!url ? {
                 type: 'kmarkdown',
-                content: [!!url ? `**[${title.replace(/\[(.+?)\]/g, '\\[$1\\]')}](${url})**` : `**${title}**`, !!description ? transformMarkdown(description) : undefined].filter(v => !!v).join('\n')
+                content: [!!url ? `**[${title.replace(/\[(.+?)\]/g, '\\[$1\\]')}](${url})**` : `**${title}**`, !!description ? (0,_helpers_transform_string_to_kmarkdown__WEBPACK_IMPORTED_MODULE_2__["default"])(description) : undefined].filter(v => !!v).join('\n')
               } : {
                 type: 'plain-text',
                 content: title
@@ -61623,7 +61616,7 @@ async function syncMessage(message) {
               mode: 'right',
               accessory: !!thumbnail ? {
                 type: 'image',
-                src: await (0,_upload__WEBPACK_IMPORTED_MODULE_0__["default"])(thumbnail === null || thumbnail === void 0 ? void 0 : thumbnail.url),
+                src: await (0,_upload__WEBPACK_IMPORTED_MODULE_3__["default"])(thumbnail === null || thumbnail === void 0 ? void 0 : thumbnail.url),
                 size: 'sm'
               } : undefined
             });
@@ -61662,7 +61655,7 @@ async function syncMessage(message) {
               type: 'context',
               elements: [{
                 type: 'image',
-                src: await (0,_source_logos__WEBPACK_IMPORTED_MODULE_1__.getSourceLogo)('youtube')
+                src: await (0,_source_logos__WEBPACK_IMPORTED_MODULE_4__.getSourceLogo)('youtube')
               }, {
                 type: 'plain-text',
                 content: ['YouTube', !!timestamp ? new Intl.DateTimeFormat('zh-CN', {
@@ -61682,7 +61675,7 @@ async function syncMessage(message) {
               type: 'section',
               text: !!url ? {
                 type: 'kmarkdown',
-                content: [!!url ? `**[${title.replace(/\[(.+?)\]/g, '\\[$1\\]')}](${url})**` : `**${title}**`, !!description ? transformMarkdown(description) : undefined].filter(v => !!v).join('\n')
+                content: [!!url ? `**[${title.replace(/\[(.+?)\]/g, '\\[$1\\]')}](${url})**` : `**${title}**`, !!description ? (0,_helpers_transform_string_to_kmarkdown__WEBPACK_IMPORTED_MODULE_2__["default"])(description) : undefined].filter(v => !!v).join('\n')
               } : {
                 type: 'plain-text',
                 content: title
@@ -61694,7 +61687,7 @@ async function syncMessage(message) {
         default:
           {
             console.log(embeds[index]);
-            _logger__WEBPACK_IMPORTED_MODULE_2__["default"].warn({
+            _logger__WEBPACK_IMPORTED_MODULE_5__["default"].warn({
               type: 'UNRECOGNIZED_EMBED_TYPE',
               embed: embeds[index]
             });
@@ -61705,7 +61698,7 @@ async function syncMessage(message) {
           type: 'context',
           elements: [{
             type: 'image',
-            src: await (0,_source_logos__WEBPACK_IMPORTED_MODULE_1__.getSourceLogo)(footer.text, footer.icon_url)
+            src: await (0,_source_logos__WEBPACK_IMPORTED_MODULE_4__.getSourceLogo)(footer.text, footer.icon_url)
           }, !!timestamp ? {
             type: 'plain-text',
             content: [footer.text, new Intl.DateTimeFormat('zh-CN', {
@@ -61731,7 +61724,7 @@ async function syncMessage(message) {
   }
 
   // console.log(postContent);
-  _logger__WEBPACK_IMPORTED_MODULE_2__["default"].info({
+  _logger__WEBPACK_IMPORTED_MODULE_5__["default"].info({
     request: message,
     transformed: postContent
   });
@@ -61740,7 +61733,7 @@ async function syncMessage(message) {
   // 没有附件
   // 内容仅为 URL
   // 后续存在 embed
-  if (imageAttachments.length < 1 && isUrlOnly(content) && postContent.some(({
+  if (imageAttachments.length < 1 && (0,_helpers_is_string_url_only__WEBPACK_IMPORTED_MODULE_1__["default"])(content) && postContent.some(({
     __type
   }) => __type === 'embed')) {
     postContent.shift();
@@ -61772,11 +61765,11 @@ async function syncMessage(message) {
   }
   const postData = {
     type: 10,
-    target_id: channelId in _app_config__WEBPACK_IMPORTED_MODULE_3__.channelMapDiscordToKook ? _app_config__WEBPACK_IMPORTED_MODULE_3__.channelMapDiscordToKook[channelId] : '6086801551312186',
+    target_id: channelId in _app_config__WEBPACK_IMPORTED_MODULE_6__.channelMapDiscordToKook ? _app_config__WEBPACK_IMPORTED_MODULE_6__.channelMapDiscordToKook[channelId] : '6086801551312186',
     content: JSON.stringify(postContent),
     discord_msg_id: id
   };
-  (0,_send_message__WEBPACK_IMPORTED_MODULE_4__["default"])(postData);
+  (0,_send_message__WEBPACK_IMPORTED_MODULE_7__["default"])(postData);
   return {
     data: 'sync-discord request queued.'
   };
@@ -62870,6 +62863,56 @@ function getDefaultHeaders() {
 
 /***/ }),
 
+/***/ "./src/helpers/is-string-url-only.ts":
+/*!*******************************************!*\
+  !*** ./src/helpers/is-string-url-only.ts ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _vars__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../vars */ "./src/vars.ts");
+
+function isStringUrlOnly(str) {
+  return new RegExp(`^${_vars__WEBPACK_IMPORTED_MODULE_0__.regexStringUrlPattern}$`).test(str) || new RegExp(`^(\\[↧\\]\\(${_vars__WEBPACK_IMPORTED_MODULE_0__.regexStringUrlPattern}\\)\\s*)+$`).test(str);
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (isStringUrlOnly);
+
+/*
+new RegExp(`^(\\[↧\\]\\(.+?\\))$`)
+\1+
+*/
+
+/***/ }),
+
+/***/ "./src/helpers/transform-string-to-kmarkdown.ts":
+/*!******************************************************!*\
+  !*** ./src/helpers/transform-string-to-kmarkdown.ts ***!
+  \******************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _vars__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../vars */ "./src/vars.ts");
+
+function transformStringToKMarkdown(input) {
+  return input.replace(new RegExp(`(.?)${_vars__WEBPACK_IMPORTED_MODULE_0__.regexStringUrlPattern}(.?)`, 'g'), (match, p1, p2, p3) => {
+    // 如果匹配前后是空格，无视
+    if (p1 === '(' && p3 === ')') return match;
+    if (p1 === '(' && p2.slice(-1) === ')') return match;
+    return `${p1}[${p2}](${p2})${p3}`;
+  });
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (transformStringToKMarkdown);
+
+/***/ }),
+
 /***/ "./src/logger.ts":
 /*!***********************!*\
   !*** ./src/logger.ts ***!
@@ -63779,7 +63822,8 @@ async function upload(url) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   kookPublicResponseChannelIDs: () => (/* binding */ kookPublicResponseChannelIDs)
+/* harmony export */   kookPublicResponseChannelIDs: () => (/* binding */ kookPublicResponseChannelIDs),
+/* harmony export */   regexStringUrlPattern: () => (/* binding */ regexStringUrlPattern)
 /* harmony export */ });
 /**
  * 公开回应的频道ID
@@ -63787,6 +63831,20 @@ __webpack_require__.r(__webpack_exports__);
  */
 const kookPublicResponseChannelIDs = [`6061361713354559`, `6086801551312186` // Playground Channel
 ];
+
+/*
+https?://(?:www\\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\\.[\\S]{2,}
+https?://(?:www\\.|(?!www))[a-zA-Z0-9]+\\.[\\S]{2,}
+www\\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\\.[\\S]{2,}
+www\\.[a-zA-Z0-9]+\\.[\\S]{2,}
+*/
+/**
+ * 用以判断字符串是否是 URL 的正则表达式 string
+ * - 可直接使用 `new RegExp()` 来生成正则表达式
+ */
+const regexStringUrlPattern = `(${[`https?://(?:www\\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]`, `https?://(?:www\\.|(?!www))[a-zA-Z0-9]+`, `www\\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]`, `www\\.[a-zA-Z0-9]+`].map(s => `${s}\\.[\\S]{2,}`)
+// .map((s) => `${s}\\.[a-zA-Z]{2,}`)
+.join('|')})`;
 
 /***/ }),
 
