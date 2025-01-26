@@ -61495,7 +61495,10 @@ async function syncMessage(message) {
       } : undefined, {
         type: 'plain-text',
         content: author === null || author === void 0 ? void 0 : author.username
-      }].filter(v => !!v)
+      }].reduce((elements, curr) => {
+        if (curr) elements.push(curr);
+        return elements;
+      }, [])
     }, {
       type: 'section',
       text: {
@@ -63414,6 +63417,11 @@ async function createClient() {
     if (typeof client.readyState === 'undefined') return reconnect('💀 Crashed when Connecting');
     if (client.readyState === ws__WEBPACK_IMPORTED_MODULE_0__["default"].CONNECTING) reconnect('💀 Crashed when Connecting');
     if (client.readyState === ws__WEBPACK_IMPORTED_MODULE_0__["default"].CLOSED) reconnect('💀 Crashed On Error');
+    if (args[0] instanceof Error) {
+      if (args[0].message === 'socket hang up') {
+        reconnect('💀 socket hang up');
+      }
+    }
   });
   client.on('close', async (code, reason) => {
     // const reasonText = (
