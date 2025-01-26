@@ -151,6 +151,12 @@ async function createClient(): Promise<void> {
         if (client.readyState === ws.CONNECTING)
             reconnect('💀 Crashed when Connecting');
         if (client.readyState === ws.CLOSED) reconnect('💀 Crashed On Error');
+
+        if (args[0] instanceof Error) {
+            if (args[0].message === 'socket hang up') {
+                reconnect('💀 socket hang up');
+            }
+        }
     });
     client.on('close', async (code, reason) => {
         // const reasonText = (
