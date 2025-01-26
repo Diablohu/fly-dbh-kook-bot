@@ -12236,7 +12236,15 @@ function mkDirAndCopy(srcMode, src, dest, opts) {
   return setDestMode(dest, srcMode);
 }
 function copyDir(src, dest, opts) {
-  fs.readdirSync(src).forEach(item => copyDirItem(item, src, dest, opts));
+  const dir = fs.opendirSync(src);
+  try {
+    let dirent;
+    while ((dirent = dir.readSync()) !== null) {
+      copyDirItem(dirent.name, src, dest, opts);
+    }
+  } finally {
+    dir.closeSync();
+  }
 }
 function copyDirItem(item, src, dest, opts) {
   const srcItem = path.join(src, item);
@@ -12394,24 +12402,26 @@ async function onDir(srcStat, destStat, src, dest, opts) {
   if (!destStat) {
     await fs.mkdir(dest);
   }
-  const items = await fs.readdir(src);
+  const promises = [];
 
   // loop through the files in the current directory to copy everything
-  await Promise.all(items.map(async item => {
-    const srcItem = path.join(src, item);
-    const destItem = path.join(dest, item);
-
-    // skip the item if it is matches by the filter function
-    const include = await runFilter(srcItem, destItem, opts);
-    if (!include) return;
-    const {
-      destStat
-    } = await stat.checkPaths(srcItem, destItem, 'copy', opts);
-
-    // If the item is a copyable file, `getStatsAndPerformCopy` will copy it
-    // If the item is a directory, `getStatsAndPerformCopy` will call `onDir` recursively
-    return getStatsAndPerformCopy(destStat, srcItem, destItem, opts);
-  }));
+  for await (const item of await fs.opendir(src)) {
+    const srcItem = path.join(src, item.name);
+    const destItem = path.join(dest, item.name);
+    promises.push(runFilter(srcItem, destItem, opts).then(include => {
+      if (include) {
+        // only copy the item if it matches the filter function
+        return stat.checkPaths(srcItem, destItem, 'copy', opts).then(({
+          destStat
+        }) => {
+          // If the item is a copyable file, `getStatsAndPerformCopy` will copy it
+          // If the item is a directory, `getStatsAndPerformCopy` will call `onDir` recursively
+          return getStatsAndPerformCopy(destStat, srcItem, destItem, opts);
+        });
+      }
+    }));
+  }
+  await Promise.all(promises);
   if (!destStat) {
     await fs.chmod(dest, srcStat.mode);
   }
@@ -12919,9 +12929,11 @@ module.exports = {
 // Copyright (c) 2014-2016 Jonathan Ong me@jongleberry.com and Contributors
 const u = (__webpack_require__(/*! universalify */ "./node_modules/universalify/index.js").fromCallback);
 const fs = __webpack_require__(/*! graceful-fs */ "./node_modules/graceful-fs/graceful-fs.js");
-const api = ['access', 'appendFile', 'chmod', 'chown', 'close', 'copyFile', 'fchmod', 'fchown', 'fdatasync', 'fstat', 'fsync', 'ftruncate', 'futimes', 'lchmod', 'lchown', 'link', 'lstat', 'mkdir', 'mkdtemp', 'open', 'opendir', 'readdir', 'readFile', 'readlink', 'realpath', 'rename', 'rm', 'rmdir', 'stat', 'symlink', 'truncate', 'unlink', 'utimes', 'writeFile'].filter(key => {
+const api = ['access', 'appendFile', 'chmod', 'chown', 'close', 'copyFile', 'cp', 'fchmod', 'fchown', 'fdatasync', 'fstat', 'fsync', 'ftruncate', 'futimes', 'glob', 'lchmod', 'lchown', 'lutimes', 'link', 'lstat', 'mkdir', 'mkdtemp', 'open', 'opendir', 'readdir', 'readFile', 'readlink', 'realpath', 'rename', 'rm', 'rmdir', 'stat', 'statfs', 'symlink', 'truncate', 'unlink', 'utimes', 'writeFile'].filter(key => {
   // Some commands are not available on some systems. Ex:
   // fs.cp was added in Node.js v16.7.0
+  // fs.statfs was added in Node v19.6.0, v18.15.0
+  // fs.glob was added in Node.js v22.0.0
   // fs.lchown is not available on at least some Linux
   return typeof fs[key] === 'function';
 });
@@ -61257,9 +61269,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! axios */ "./node_modules/axios/lib/axios.js");
-/* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../logger */ "./src/logger.ts");
-/* harmony import */ var _sleep__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../sleep */ "./src/sleep.ts");
+/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! axios */ "./node_modules/axios/lib/axios.js");
+/* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../types */ "./types/index.ts");
+/* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../logger */ "./src/logger.ts");
+/* harmony import */ var _sleep__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../sleep */ "./src/sleep.ts");
+
 
 
 
@@ -61305,43 +61319,90 @@ async function msgQueueRun() {
 
     // console.log(next.message);
     try {
-      var _next$after2;
+      var _next$after;
       const {
         discord_msg_id,
         ...msg
       } = next.message;
       const url = '/message/' + (!!msg.msg_id ? 'update' : 'create');
-      const res = await axios__WEBPACK_IMPORTED_MODULE_2__["default"].post(url, msg);
-
-      // { code: 40000, message: '不支持该类型：header1', data: {}
-      if (res.data.code === 40000 && res.data.message === 'json格式不正确') {
-        var _next$after;
-        console.log(` `);
-        console.log(`❓ [${res.data.code}] ${res.data.message} ❓`);
-        console.log(`    Type: ${msg.type}`);
-        console.log(`    Message: ${msg.content}`);
-        console.log(` `);
-        return await ((_next$after = next.after) === null || _next$after === void 0 ? void 0 : _next$after.call(next));
-      }
-      if (res.data.code !== 0) {
+      const res = await axios__WEBPACK_IMPORTED_MODULE_3__["default"].post(url, msg);
+      if (![0, 40000].includes(res.data.code)) {
         throw res;
       }
-
-      // console.log('___', url, msg, res);
-      if (discord_msg_id && res.data.data.msg_id) discordMessageMap.set(discord_msg_id, res.data.data.msg_id);
-      _logger__WEBPACK_IMPORTED_MODULE_0__["default"].http({
-        type: 'MSG_SENT',
-        response: res.data,
-        message_id: res.data.data.msg_id,
-        message_map: discordMessageMap
-      });
-      return await ((_next$after2 = next.after) === null || _next$after2 === void 0 ? void 0 : _next$after2.call(next));
+      if (res.data.code === 40000 && res.data.message === '内容长度过长' && msg.type === _types__WEBPACK_IMPORTED_MODULE_0__.MessageTypes.Card) {
+        let usedLength = 0;
+        const maxLength = 2000;
+        const msgs = JSON.parse(msg.content).map(msg => {
+          if (msg.type !== 'card') return msg;
+          if (!Array.isArray(msg.modules)) return msg;
+          msg.modules = msg.modules.map(msgModule => {
+            var _msgModule$text, _msgModule$text2;
+            if ((msgModule === null || msgModule === void 0 ? void 0 : msgModule.type) !== 'section') return msgModule;
+            if ((msgModule === null || msgModule === void 0 ? void 0 : (_msgModule$text = msgModule.text) === null || _msgModule$text === void 0 ? void 0 : _msgModule$text.type) !== 'kmarkdown') return msgModule;
+            if (!(msgModule !== null && msgModule !== void 0 && (_msgModule$text2 = msgModule.text) !== null && _msgModule$text2 !== void 0 && _msgModule$text2.content)) return msgModule;
+            if (msgModule.text.content.length + usedLength > maxLength) {
+              const remainLength = maxLength - usedLength;
+              msgModule.text.content = msgModule.text.content.slice(0, remainLength);
+            } else {
+              usedLength += msgModule.text.content.length;
+            }
+            return msgModule;
+          });
+          msg.modules.unshift({
+            type: 'context',
+            elements: [{
+              type: 'plain-text',
+              content: '⚠ 内容长度过长，以下仅为截取的片段'
+            }]
+          }, {
+            type: 'divider'
+          });
+          return msg;
+        });
+        next.message.content = JSON.stringify(msgs);
+        // 截取后重新发送
+        return await runNext();
+      }
+      if (res.data.code === 40000) {
+        switch (res.data.message) {
+          // case 'json格式不正确': {
+          //     break;
+          // }
+          // case '内容长度过长': {
+          //     break;
+          // }
+          default:
+            {
+              console.log(` `);
+              console.log(`❓ [${res.data.code}] ${res.data.message} ❓`);
+              console.log(`    Type: ${msg.type}`);
+              console.log(`    Message: ${msg.content}`);
+              console.log(` `);
+              (0,_logger__WEBPACK_IMPORTED_MODULE_1__.logError)({
+                ...res.data,
+                type: msg.type,
+                content: msg.content
+              });
+            }
+        }
+      }
+      if (res.data.code === 0) {
+        // console.log('___', url, msg, res);
+        if (discord_msg_id && res.data.data.msg_id) discordMessageMap.set(discord_msg_id, res.data.data.msg_id);
+        _logger__WEBPACK_IMPORTED_MODULE_1__["default"].http({
+          type: 'MSG_SENT',
+          response: res.data,
+          message_id: res.data.data.msg_id,
+          message_map: discordMessageMap
+        });
+      }
+      return await ((_next$after = next.after) === null || _next$after === void 0 ? void 0 : _next$after.call(next));
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e) {
       var _e$data;
       console.log(e);
-      (0,_logger__WEBPACK_IMPORTED_MODULE_0__.logError)(e);
+      (0,_logger__WEBPACK_IMPORTED_MODULE_1__.logError)(e);
 
       // 如果报告 40000，说明格式有误，不进行重试
       // TODO: 报告给我？
@@ -61354,12 +61415,12 @@ async function msgQueueRun() {
       // console.log(123, msgQueueRetryCount);
       if (msgQueueRetryCount < 2) {
         msgQueueRetryCount++;
-        await (0,_sleep__WEBPACK_IMPORTED_MODULE_1__["default"])(3000);
+        await (0,_sleep__WEBPACK_IMPORTED_MODULE_2__["default"])(3000);
         await runNext();
       }
     }
   }
-  await (0,_sleep__WEBPACK_IMPORTED_MODULE_1__["default"])(3000);
+  await (0,_sleep__WEBPACK_IMPORTED_MODULE_2__["default"])(3000);
   await runNext();
   msgQueueRunning = false;
   msgQueueRetryCount = 0;
@@ -61382,7 +61443,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _vars__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../vars */ "./src/vars.ts");
 /* harmony import */ var _helpers_is_string_url_only__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../helpers/is-string-url-only */ "./src/helpers/is-string-url-only.ts");
-/* harmony import */ var _helpers_transform_string_to_kmarkdown__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @/helpers/transform-string-to-kmarkdown */ "./src/helpers/transform-string-to-kmarkdown.ts");
+/* harmony import */ var _helpers_transform_string_to_kmarkdown__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../helpers/transform-string-to-kmarkdown */ "./src/helpers/transform-string-to-kmarkdown.ts");
 /* harmony import */ var _upload__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../upload */ "./src/upload.ts");
 /* harmony import */ var _source_logos__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../source-logos */ "./src/source-logos.ts");
 /* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../logger */ "./src/logger.ts");
@@ -62902,11 +62963,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _vars__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../vars */ "./src/vars.ts");
 
 function transformStringToKMarkdown(input) {
-  return input.replace(new RegExp(`(.?)${_vars__WEBPACK_IMPORTED_MODULE_0__.regexStringUrlPattern}(.?)`, 'g'), (match, p1, p2, p3) => {
+  return input.replace(new RegExp(`(.?)${_vars__WEBPACK_IMPORTED_MODULE_0__.regexStringUrlPattern}(.?)`, 'g'), (match, p1, p2, ...args) => {
+    // console.log(123, { match, p1, p2, args, p3: args.at(-3) });
     // 如果匹配前后是空格，无视
-    if (p1 === '(' && p3 === ')') return match;
+    if (p1 === '(' && args.at(-3) === ')') return match;
     if (p1 === '(' && p2.slice(-1) === ')') return match;
-    return `${p1}[${p2}](${p2})${p3}`;
+    return `${p1}[${p2}](${p2})${args.at(-3)}`;
   });
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (transformStringToKMarkdown);
@@ -63843,6 +63905,8 @@ www\\.[a-zA-Z0-9]+\\.[\\S]{2,}
  * - 可直接使用 `new RegExp()` 来生成正则表达式
  */
 const regexStringUrlPattern = `(${[`https?://(?:www\\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]`, `https?://(?:www\\.|(?!www))[a-zA-Z0-9]+`, `www\\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]`, `www\\.[a-zA-Z0-9]+`].map(s => `${s}\\.[\\S]{2,}`)
+// .map((s) => `${s}\\.([\\S](?<!\\))){2,}`)
+// .map((s) => `${s}\\.([\\S](?!\\))){2,}`)
 // .map((s) => `${s}\\.[a-zA-Z]{2,}`)
 .join('|')})`;
 
