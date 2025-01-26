@@ -1,7 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import numeral from 'numeral';
 
-import type { CardMessageType, ModuleType } from '../../types';
+import type { KookCardMessageType, KookModuleType } from '../../types';
 
 import log, { logError } from '../logger';
 import upload from '../upload';
@@ -257,7 +257,7 @@ async function commandAction(
         // console.log(e);
     });
 
-    const postCard: CardMessageType = {
+    const postCard: KookCardMessageType = {
         type: 'card',
         theme: 'secondary',
         size: 'lg',
@@ -548,7 +548,7 @@ async function commandAction(
                     },
                 ],
             },
-        ].filter((v) => !!v) as ModuleType[],
+        ].filter((v) => !!v) as KookModuleType[],
     };
 
     return postCard;

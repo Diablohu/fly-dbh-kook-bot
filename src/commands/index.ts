@@ -1,4 +1,4 @@
-import type { CardMessageType, MessageType } from '../../types';
+import type { KookCardMessageType, MessageType } from '../../types';
 
 import './emotes';
 import './metar';
@@ -9,7 +9,7 @@ import './simbrief';
 export type CommandAction = (
     args: string[],
     options: Record<string, string | boolean>,
-) => Promise<string | CardMessageType | Omit<MessageType, 'target_id'>>;
+) => Promise<string | KookCardMessageType | Omit<MessageType, 'target_id'>>;
 
 // ============================================================================
 

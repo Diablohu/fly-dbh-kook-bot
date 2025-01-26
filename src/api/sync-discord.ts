@@ -2,8 +2,8 @@ import type { Message, Embed } from 'discord.js';
 
 import type {
     MessageSource,
-    ModuleType,
-    CardMessageType,
+    KookModuleType,
+    KookCardMessageType,
     MessageType,
 } from '../../types';
 import { regexStringUrlPattern } from '../vars';
@@ -19,7 +19,7 @@ import sendMessage from './send-message';
 
 // ============================================================================
 
-type ExtendedCardMessageType = CardMessageType & {
+type ExtendedCardMessageType = KookCardMessageType & {
     __type?: 'embed';
 };
 
@@ -88,7 +88,7 @@ export async function syncMessage(message: Message) {
                               }
                             : undefined,
                         { type: 'plain-text', content: author?.username },
-                    ].filter((v) => !!v) as ModuleType[],
+                    ].filter((v) => !!v) as KookModuleType[],
                 },
                 {
                     type: 'section',
@@ -159,7 +159,7 @@ export async function syncMessage(message: Message) {
     // 处理嵌入内容 embeds
     if (Array.isArray(embeds) && embeds.length > 0) {
         let index = 0;
-        let lastImageModule: ModuleType;
+        let lastImageModule: KookModuleType;
         const cards: ExtendedCardMessageType[] = [];
 
         for (const {
@@ -197,7 +197,7 @@ export async function syncMessage(message: Message) {
                       modules: [],
                       __type: 'embed',
                   };
-            let thisIimageModule: ModuleType = useLastCard
+            let thisIimageModule: KookModuleType = useLastCard
                 ? lastImageModule
                 : undefined;
 
@@ -231,7 +231,7 @@ export async function syncMessage(message: Message) {
                                   type: 'plain-text',
                                   content: author.name,
                               },
-                    ].filter((v) => !!v) as ModuleType[],
+                    ].filter((v) => !!v) as KookModuleType[],
                 });
             }
             async function addProvider() {
@@ -405,7 +405,7 @@ export async function syncMessage(message: Message) {
                                     .filter((v) => !!v)
                                     .join(' · '),
                             },
-                        ].filter((v) => !!v) as ModuleType[],
+                        ].filter((v) => !!v) as KookModuleType[],
                     });
                     break;
                 }
@@ -475,7 +475,7 @@ export async function syncMessage(message: Message) {
                                       .join(' · '),
                               }
                             : undefined,
-                    ].filter((v) => !!v) as ModuleType[],
+                    ].filter((v) => !!v) as KookModuleType[],
                 });
             }
 
@@ -520,7 +520,7 @@ export async function syncMessage(message: Message) {
 
     // 递归检查
     {
-        const checkObject = (m: ModuleType): ModuleType => {
+        const checkObject = (m: KookModuleType): KookModuleType => {
             if (!m) return;
             if (Array.isArray(m.elements)) {
                 m.elements = m.elements

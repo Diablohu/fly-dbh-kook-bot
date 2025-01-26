@@ -1,6 +1,10 @@
 import axios from 'axios';
 
-import type { MessageType } from '../../types';
+import {
+    MessageTypes,
+    type MessageType,
+    type KookCardMessageType,
+} from '../../types';
 
 import logger, { logError } from '../logger';
 import sleep from '../sleep';
@@ -61,33 +65,104 @@ async function msgQueueRun() {
             const url = '/message/' + (!!msg.msg_id ? 'update' : 'create');
             const res = await axios.post(url, msg);
 
-            // { code: 40000, message: '不支持该类型：header1', data: {}
-            if (
-                res.data.code === 40000 &&
-                res.data.message === 'json格式不正确'
-            ) {
-                console.log(` `);
-                console.log(`❓ [${res.data.code}] ${res.data.message} ❓`);
-                console.log(`    Type: ${msg.type}`);
-                console.log(`    Message: ${msg.content}`);
-                console.log(` `);
-                return await next.after?.();
-            }
-
-            if (res.data.code !== 0) {
+            if (![0, 40000].includes(res.data.code)) {
                 throw res;
             }
 
-            // console.log('___', url, msg, res);
-            if (discord_msg_id && res.data.data.msg_id)
-                discordMessageMap.set(discord_msg_id, res.data.data.msg_id);
+            if (
+                res.data.code === 40000 &&
+                res.data.message === '内容长度过长' &&
+                msg.type === MessageTypes.Card
+            ) {
+                let usedLength = 0;
+                const maxLength = 2000;
+                const msgs = (
+                    JSON.parse(msg.content) as KookCardMessageType[]
+                ).map((msg) => {
+                    if (msg.type !== 'card') return msg;
+                    if (!Array.isArray(msg.modules)) return msg;
 
-            logger.http({
-                type: 'MSG_SENT',
-                response: res.data,
-                message_id: res.data.data.msg_id,
-                message_map: discordMessageMap,
-            });
+                    msg.modules = msg.modules.map((msgModule) => {
+                        if (msgModule?.type !== 'section') return msgModule;
+                        if (msgModule?.text?.type !== 'kmarkdown')
+                            return msgModule;
+                        if (!msgModule?.text?.content) return msgModule;
+
+                        if (
+                            msgModule.text.content.length + usedLength >
+                            maxLength
+                        ) {
+                            const remainLength = maxLength - usedLength;
+                            msgModule.text.content =
+                                msgModule.text.content.slice(0, remainLength);
+                        } else {
+                            usedLength += msgModule.text.content.length;
+                        }
+
+                        return msgModule;
+                    });
+
+                    msg.modules.unshift(
+                        {
+                            type: 'context',
+                            elements: [
+                                {
+                                    type: 'plain-text',
+                                    content:
+                                        '⚠ 内容长度过长，以下仅为截取的片段',
+                                },
+                            ],
+                        },
+                        {
+                            type: 'divider',
+                        },
+                    );
+
+                    return msg;
+                });
+                next.message.content = JSON.stringify(msgs);
+                // 截取后重新发送
+                return await runNext();
+            }
+
+            if (res.data.code === 40000) {
+                switch (res.data.message) {
+                    // case 'json格式不正确': {
+                    //     break;
+                    // }
+                    // case '内容长度过长': {
+                    //     break;
+                    // }
+                    default: {
+                        console.log(` `);
+                        console.log(
+                            `❓ [${res.data.code}] ${res.data.message} ❓`,
+                        );
+                        console.log(`    Type: ${msg.type}`);
+                        console.log(`    Message: ${msg.content}`);
+                        console.log(` `);
+
+                        logError({
+                            ...res.data,
+                            type: msg.type,
+                            content: msg.content,
+                        });
+                    }
+                }
+            }
+
+            if (res.data.code === 0) {
+                // console.log('___', url, msg, res);
+                if (discord_msg_id && res.data.data.msg_id)
+                    discordMessageMap.set(discord_msg_id, res.data.data.msg_id);
+
+                logger.http({
+                    type: 'MSG_SENT',
+                    response: res.data,
+                    message_id: res.data.data.msg_id,
+                    message_map: discordMessageMap,
+                });
+            }
 
             return await next.after?.();
 

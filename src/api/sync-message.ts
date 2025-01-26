@@ -1,6 +1,10 @@
 import axios from 'axios';
 
-import type { MessageSource } from '../../types';
+import {
+    type MessageSource,
+    type KookModuleType,
+    type KookCardMessageType,
+} from '../../types';
 
 import getDefaultHeaders from '../headers';
 import upload from '../upload';
@@ -26,36 +30,6 @@ import { newsChannelID } from '../../app.config';
 
 //     if (queue.length > 0) await queueRun();
 // }
-
-type SizeType = 'xs' | 'sm' | 'md' | 'lg';
-type ModuleType =
-    | {
-          type:
-              | 'section'
-              | 'context'
-              | 'kmarkdown'
-              | 'plain-text'
-              | 'image'
-              | 'image-group'
-              | 'container'
-              | 'video';
-          src?: string;
-          content?: string;
-          elements?: ModuleType[];
-          title?: string;
-          text?: ModuleType;
-          size?: SizeType;
-          mode?: 'left' | 'right';
-          accessory?: ModuleType;
-      }
-    | undefined;
-type MessageType = {
-    type: 'card';
-    theme?: 'primary' | 'warning' | 'danger' | 'info' | 'none' | 'secondary';
-    color?: string;
-    size?: SizeType;
-    modules: ModuleType[];
-};
 
 // ============================================================================
 
@@ -146,7 +120,7 @@ export async function syncMessage({
 }) {
     const avatar = !userAvatar ? undefined : await upload(userAvatar);
 
-    const content: MessageType[] = [
+    const content: KookCardMessageType[] = [
         {
             type: 'card',
             theme:
@@ -167,7 +141,7 @@ export async function syncMessage({
                         //     type: 'plain-text',
                         //     content: ` ${createAt}`,
                         // },
-                    ].filter((v) => !!v) as ModuleType[],
+                    ].filter((v) => !!v) as KookModuleType[],
                 },
                 {
                     type: 'section',
@@ -248,19 +222,19 @@ export async function syncMessage({
                         .filter((v) => !!v)
                         .join(' · '),
                 },
-            ].filter((v) => !!v) as ModuleType[],
+            ].filter((v) => !!v) as KookModuleType[],
         });
     }
 
     if (Array.isArray(embeds) && embeds.length > 0) {
-        const thisContent: MessageType = {
+        const thisContent: KookCardMessageType = {
             type: 'card',
             theme: 'secondary',
             size: 'lg',
             modules: [],
         };
         let index = 0;
-        let imageModule: ModuleType;
+        let imageModule: KookModuleType;
         async function addImage(image: {
             width?: number;
             height?: number;
@@ -332,7 +306,7 @@ export async function syncMessage({
                                   type: 'plain-text',
                                   content: author.name,
                               },
-                    ].filter((v) => !!v) as ModuleType[],
+                    ].filter((v) => !!v) as KookModuleType[],
                 });
             }
             async function addProvider() {
@@ -479,7 +453,7 @@ export async function syncMessage({
                                     .filter((v) => !!v)
                                     .join(' · '),
                             },
-                        ].filter((v) => !!v) as ModuleType[],
+                        ].filter((v) => !!v) as KookModuleType[],
                     });
                     break;
                 }
@@ -514,7 +488,7 @@ export async function syncMessage({
                                       .join(' · '),
                               }
                             : undefined,
-                    ].filter((v) => !!v) as ModuleType[],
+                    ].filter((v) => !!v) as KookModuleType[],
                 });
             }
 

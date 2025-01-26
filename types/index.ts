@@ -139,7 +139,7 @@ export type MessageTheme =
     | 'secondary';
 
 export type SizeType = 'xs' | 'sm' | 'md' | 'lg';
-export type ModuleType =
+export type KookModuleType =
     | {
           type:
               | 'section'
@@ -157,23 +157,23 @@ export type ModuleType =
               | 'button';
           src?: string;
           content?: string;
-          elements?: ModuleType[];
+          elements?: KookModuleType[];
           title?: string;
-          text?: ModuleType;
+          text?: KookModuleType;
           size?: SizeType;
           mode?: 'left' | 'right';
-          accessory?: ModuleType;
+          accessory?: KookModuleType;
           cols?: number;
-          fields?: ModuleType[];
+          fields?: KookModuleType[];
           theme?: MessageTheme;
           click?: 'link' | 'return-val';
           value?: string;
       }
     | undefined;
-export type CardMessageType = {
+export type KookCardMessageType = {
     type: 'card';
     theme?: MessageTheme;
     color?: string;
     size?: SizeType;
-    modules: ModuleType[];
+    modules: KookModuleType[];
 };
