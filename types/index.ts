@@ -139,22 +139,23 @@ export type MessageTheme =
     | 'secondary';
 
 export type SizeType = 'xs' | 'sm' | 'md' | 'lg';
+export type KookModuleTypes =
+    | 'section'
+    | 'context'
+    | 'kmarkdown'
+    | 'plain-text'
+    | 'image'
+    | 'image-group'
+    | 'container'
+    | 'video'
+    | 'divider'
+    | 'header'
+    | 'paragraph'
+    | 'action-group'
+    | 'button';
 export type KookModuleType =
     | {
-          type:
-              | 'section'
-              | 'context'
-              | 'kmarkdown'
-              | 'plain-text'
-              | 'image'
-              | 'image-group'
-              | 'container'
-              | 'video'
-              | 'divider'
-              | 'header'
-              | 'paragraph'
-              | 'action-group'
-              | 'button';
+          type: KookModuleTypes;
           src?: string;
           content?: string;
           elements?: KookModuleType[];

@@ -5,6 +5,7 @@ import type {
     KookModuleType,
     KookCardMessageType,
     MessageType,
+    KookModuleTypes,
 } from '../../types';
 import { regexStringUrlPattern } from '../vars';
 
@@ -83,12 +84,18 @@ export async function syncMessage(message: Message) {
                     elements: [
                         !!avatar
                             ? {
-                                  type: 'image',
+                                  type: 'image' as KookModuleTypes,
                                   src: avatar,
                               }
                             : undefined,
-                        { type: 'plain-text', content: author?.username },
-                    ].filter((v) => !!v) as KookModuleType[],
+                        {
+                            type: 'plain-text' as KookModuleTypes,
+                            content: author?.username,
+                        },
+                    ].reduce<KookModuleType[]>((elements, curr) => {
+                        if (curr) elements.push(curr);
+                        return elements;
+                    }, []),
                 },
                 {
                     type: 'section',
