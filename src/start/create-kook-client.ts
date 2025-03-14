@@ -176,7 +176,7 @@ async function createClient(): Promise<void> {
             body: string | { [key: string]: string | number } | WSMessageType =
                 {},
             sn: number | undefined = undefined;
-        console.log(msg);
+        // console.log(msg);
         try {
             const o = JSON.parse(msg);
             type = o.s;
@@ -186,6 +186,8 @@ async function createClient(): Promise<void> {
         } catch (e) {
             body = msg;
             // console.log('WSS on Message', msg);
+            logError(`Error parsing message ${msg}`);
+            debugKookClient(`⛔ Error parsing message %O`, msg);
         }
 
         // 存在 type，表示正确的信息
@@ -240,6 +242,9 @@ async function createClient(): Promise<void> {
                     await parseMsg(body as WSMessageType, sn as number);
                 }
             }
+        } else {
+            logError(`Error parsing message [No Type] ${msg}`);
+            debugKookClient(`⛔ Error parsing message [No Type] %O`, msg);
         }
 
         await fs.writeJson(clientCacheFile, cache);
