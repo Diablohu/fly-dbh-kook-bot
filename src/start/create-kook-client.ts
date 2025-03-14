@@ -176,7 +176,7 @@ async function createClient(): Promise<void> {
             body: string | { [key: string]: string | number } | WSMessageType =
                 {},
             sn: number | undefined = undefined;
-        // console.log(msg);
+        console.log(msg);
         try {
             const o = JSON.parse(msg);
             type = o.s;
@@ -243,6 +243,13 @@ async function createClient(): Promise<void> {
         }
 
         await fs.writeJson(clientCacheFile, cache);
+    });
+    client.on('unexpected-response', async (ws, response) => {
+        debugKookClient(
+            [`⛔`, `WebSocket Unexpected Response`, `${response}`]
+                .filter((s) => s !== '')
+                .join(' '),
+        );
     });
 
     /** 发送 PING */
