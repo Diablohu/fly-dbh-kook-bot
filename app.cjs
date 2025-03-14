@@ -63226,7 +63226,7 @@ async function createClient() {
     let type = undefined,
       body = {},
       sn = undefined;
-    console.log(msg);
+    // console.log(msg);
     try {
       const o = JSON.parse(msg);
       type = o.s;
@@ -63236,6 +63236,8 @@ async function createClient() {
     } catch (e) {
       body = msg;
       // console.log('WSS on Message', msg);
+      logError(`Error parsing message ${msg}`);
+      (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`⛔ Error parsing message %O`, msg);
     }
 
     // 存在 type，表示正确的信息
@@ -63285,6 +63287,9 @@ async function createClient() {
             await parseMsg(body, sn);
           }
       }
+    } else {
+      logError(`Error parsing message [No Type] ${msg}`);
+      (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`⛔ Error parsing message [No Type] %O`, msg);
     }
     await fs_extra__WEBPACK_IMPORTED_MODULE_13___default().writeJson(clientCacheFile, cache);
   });
