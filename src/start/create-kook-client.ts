@@ -32,7 +32,7 @@ let clientOpenAt: Dayjs;
 let keepClientTimeout: NodeJS.Timeout;
 let pingTimeout: NodeJS.Timeout;
 let pingRetryCount = 0;
-const pingIntervalTime = 29_500;
+const pingIntervalTime = 28_000;
 let lastPingTime = 0;
 let cache: {
     /** 常驻 session */
