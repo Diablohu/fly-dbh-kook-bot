@@ -63111,10 +63111,12 @@ function prepareEnvKey(key) {
     process.env[`${key}`] = process.env[`${key.toLowerCase()}`] || (!!process.env[`${key}_FILE`] && fs_extra__WEBPACK_IMPORTED_MODULE_9___default().existsSync(process.env[`${key}_FILE`] || '') ? fs_extra__WEBPACK_IMPORTED_MODULE_9___default().readFileSync(process.env[`${key}_FILE`] || '', 'utf-8') : '');
   }
 }
-prepareEnvKey('KOOK_TOKEN');
-prepareEnvKey('AVWX_TOKEN');
-prepareEnvKey('KOOK_BOT_FORWARD_URL');
-(0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugMain)(`KOOK_TOKEN (after parsing): ${JSON.stringify(process.env.KOOK_TOKEN)}`);
+[['KOOK_TOKEN', 'KOOK_TOKEN (after parsing)'], 'KOOK_BOT_FORWARD_URL', 'AVWX_TOKEN'].forEach(item => {
+  const key = Array.isArray(item) ? item[0] : item;
+  const message = Array.isArray(item) ? item[1] : item;
+  prepareEnvKey(key);
+  (0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugMain)(`${message}: ${JSON.stringify(process.env[key])}`);
+});
 
 // ============================================================================
 
