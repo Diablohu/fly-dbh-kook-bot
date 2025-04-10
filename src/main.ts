@@ -31,6 +31,7 @@ function prepareEnvKey(key: string): void {
 }
 prepareEnvKey('KOOK_TOKEN');
 prepareEnvKey('AVWX_TOKEN');
+prepareEnvKey('KOOK_BOT_FORWARD_URL');
 
 debugMain(
     `KOOK_TOKEN (after parsing): ${JSON.stringify(process.env.KOOK_TOKEN)}`,
