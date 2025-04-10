@@ -29,13 +29,17 @@ function prepareEnvKey(key: string): void {
                 : '');
     }
 }
-prepareEnvKey('KOOK_TOKEN');
-prepareEnvKey('AVWX_TOKEN');
-prepareEnvKey('KOOK_BOT_FORWARD_URL');
 
-debugMain(
-    `KOOK_TOKEN (after parsing): ${JSON.stringify(process.env.KOOK_TOKEN)}`,
-);
+[
+    ['KOOK_TOKEN', 'KOOK_TOKEN (after parsing)'],
+    'KOOK_BOT_FORWARD_URL',
+    'AVWX_TOKEN',
+].forEach((item) => {
+    const key = Array.isArray(item) ? item[0] : item;
+    const message = Array.isArray(item) ? item[1] : item;
+    prepareEnvKey(key);
+    debugMain(`${message}: ${JSON.stringify(process.env[key])}`);
+});
 
 // ============================================================================
 
