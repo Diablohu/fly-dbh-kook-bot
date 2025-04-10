@@ -62274,7 +62274,7 @@ function attachInterceptors() {
     //     /\/api\/v\/(message|gateway)\//.test(thisUrl.pathname),
     // );
     // 2023/10/20: 由于 Kook 限制海外 IP 无法发言，转发所有 `/message` 请求到腾讯云
-    // TODO: 2024/07/26: 由于腾讯云业务调整，转发目标所使用的 Serverless 服务将于 2025/06/30 关闭，需要在此之前进行迁移
+    // 2024/07/26: 由于腾讯云业务调整，转发目标所使用的 Serverless 服务将于 2025/06/30 关闭，需要在此之前进行迁移
     if (
     // process.env.WEBPACK_BUILD_ENV !== 'dev' &&
     /\/api\/v\/(message|gateway)\//.test(thisUrl.pathname)) {
@@ -62283,8 +62283,8 @@ function attachInterceptors() {
         // url:
         //     process.env.WEBPACK_BUILD_ENV === 'dev'
         //         ? `http://localhost:9000/forward`
-        //         : `https://1321773305-lexjg3zrkj-gz.scf.tencentcs.com/forward`,
-        url: `https://1321773305-lexjg3zrkj-gz.scf.tencentcs.com/forward`,
+        //         : process.env.KOOK_BOT_FORWARD_REQUEST_URL,
+        url: process.env.KOOK_BOT_FORWARD_URL,
         method: 'post',
         data: {
           headers: config.headers,
@@ -63113,6 +63113,7 @@ function prepareEnvKey(key) {
 }
 prepareEnvKey('KOOK_TOKEN');
 prepareEnvKey('AVWX_TOKEN');
+prepareEnvKey('KOOK_BOT_FORWARD_URL');
 (0,_debug__WEBPACK_IMPORTED_MODULE_8__.debugMain)(`KOOK_TOKEN (after parsing): ${JSON.stringify(process.env.KOOK_TOKEN)}`);
 
 // ============================================================================
