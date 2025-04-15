@@ -145,16 +145,18 @@ async function createClient(): Promise<void> {
     client.on('error', (...args) => {
         debugKookClient('WebSocket Client Error', ...args);
         logError(...args);
+
         if (!client) return reconnect('💀 Crashed when Connecting');
         if (typeof client.readyState === 'undefined')
             return reconnect('💀 Crashed when Connecting');
         if (client.readyState === ws.CONNECTING)
-            reconnect('💀 Crashed when Connecting');
-        if (client.readyState === ws.CLOSED) reconnect('💀 Crashed On Error');
+            return reconnect('💀 Crashed when Connecting');
+        if (client.readyState === ws.CLOSED)
+            return reconnect('💀 Crashed On Error');
 
         if (args[0] instanceof Error) {
             if (args[0].message === 'socket hang up') {
-                reconnect('💀 socket hang up');
+                return reconnect('💀 socket hang up');
             }
         }
     });
