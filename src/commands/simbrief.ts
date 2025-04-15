@@ -493,7 +493,22 @@ async function commandAction(
                   }
                 : undefined,
 
+            postCardDivider,
+
             // 操作
+            {
+                type: 'section',
+                text: {
+                    type: 'paragraph',
+                    cols: 1,
+                    fields: [
+                        {
+                            type: 'kmarkdown',
+                            content: `**下载计划文件**`,
+                        },
+                    ],
+                },
+            },
             {
                 type: 'action-group',
                 elements: [
@@ -507,22 +522,54 @@ async function commandAction(
                                   ofp.fms_downloads.mfs.link,
                               text: {
                                   type: 'plain-text',
-                                  content: '下载计划文件',
+                                  content: '下载：MSFS 2020',
+                              },
+                          }
+                        : undefined,
+                    ofp.fms_downloads.mfs
+                        ? {
+                              type: 'button',
+                              theme: 'primary',
+                              click: 'link',
+                              value:
+                                  ofp.fms_downloads.directory +
+                                  ofp.fms_downloads.m24.link,
+                              text: {
+                                  type: 'plain-text',
+                                  content: '下载：MSFS 2024',
                               },
                           }
                         : undefined,
                     ofp.files?.pdf?.link
                         ? {
                               type: 'button',
-                              theme: 'info',
+                              theme: 'primary',
                               click: 'link',
                               value: ofp.files.directory + ofp.files.pdf.link,
                               text: {
                                   type: 'plain-text',
-                                  content: '下载计划PDF',
+                                  content: '下载：PDF',
                               },
                           }
                         : undefined,
+                ].filter((v) => !!v),
+            },
+            {
+                type: 'section',
+                text: {
+                    type: 'paragraph',
+                    cols: 1,
+                    fields: [
+                        {
+                            type: 'kmarkdown',
+                            content: `**提交飞行计划**`,
+                        },
+                    ],
+                },
+            },
+            {
+                type: 'action-group',
+                elements: [
                     {
                         type: 'button',
                         theme: 'info',
@@ -530,7 +577,7 @@ async function commandAction(
                         value: ofp.prefile.vatsim.link,
                         text: {
                             type: 'plain-text',
-                            content: '提交至VATSIM',
+                            content: '提交：VATSIM',
                         },
                     },
                 ].filter((v) => !!v),
@@ -544,7 +591,7 @@ async function commandAction(
                 elements: [
                     {
                         type: 'plain-text',
-                        content: `该飞行计划由 SimBrief 生成 | AIRAC ${ofp.params.airac}`,
+                        content: `该飞行计划由 SimBrief 生成 | AIRAC Cycle ${ofp.params.airac}`,
                     },
                 ],
             },
