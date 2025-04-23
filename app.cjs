@@ -69807,10 +69807,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   clientCacheFile: () => (/* binding */ clientCacheFile),
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! axios */ "./node_modules/axios/lib/axios.js");
+/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! axios */ "./node_modules/axios/lib/axios.js");
 /* harmony import */ var ws__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ws */ "./node_modules/ws/wrapper.mjs");
-/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! fs-extra */ "./node_modules/fs-extra/lib/index.js");
-/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(fs_extra__WEBPACK_IMPORTED_MODULE_13__);
+/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! fs-extra */ "./node_modules/fs-extra/lib/index.js");
+/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_14___default = /*#__PURE__*/__webpack_require__.n(fs_extra__WEBPACK_IMPORTED_MODULE_14__);
 /* harmony import */ var node_zlib__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! node:zlib */ "node:zlib");
 /* harmony import */ var node_zlib__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(node_zlib__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var node_util__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! node:util */ "node:util");
@@ -69826,8 +69826,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _app_config__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../app.config */ "./app.config.ts");
 /* harmony import */ var _api_send_message__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../api/send-message */ "./src/api/send-message.ts");
 /* harmony import */ var _debug__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../debug */ "./src/debug.ts");
-/* harmony import */ var _vars__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @/vars */ "./src/vars.ts");
-/* harmony import */ var _commands_index__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../commands/index */ "./src/commands/index.ts");
+/* harmony import */ var _sleep__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../sleep */ "./src/sleep.ts");
+/* harmony import */ var _vars__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @/vars */ "./src/vars.ts");
+/* harmony import */ var _commands_index__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../commands/index */ "./src/commands/index.ts");
+
 
 
 
@@ -69898,10 +69900,11 @@ function getReadyStateString(state) {
  **/
 async function createClient() {
   var _await$axios$get$catc;
+  if (creatingClient) return;
   (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)('Creating...');
   creatingClient = true;
   try {
-    cache = fs_extra__WEBPACK_IMPORTED_MODULE_13___default().existsSync(clientCacheFile) ? (await fs_extra__WEBPACK_IMPORTED_MODULE_13___default().readJson(clientCacheFile)) || {} : {};
+    cache = fs_extra__WEBPACK_IMPORTED_MODULE_14___default().existsSync(clientCacheFile) ? (await fs_extra__WEBPACK_IMPORTED_MODULE_14___default().readJson(clientCacheFile)) || {} : {};
   } catch (e) {
     cache = {};
   }
@@ -69915,7 +69918,7 @@ async function createClient() {
   (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`Retriving WebSocket URL...`);
 
   // 请求 Gateway 获取 WebSocket 连接地址
-  const gateway = (_await$axios$get$catc = await axios__WEBPACK_IMPORTED_MODULE_14__["default"].get('/gateway/index').catch(err => {
+  const gateway = (_await$axios$get$catc = await axios__WEBPACK_IMPORTED_MODULE_15__["default"].get('/gateway/index').catch(err => {
     console.log({
       err
     });
@@ -69963,10 +69966,12 @@ async function createClient() {
     }
   });
   client.on('close', async (code, reason) => {
+    creatingClient = false;
     // const reasonText = (
     //     await unzip(reason as unknown as zlib.InputType)
     // ).toString();
     (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)([`⛔`, `WebSocket Client Closed [${code}]`, `${reason === null || reason === void 0 ? void 0 : reason.toString()}`].filter(s => s !== '').join(' '));
+    // setTimeout(() => checkVitalAndReconnect());
     checkVitalAndReconnect();
   });
   client.on('message', async buffer => {
@@ -70039,7 +70044,7 @@ async function createClient() {
       logError(`Error parsing message [No Type] ${msg}`);
       (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`⛔ Error parsing message [No Type] %O`, msg);
     }
-    await fs_extra__WEBPACK_IMPORTED_MODULE_13___default().writeJson(clientCacheFile, cache);
+    await fs_extra__WEBPACK_IMPORTED_MODULE_14___default().writeJson(clientCacheFile, cache);
   });
   client.on('unexpected-response', async (ws, response) => {
     (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)([`⛔`, `WebSocket Unexpected Response`, `%O`].filter(s => s !== '').join(' '), response);
@@ -70111,10 +70116,10 @@ async function createClient() {
         body,
         sn
       });
-      const response = await (0,_commands_index__WEBPACK_IMPORTED_MODULE_12__["default"])(command).catch(logError);
-      const isPublic = _vars__WEBPACK_IMPORTED_MODULE_11__.kookPublicResponseChannelIDs.includes(channelId) && (response === null || response === void 0 ? void 0 : response._is_temp) !== true;
+      const response = await (0,_commands_index__WEBPACK_IMPORTED_MODULE_13__["default"])(command).catch(logError);
+      const isPublic = _vars__WEBPACK_IMPORTED_MODULE_12__.kookPublicResponseChannelIDs.includes(channelId) && (response === null || response === void 0 ? void 0 : response._is_temp) !== true;
       response === null || response === void 0 ? true : delete response._is_temp;
-      if (!isPublic) await axios__WEBPACK_IMPORTED_MODULE_14__["default"].post('/message/delete', {
+      if (!isPublic) await axios__WEBPACK_IMPORTED_MODULE_15__["default"].post('/message/delete', {
         msg_id: messageId
       });
       if (response) {
@@ -70206,13 +70211,12 @@ async function createClient() {
 // ============================================================================
 
 async function checkVitalAndReconnect() {
-  if (creatingClient) return;
+  await (0,_sleep__WEBPACK_IMPORTED_MODULE_11__["default"])(500);
   if (!(client instanceof ws__WEBPACK_IMPORTED_MODULE_0__["default"])) return;
   if (client.readyState === ws__WEBPACK_IMPORTED_MODULE_0__["default"].CLOSED) return reconnect('💀 No Vital');
   return;
 }
 async function reconnect(reason) {
-  if (creatingClient) return;
   creatingClient = true;
   (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)('🔄 Reconnecting... ' + reason);
   logInfo('Reconnecting... ' + reason);
@@ -70225,7 +70229,7 @@ async function reconnect(reason) {
 
   // msgQueue = [];
 
-  await fs_extra__WEBPACK_IMPORTED_MODULE_13___default().writeJson(clientCacheFile, cache);
+  await fs_extra__WEBPACK_IMPORTED_MODULE_14___default().writeJson(clientCacheFile, cache);
   await createClient();
 }
 
