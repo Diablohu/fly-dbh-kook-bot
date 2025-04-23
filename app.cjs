@@ -69857,6 +69857,7 @@ let pingRetryCount = 0;
 const pingIntervalTime = 28_000;
 let lastPingTime = 0;
 let cache;
+let creatingClient = false;
 function logInfo(msg) {
   const body = {
     connectionType: 'websocket-message'
@@ -69898,6 +69899,7 @@ function getReadyStateString(state) {
 async function createClient() {
   var _await$axios$get$catc;
   (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)('Creating...');
+  creatingClient = true;
   try {
     cache = fs_extra__WEBPACK_IMPORTED_MODULE_13___default().existsSync(clientCacheFile) ? (await fs_extra__WEBPACK_IMPORTED_MODULE_13___default().readJson(clientCacheFile)) || {} : {};
   } catch (e) {
@@ -69941,6 +69943,7 @@ async function createClient() {
   client = new ws__WEBPACK_IMPORTED_MODULE_0__["default"](wssUrl.href);
   client.on('open', () => {
     var _client;
+    creatingClient = false;
     clientOpenAt = dayjs__WEBPACK_IMPORTED_MODULE_4___default()(new Date());
     (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)(`✅ WebSocket Client ${getReadyStateString((_client = client) === null || _client === void 0 ? void 0 : _client.readyState)}`);
     sendPing();
@@ -69951,11 +69954,11 @@ async function createClient() {
     logError(...args);
     if (!client) return reconnect('💀 Crashed when Connecting');
     if (typeof client.readyState === 'undefined') return reconnect('💀 Crashed when Connecting');
-    if (client.readyState === ws__WEBPACK_IMPORTED_MODULE_0__["default"].CONNECTING) reconnect('💀 Crashed when Connecting');
-    if (client.readyState === ws__WEBPACK_IMPORTED_MODULE_0__["default"].CLOSED) reconnect('💀 Crashed On Error');
+    if (client.readyState === ws__WEBPACK_IMPORTED_MODULE_0__["default"].CONNECTING) return reconnect('💀 Crashed when Connecting');
+    if (client.readyState === ws__WEBPACK_IMPORTED_MODULE_0__["default"].CLOSED) return reconnect('💀 Crashed On Error');
     if (args[0] instanceof Error) {
       if (args[0].message === 'socket hang up') {
-        reconnect('💀 socket hang up');
+        return reconnect('💀 socket hang up');
       }
     }
   });
@@ -69964,6 +69967,7 @@ async function createClient() {
     //     await unzip(reason as unknown as zlib.InputType)
     // ).toString();
     (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)([`⛔`, `WebSocket Client Closed [${code}]`, `${reason === null || reason === void 0 ? void 0 : reason.toString()}`].filter(s => s !== '').join(' '));
+    checkVitalAndReconnect();
   });
   client.on('message', async buffer => {
     const msg = (await unzip(buffer)).toString();
@@ -70038,7 +70042,8 @@ async function createClient() {
     await fs_extra__WEBPACK_IMPORTED_MODULE_13___default().writeJson(clientCacheFile, cache);
   });
   client.on('unexpected-response', async (ws, response) => {
-    (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)([`⛔`, `WebSocket Unexpected Response`, `${response}`].filter(s => s !== '').join(' '));
+    (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)([`⛔`, `WebSocket Unexpected Response`, `%O`].filter(s => s !== '').join(' '), response);
+    checkVitalAndReconnect();
   });
 
   /** 发送 PING */
@@ -70200,7 +70205,15 @@ async function createClient() {
 
 // ============================================================================
 
+async function checkVitalAndReconnect() {
+  if (creatingClient) return;
+  if (!(client instanceof ws__WEBPACK_IMPORTED_MODULE_0__["default"])) return;
+  if (client.readyState === ws__WEBPACK_IMPORTED_MODULE_0__["default"].CLOSED) return reconnect('💀 No Vital');
+  return;
+}
 async function reconnect(reason) {
+  if (creatingClient) return;
+  creatingClient = true;
   (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)('🔄 Reconnecting... ' + reason);
   logInfo('Reconnecting... ' + reason);
   if (keepClientTimeout) clearTimeout(keepClientTimeout);
