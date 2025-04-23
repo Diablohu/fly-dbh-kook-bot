@@ -17,6 +17,7 @@ import logger, { logError as _logError } from '../logger';
 import { cacheDir } from '../../app.config';
 import sendMessage from '../api/send-message';
 import { debugKookClient } from '../debug';
+import sleep from '../sleep';
 import { kookPublicResponseChannelIDs } from '@/vars';
 
 import getCommandResponse from '../commands/index';
@@ -83,6 +84,8 @@ function getReadyStateString(state: typeof client.readyState): string {
  *
  **/
 async function createClient(): Promise<void> {
+    if (creatingClient) return;
+
     debugKookClient('Creating...');
     creatingClient = true;
 
@@ -164,6 +167,7 @@ async function createClient(): Promise<void> {
         }
     });
     client.on('close', async (code, reason) => {
+        creatingClient = false;
         // const reasonText = (
         //     await unzip(reason as unknown as zlib.InputType)
         // ).toString();
@@ -172,6 +176,7 @@ async function createClient(): Promise<void> {
                 .filter((s) => s !== '')
                 .join(' '),
         );
+        // setTimeout(() => checkVitalAndReconnect());
         checkVitalAndReconnect();
     });
     client.on('message', async (buffer: Buffer) => {
@@ -445,13 +450,14 @@ export default createClient;
 // ============================================================================
 
 async function checkVitalAndReconnect(): Promise<void> {
-    if (creatingClient) return;
+    await sleep(500);
+
     if (!(client instanceof ws)) return;
     if (client.readyState === ws.CLOSED) return reconnect('💀 No Vital');
+
     return;
 }
 async function reconnect(reason: string): Promise<void> {
-    if (creatingClient) return;
     creatingClient = true;
 
     debugKookClient('🔄 Reconnecting... ' + reason);
