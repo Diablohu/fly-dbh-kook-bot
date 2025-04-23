@@ -40,6 +40,7 @@ let cache: {
     /** 序列码 */
     sn?: number;
 };
+let creatingClient = false;
 
 function logInfo(msg: unknown) {
     const body: Record<string, unknown> = {
@@ -83,6 +84,7 @@ function getReadyStateString(state: typeof client.readyState): string {
  **/
 async function createClient(): Promise<void> {
     debugKookClient('Creating...');
+    creatingClient = true;
 
     try {
         cache = fs.existsSync(clientCacheFile)
@@ -135,6 +137,7 @@ async function createClient(): Promise<void> {
     client = new ws(wssUrl.href);
 
     client.on('open', () => {
+        creatingClient = false;
         clientOpenAt = dayjs(new Date());
         debugKookClient(
             `✅ WebSocket Client ${getReadyStateString(client?.readyState)}`,
@@ -169,6 +172,7 @@ async function createClient(): Promise<void> {
                 .filter((s) => s !== '')
                 .join(' '),
         );
+        checkVitalAndReconnect();
     });
     client.on('message', async (buffer: Buffer) => {
         const msg = (
@@ -253,10 +257,12 @@ async function createClient(): Promise<void> {
     });
     client.on('unexpected-response', async (ws, response) => {
         debugKookClient(
-            [`⛔`, `WebSocket Unexpected Response`, `${response}`]
+            [`⛔`, `WebSocket Unexpected Response`, `%O`]
                 .filter((s) => s !== '')
                 .join(' '),
+            response,
         );
+        checkVitalAndReconnect();
     });
 
     /** 发送 PING */
@@ -438,9 +444,16 @@ export default createClient;
 
 // ============================================================================
 
+async function checkVitalAndReconnect(): Promise<void> {
+    if (creatingClient) return;
+    if (!(client instanceof ws)) return;
+    if (client.readyState === ws.CLOSED) return reconnect('💀 No Vital');
+    return;
+}
 async function reconnect(reason: string): Promise<void> {
     debugKookClient('🔄 Reconnecting... ' + reason);
     logInfo('Reconnecting... ' + reason);
+    creatingClient = true;
 
     if (keepClientTimeout) clearTimeout(keepClientTimeout);
     if (pingTimeout) clearTimeout(pingTimeout);
