@@ -451,9 +451,11 @@ async function checkVitalAndReconnect(): Promise<void> {
     return;
 }
 async function reconnect(reason: string): Promise<void> {
+    if (creatingClient) return;
+    creatingClient = true;
+
     debugKookClient('🔄 Reconnecting... ' + reason);
     logInfo('Reconnecting... ' + reason);
-    creatingClient = true;
 
     if (keepClientTimeout) clearTimeout(keepClientTimeout);
     if (pingTimeout) clearTimeout(pingTimeout);
