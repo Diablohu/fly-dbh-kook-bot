@@ -458,8 +458,6 @@ async function checkVitalAndReconnect(): Promise<void> {
     return;
 }
 async function reconnect(reason: string): Promise<void> {
-    creatingClient = true;
-
     debugKookClient('🔄 Reconnecting... ' + reason);
     logInfo('Reconnecting... ' + reason);
 
