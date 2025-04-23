@@ -70217,7 +70217,6 @@ async function checkVitalAndReconnect() {
   return;
 }
 async function reconnect(reason) {
-  creatingClient = true;
   (0,_debug__WEBPACK_IMPORTED_MODULE_10__.debugKookClient)('🔄 Reconnecting... ' + reason);
   logInfo('Reconnecting... ' + reason);
   if (keepClientTimeout) clearTimeout(keepClientTimeout);
