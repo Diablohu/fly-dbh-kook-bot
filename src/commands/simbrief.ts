@@ -143,6 +143,14 @@ interface OFP {
         est_tow: string;
         est_ldw: string;
     };
+    crew: {
+        pilot_id: string;
+        cpt: string;
+        fo: string;
+        dx: string;
+        pu: string;
+        fa: string[];
+    };
     files: {
         directory: string;
         [key: string]:
@@ -492,8 +500,7 @@ async function commandAction(
                       ],
                   }
                 : undefined,
-
-            postCardDivider,
+            !!ofpRouteMap ? postCardDivider : undefined,
 
             // 操作
             {
@@ -512,34 +519,26 @@ async function commandAction(
             {
                 type: 'action-group',
                 elements: [
-                    ofp.fms_downloads.mfs
-                        ? {
-                              type: 'button',
-                              theme: 'primary',
-                              click: 'link',
-                              value:
-                                  ofp.fms_downloads.directory +
-                                  ofp.fms_downloads.mfs.link,
-                              text: {
-                                  type: 'plain-text',
-                                  content: '下载：MSFS 2020',
-                              },
-                          }
-                        : undefined,
-                    ofp.fms_downloads.mfs
-                        ? {
-                              type: 'button',
-                              theme: 'primary',
-                              click: 'link',
-                              value:
-                                  ofp.fms_downloads.directory +
-                                  ofp.fms_downloads.m24.link,
-                              text: {
-                                  type: 'plain-text',
-                                  content: '下载：MSFS 2024',
-                              },
-                          }
-                        : undefined,
+                    ...[
+                        ['mfs', 'MSFS 2020'],
+                        ['m24', 'MSFS 2024'],
+                        ['xpe', 'X-Plane'], // XP 11 & 12
+                    ].map(([id, name]) =>
+                        ofp.fms_downloads[id]
+                            ? {
+                                  type: 'button',
+                                  theme: 'primary',
+                                  click: 'link',
+                                  value:
+                                      ofp.fms_downloads.directory +
+                                      ofp.fms_downloads[id].link,
+                                  text: {
+                                      type: 'plain-text',
+                                      content: name,
+                                  },
+                              }
+                            : undefined,
+                    ),
                     ofp.files?.pdf?.link
                         ? {
                               type: 'button',
@@ -548,7 +547,7 @@ async function commandAction(
                               value: ofp.files.directory + ofp.files.pdf.link,
                               text: {
                                   type: 'plain-text',
-                                  content: '下载：PDF',
+                                  content: 'PDF',
                               },
                           }
                         : undefined,
@@ -562,7 +561,7 @@ async function commandAction(
                     fields: [
                         {
                             type: 'kmarkdown',
-                            content: `**提交飞行计划**`,
+                            content: `**提交飞行计划至……**`,
                         },
                     ],
                 },
@@ -577,7 +576,17 @@ async function commandAction(
                         value: ofp.prefile.vatsim.link,
                         text: {
                             type: 'plain-text',
-                            content: '提交：VATSIM',
+                            content: 'VATSIM',
+                        },
+                    },
+                    {
+                        type: 'button',
+                        theme: 'info',
+                        click: 'link',
+                        value: `https://partners.sayintentions.ai/api/simbrief_prefile?simbrief_id=${ofp.crew.pilot_id}`,
+                        text: {
+                            type: 'plain-text',
+                            content: 'SayIntentions.AI',
                         },
                     },
                 ].filter((v) => !!v),
