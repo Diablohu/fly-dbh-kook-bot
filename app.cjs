@@ -69320,7 +69320,7 @@ async function commandAction(args, options) {
         type: 'image',
         src: ofpRouteMap
       }]
-    } : undefined, postCardDivider,
+    } : undefined, !!ofpRouteMap ? postCardDivider : undefined,
     // 操作
     {
       type: 'section',
@@ -69334,32 +69334,24 @@ async function commandAction(args, options) {
       }
     }, {
       type: 'action-group',
-      elements: [ofp.fms_downloads.mfs ? {
+      elements: [...[['mfs', 'MSFS 2020'], ['m24', 'MSFS 2024'], ['xpe', 'X-Plane'] // XP 11 & 12
+      ].map(([id, name]) => ofp.fms_downloads[id] ? {
         type: 'button',
         theme: 'primary',
         click: 'link',
-        value: ofp.fms_downloads.directory + ofp.fms_downloads.mfs.link,
+        value: ofp.fms_downloads.directory + ofp.fms_downloads[id].link,
         text: {
           type: 'plain-text',
-          content: '下载：MSFS 2020'
+          content: name
         }
-      } : undefined, ofp.fms_downloads.mfs ? {
-        type: 'button',
-        theme: 'primary',
-        click: 'link',
-        value: ofp.fms_downloads.directory + ofp.fms_downloads.m24.link,
-        text: {
-          type: 'plain-text',
-          content: '下载：MSFS 2024'
-        }
-      } : undefined, (_ofp$files = ofp.files) !== null && _ofp$files !== void 0 && (_ofp$files$pdf = _ofp$files.pdf) !== null && _ofp$files$pdf !== void 0 && _ofp$files$pdf.link ? {
+      } : undefined), (_ofp$files = ofp.files) !== null && _ofp$files !== void 0 && (_ofp$files$pdf = _ofp$files.pdf) !== null && _ofp$files$pdf !== void 0 && _ofp$files$pdf.link ? {
         type: 'button',
         theme: 'primary',
         click: 'link',
         value: ofp.files.directory + ofp.files.pdf.link,
         text: {
           type: 'plain-text',
-          content: '下载：PDF'
+          content: 'PDF'
         }
       } : undefined].filter(v => !!v)
     }, {
@@ -69369,7 +69361,7 @@ async function commandAction(args, options) {
         cols: 1,
         fields: [{
           type: 'kmarkdown',
-          content: `**提交飞行计划**`
+          content: `**提交飞行计划至……**`
         }]
       }
     }, {
@@ -69381,7 +69373,16 @@ async function commandAction(args, options) {
         value: ofp.prefile.vatsim.link,
         text: {
           type: 'plain-text',
-          content: '提交：VATSIM'
+          content: 'VATSIM'
+        }
+      }, {
+        type: 'button',
+        theme: 'info',
+        click: 'link',
+        value: `https://partners.sayintentions.ai/api/simbrief_prefile?simbrief_id=${ofp.crew.pilot_id}`,
+        text: {
+          type: 'plain-text',
+          content: 'SayIntentions.AI'
         }
       }].filter(v => !!v)
     }, postCardDivider,
