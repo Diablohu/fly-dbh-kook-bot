@@ -67902,15 +67902,24 @@ async function msgQueueRun() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e) {
       var _e$data;
-      console.log(e);
-      (0,_logger__WEBPACK_IMPORTED_MODULE_1__.logError)(e);
-
       // 如果报告 40000，说明格式有误，不进行重试
       // TODO: 报告给我？
-      if ((e === null || e === void 0 ? void 0 : (_e$data = e.data) === null || _e$data === void 0 ? void 0 : _e$data.code) === 40000) {
-        // console.log(222, 2);
+      if ([40000, 40011].includes(e === null || e === void 0 ? void 0 : (_e$data = e.data) === null || _e$data === void 0 ? void 0 : _e$data.code)) {
+        const {
+          headers,
+          config,
+          data
+        } = e;
+        console.log({
+          headers,
+          data,
+          body: config.data
+        });
+        (0,_logger__WEBPACK_IMPORTED_MODULE_1__.logError)(e);
         return;
       }
+      console.log(e);
+      (0,_logger__WEBPACK_IMPORTED_MODULE_1__.logError)(e);
 
       // 报错后等待3秒再重试
       // console.log(123, msgQueueRetryCount);
