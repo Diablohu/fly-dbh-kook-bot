@@ -7,6 +7,13 @@ import log, { logError } from '../logger';
 import upload from '../upload';
 import { Command, CommandAction } from './';
 
+type OFPAerodromeType = {
+    name: string;
+    icao_code: string | {};
+    iata_code: string | {};
+    faa_code: string | {};
+    plan_rwy: string;
+};
 interface OFP {
     fetch: {
         userid: string;
@@ -56,24 +63,9 @@ interface OFP {
         route_ifps: string;
         route_navigraph: string;
     };
-    origin: {
-        name: string;
-        icao_code: string;
-        iata_code: string;
-        plan_rwy: string;
-    };
-    destination: {
-        name: string;
-        icao_code: string;
-        iata_code: string;
-        plan_rwy: string;
-    };
-    alternate: {
-        name: string;
-        icao_code: string;
-        iata_code: string;
-        plan_rwy: string;
-    };
+    origin: OFPAerodromeType;
+    destination: OFPAerodromeType;
+    alternate: OFPAerodromeType;
     navlog: {
         fix?: Array<{ altitude_feet: string }>;
     };
@@ -188,6 +180,12 @@ const postCardDivider = {
     type: 'divider',
 };
 
+function displayAerodromeCode(aerodrome: OFPAerodromeType) {
+    return [aerodrome.icao_code, aerodrome.iata_code, aerodrome.faa_code]
+        .filter((v) => typeof v === 'string')
+        .join(' / ');
+}
+
 // ============================================================================
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -216,14 +214,15 @@ async function commandAction(
     if (/^\d+$/.test(user)) params.userid = user;
     else params.username = user;
 
+    const url = `https://www.simbrief.com/api/xml.fetcher.php?${Object.entries(
+        params,
+    )
+        .map(([key, value]) => `${key}=${value}`)
+        .join('&')}`;
+    // console.log(url);
+    // https://www.simbrief.com/api/xml.fetcher.php?json=1&username=diablohu
     const res = await axios
-        .get<OFP>(
-            `https://www.simbrief.com/api/xml.fetcher.php?${Object.entries(
-                params,
-            )
-                .map(([key, value]) => `${key}=${value}`)
-                .join('&')}`,
-        )
+        .get<OFP>(url)
         .then((res) => {
             log.http(res);
             return res;
@@ -290,15 +289,15 @@ async function commandAction(
                     fields: [
                         {
                             type: 'kmarkdown',
-                            content: `**🛫 始发地**\n　  ${ofp.origin.icao_code} / ${ofp.origin.iata_code}`,
+                            content: `**🛫 始发地**\n　  ${displayAerodromeCode(ofp.origin)}`,
                         },
                         {
                             type: 'kmarkdown',
-                            content: `**🛬 目的地**\n　  ${ofp.destination.icao_code} / ${ofp.destination.iata_code}`,
+                            content: `**🛬 目的地**\n　  ${displayAerodromeCode(ofp.destination)}`,
                         },
                         {
                             type: 'kmarkdown',
-                            content: `**🪂 备降**\n　  ${ofp.alternate.icao_code} / ${ofp.alternate.iata_code}`,
+                            content: `**🪂 备降**\n　  ${displayAerodromeCode(ofp.alternate)}`,
                         },
                     ],
                 },
