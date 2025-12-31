@@ -2,7 +2,7 @@ import type { Message } from 'discord.js';
 
 import path from 'node:path';
 import Koa from 'koa';
-import koaRouter from 'koa-router';
+import koaRouter from '@koa/router';
 // import { koaBody } from 'koa-body';
 import bodyParser from 'koa-bodyparser';
 // import koaSendFile from 'koa-sendfile';
