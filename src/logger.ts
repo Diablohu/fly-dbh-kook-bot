@@ -7,19 +7,6 @@ import { logDir } from '../app.config';
 //     do something fun
 // });
 
-const transports = ['error', 'warn', 'notice', 'info', 'http', undefined].map(
-    (level) =>
-        new winston.transports.DailyRotateFile({
-            level,
-            filename: `${level || 'combined'}.%DATE%.log`,
-            dirname: logDir,
-            datePattern: 'YYYY-MM-DD',
-            zippedArchive: true,
-            maxFiles: '14d',
-            utc: true,
-        }),
-);
-
 const logger = winston.createLogger({
     level: 'info',
     format: winston.format.combine(
@@ -28,7 +15,18 @@ const logger = winston.createLogger({
         winston.format.prettyPrint(),
     ),
     defaultMeta: { service: 'fly-dbh-kook-bot' },
-    transports,
+    transports: ['error', 'warn', 'notice', 'info', 'http', undefined].map(
+        (level) =>
+            new winston.transports.DailyRotateFile({
+                level,
+                filename: `%DATE%.${level || 'combined'}.log`,
+                dirname: logDir,
+                datePattern: 'YYYY-MM-DD',
+                zippedArchive: true,
+                maxFiles: '7d',
+                utc: true,
+            }),
+    ),
 });
 
 export default logger;
